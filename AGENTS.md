@@ -17,13 +17,12 @@
 
 ### Issue tracker
 
-Issues and specs live in `.scratch/`. See `docs/agents/issue-tracker.md`.
+이슈 및 spec은 `.scratch/`에 저장됩니다. `docs/agents/issue-tracker.md`를 참고하세요.
 
 ### Triage labels
 
-Canonical triage roles mapped to matching label names. See `docs/agents/triage-labels.md`.
+표준 triage 역할이 매핑된 라벨 이름입니다. `docs/agents/triage-labels.md`를 참고하세요.
 
 ### Domain docs
 
-Single-context layout (`CONTEXT.md` + `docs/adr/`). See `docs/agents/domain.md`.
-
+단일 context 레이아웃 (`CONTEXT.md` + `docs/adr/`). `docs/agents/domain.md`를 참고하세요.
