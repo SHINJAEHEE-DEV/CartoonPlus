@@ -12,3 +12,18 @@
 - 목표는 분명하지만 무엇부터 결정하고 어떤 순서로 진행할지 보이지 않으면 → `/wayfinder` → `/to-spec`.
 - 특정 기능이 아니라 code structure의 개선점을 찾는 작업 → `/improve-codebase-architecture` → `/grill-with-docs`.
 - `/grill-with-docs` → `/to-spec` → `/to-tickets`는 같은 context에서 이어서 실행한다. `/to-tickets` 완료 후와 각 `/implement` 사이에는 `/clear`한다.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live in `.scratch/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical triage roles mapped to matching label names. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout (`CONTEXT.md` + `docs/adr/`). See `docs/agents/domain.md`.
+
