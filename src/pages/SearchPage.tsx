@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { MockDataRepository } from '../lib/storage';
 import { normalizeTitle } from '../lib/hangul';
+import { getAssetUrl } from '../lib/assets';
 
 interface SearchPageProps {
   selectedStore: 'snu' | 'jamsil';
@@ -204,7 +205,7 @@ export default function SearchPage({ selectedStore, onOpenBookRequest }: SearchP
           /* Empty Search Results State */
           <div className="bg-white border-2 border-dashed border-brand-charcoal rounded-3xl p-8 md:p-12 text-center my-6">
             <img
-              src="/assets/ef0d4add-14d7-4466-9c5b-94a62f2b8d5b.png"
+              src={getAssetUrl('/assets/ef0d4add-14d7-4466-9c5b-94a62f2b8d5b.png')}
               alt="검색 결과 없음"
               className="w-24 h-24 mx-auto mb-4 animate-cp-wiggle"
             />

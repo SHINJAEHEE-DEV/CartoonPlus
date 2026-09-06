@@ -31,7 +31,7 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <div className="min-h-screen bg-brand-surface flex flex-col font-sans text-brand-charcoal selection:bg-brand-yellow selection:text-brand-charcoal">
           {/* Global Header */}
           <Header selectedStore={selectedStore} onStoreChange={handleStoreChange} />

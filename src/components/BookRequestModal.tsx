@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MockDataRepository } from '../lib/storage';
+import { getAssetUrl } from '../lib/assets';
 
 interface BookRequestModalProps {
   isOpen: boolean;
@@ -184,7 +185,7 @@ export default function BookRequestModal({
           <div className="text-center py-4">
             <div className="w-24 h-24 mx-auto mb-3 flex items-center justify-center">
               <img
-                src="/assets/9b6c63f7-8550-4612-92df-5dbcdff51ec3.png"
+                src={getAssetUrl('/assets/9b6c63f7-8550-4612-92df-5dbcdff51ec3.png')}
                 alt="접수 완료 마스코트"
                 className="w-20 animate-cp-bob"
               />

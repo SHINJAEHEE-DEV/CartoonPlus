@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { MockDataRepository } from '../lib/storage';
+import { getAssetUrl } from '../lib/assets';
 
 export default function EntertainmentPage() {
   const [activeTab, setActiveTab] = useState<'NINTENDO' | 'XBOX' | 'BOARD_GAME'>('NINTENDO');
@@ -14,7 +15,7 @@ export default function EntertainmentPage() {
       {/* Hero Header */}
       <section className="relative bg-brand-charcoal text-white py-14 overflow-hidden border-b-2 border-brand-charcoal">
         <img
-          src="/assets/0e26d418-3966-4c35-b0e1-b3c1090af55c.jpg"
+          src={getAssetUrl('/assets/0e26d418-3966-4c35-b0e1-b3c1090af55c.jpg')}
           alt="게임룸 배경"
           className="absolute inset-0 w-full h-full object-cover opacity-25"
         />
@@ -101,7 +102,7 @@ export default function EntertainmentPage() {
         {/* Notice Banner */}
         <div className="mt-10 bg-brand-yellow border-2 border-brand-charcoal rounded-3xl p-6 flex flex-col sm:flex-row items-center gap-5 shadow-md">
           <img
-            src="/assets/d09e6004-5fe6-405b-a0af-411afc1330f7.png"
+            src={getAssetUrl('/assets/d09e6004-5fe6-405b-a0af-411afc1330f7.png')}
             alt="게임룸 안내"
             className="w-20 md:w-24 animate-cp-bob shrink-0"
           />

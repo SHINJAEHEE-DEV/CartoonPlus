@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { MockDataRepository } from '../lib/storage';
+import { getAssetUrl } from '../lib/assets';
 
 interface HomePageProps {
   selectedStore: 'snu' | 'jamsil';
@@ -35,25 +36,25 @@ export default function HomePage({ selectedStore, onOpenBookRequest }: HomePageP
     {
       title: '3만 권 도서 & 웹툰',
       desc: '인기 신간부터 추억의 명작, 웹툰 단행본까지 방대한 컬렉션',
-      img: '/assets/ffc90c88-703f-44f7-b99d-33f25d7780cb.png',
+      img: getAssetUrl('/assets/ffc90c88-703f-44f7-b99d-33f25d7780cb.png'),
       delay: '0',
     },
     {
       title: '넷플릭스 프라이빗 룸',
       desc: '아늑한 독립 룸에서 대형 스크린으로 OTT 무제한 시청',
-      img: '/assets/ace234b7-598d-45be-9063-f53428b39df4.png',
+      img: getAssetUrl('/assets/ace234b7-598d-45be-9063-f53428b39df4.png'),
       delay: '60',
     },
     {
       title: '닌텐도 & Xbox 게임룸',
       desc: '마리오카트, 스매시브라더스, 스포츠 게임 완비',
-      img: '/assets/5195e21d-d069-4a4c-9fb9-c14597f85dc4.png',
+      img: getAssetUrl('/assets/5195e21d-d069-4a4c-9fb9-c14597f85dc4.png'),
       delay: '120',
     },
     {
       title: '프리미엄 안마의자 룸',
       desc: '피로를 녹여주는 최고급 바디케어 안마의자 힐링 존',
-      img: '/assets/c3620538-2587-4c90-bceb-53f73e82d1ed.jpg',
+      img: getAssetUrl('/assets/c3620538-2587-4c90-bceb-53f73e82d1ed.jpg'),
       delay: '180',
     },
   ];
@@ -80,10 +81,10 @@ export default function HomePage({ selectedStore, onOpenBookRequest }: HomePageP
   ];
 
   const gallery = [
-    { src: '/assets/d57e58db-5b66-419a-a16c-17c736164a4c.jpg', cap: '프라이빗 넷플릭스 룸', sub: '아늑한 굴방 인테리어' },
-    { src: '/assets/0e26d418-3966-4c35-b0e1-b3c1090af55c.jpg', cap: '닌텐도 스위치 게임존', sub: '1~4인 파티 플레이' },
-    { src: '/assets/a2438a39-4ada-4f7b-8c76-a0807bc2d0a0.jpg', cap: '오픈 서가 라운지', sub: '3만 권 도서 보유' },
-    { src: '/assets/ddda53c2-ebfb-4799-a149-4282bee460f4.jpg', cap: '프리미엄 안마의자 힐링존', sub: '피로회복 라운지' },
+    { src: getAssetUrl('/assets/d57e58db-5b66-419a-a16c-17c736164a4c.jpg'), cap: '프라이빗 넷플릭스 룸', sub: '아늑한 굴방 인테리어' },
+    { src: getAssetUrl('/assets/0e26d418-3966-4c35-b0e1-b3c1090af55c.jpg'), cap: '닌텐도 스위치 게임존', sub: '1~4인 파티 플레이' },
+    { src: getAssetUrl('/assets/a2438a39-4ada-4f7b-8c76-a0807bc2d0a0.jpg'), cap: '오픈 서가 라운지', sub: '3만 권 도서 보유' },
+    { src: getAssetUrl('/assets/ddda53c2-ebfb-4799-a149-4282bee460f4.jpg'), cap: '프리미엄 안마의자 힐링존', sub: '피로회복 라운지' },
   ];
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -163,7 +164,7 @@ export default function HomePage({ selectedStore, onOpenBookRequest }: HomePageP
           <div className="md:col-span-5 flex justify-center relative">
             <div className="absolute inset-0 bg-white/50 rounded-full blur-2xl transform scale-90"></div>
             <img
-              src="/assets/f0a07651-1b46-4803-96ec-56060c5f69d0.png"
+              src={getAssetUrl('/assets/f0a07651-1b46-4803-96ec-56060c5f69d0.png')}
               alt="카툰플러스 힐링 마스코트"
               className="relative z-10 w-64 md:w-80 object-contain drop-shadow-xl animate-cp-float"
             />
@@ -354,9 +355,9 @@ export default function HomePage({ selectedStore, onOpenBookRequest }: HomePageP
         <div className="bg-brand-charcoal border-2 border-brand-charcoal rounded-3xl p-6 md:p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
           <div className="flex items-center gap-4">
             <img
-              src="/assets/9b6c63f7-8550-4612-92df-5dbcdff51ec3.png"
+              src={getAssetUrl('/assets/9b6c63f7-8550-4612-92df-5dbcdff51ec3.png')}
               alt="마스코트"
-              className="w-20 md:w-24 animate-cp-bob shrink-0"
+              className="w-20 md:w-24 animate-cp-bob-slow shrink-0"
             />
             <div>
               <h3 className="text-xl md:text-2xl font-black tracking-tight text-white mb-1">

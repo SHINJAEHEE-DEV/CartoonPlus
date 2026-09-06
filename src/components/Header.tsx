@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import StaffLoginModal from './StaffLoginModal';
+import { getAssetUrl } from '../lib/assets';
 
 interface HeaderProps {
   selectedStore: 'snu' | 'jamsil';
@@ -29,7 +30,7 @@ export default function Header({ selectedStore, onStoreChange }: HeaderProps) {
           {/* Brand Logo */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0">
             <img
-              src="/assets/06bbb21d-ce2f-4057-a658-dd61a9fa14be.png"
+              src={getAssetUrl('/assets/06bbb21d-ce2f-4057-a658-dd61a9fa14be.png')}
               alt="카툰플러스"
               className="h-11 w-11 rounded-full border-1.5 border-brand-charcoal shadow-xs"
             />

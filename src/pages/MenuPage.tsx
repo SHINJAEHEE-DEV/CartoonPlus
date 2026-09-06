@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { MockDataRepository } from '../lib/storage';
+import { getAssetUrl } from '../lib/assets';
 
 export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<'ALL' | 'MEAL' | 'SNACK' | 'BEV'>('ALL');
@@ -165,7 +166,7 @@ export default function MenuPage() {
           {/* Self Bar Notice Banner with Mascot */}
           <div className="mt-10 bg-white border-2 border-brand-charcoal rounded-3xl p-5 md:p-6 flex flex-col sm:flex-row items-center gap-5 shadow-md">
             <img
-              src="/assets/ffc90c88-703f-44f7-b99d-33f25d7780cb.png"
+              src={getAssetUrl('/assets/ffc90c88-703f-44f7-b99d-33f25d7780cb.png')}
               alt="셀프바 안내"
               className="w-20 md:w-24 animate-cp-bob-fast shrink-0"
             />

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { getAssetUrl } from '../lib/assets';
 
 export default function Footer() {
   return (
@@ -8,7 +9,7 @@ export default function Footer() {
         <div className="md:col-span-2">
           <div className="flex items-center gap-2.5 mb-3">
             <img
-              src="/assets/06bbb21d-ce2f-4057-a658-dd61a9fa14be.png"
+              src={getAssetUrl('/assets/06bbb21d-ce2f-4057-a658-dd61a9fa14be.png')}
               alt="카툰플러스 로고"
               className="h-10 w-10 rounded-full border border-gray-600"
             />
