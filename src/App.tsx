@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { MockDataRepository } from './lib/storage';
 import Header from './components/Header';
@@ -31,7 +31,7 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <BrowserRouter basename={import.meta.env.BASE_URL}>
+      <HashRouter>
         <div className="min-h-screen bg-brand-surface flex flex-col font-sans text-brand-charcoal selection:bg-brand-yellow selection:text-brand-charcoal">
           {/* Global Header */}
           <Header selectedStore={selectedStore} onStoreChange={handleStoreChange} />
@@ -75,7 +75,7 @@ export default function App() {
             prefilledTitle={requestPrefillTitle}
           />
         </div>
-      </BrowserRouter>
+      </HashRouter>
     </AuthProvider>
   );
 }
