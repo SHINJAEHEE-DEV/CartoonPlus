@@ -5,7 +5,89 @@
 @layer base {
   body {
     @apply bg-brand-surface text-brand-charcoal;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Animations matching wireframe exactly */
+@keyframes cpFloat {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-14px) rotate(-3deg); }
+}
+
+@keyframes cpBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes cpWiggle {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+
+@keyframes cpMarquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+@keyframes cpPulse {
+  0% { box-shadow: 0 0 0 0 rgba(30, 30, 30, 0.35); }
+  70% { box-shadow: 0 0 0 16px rgba(30, 30, 30, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(30, 30, 30, 0); }
+}
+
+@keyframes cpBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+@keyframes cpSpinSlow {
+  to { transform: rotate(360deg); }
+}
+
+.animate-cp-float {
+  animation: cpFloat 5.5s ease-in-out infinite !important;
+  will-change: transform;
+}
+
+.animate-cp-bob {
+  animation: cpBob 3.4s ease-in-out infinite !important;
+  will-change: transform;
+}
+
+.animate-cp-bob-fast {
+  animation: cpBob 2.6s ease-in-out infinite !important;
+  will-change: transform;
+}
+
+.animate-cp-bob-slow {
+  animation: cpBob 4s ease-in-out infinite !important;
+  will-change: transform;
+}
+
+.animate-cp-wiggle {
+  animation: cpWiggle 3s ease-in-out infinite !important;
+  will-change: transform;
+}
+
+.animate-cp-marquee {
+  display: inline-flex !important;
+  animation: cpMarquee 26s linear infinite !important;
+  will-change: transform;
+}
+
+.animate-cp-pulse {
+  animation: cpPulse 2.6s infinite !important;
+}
+
+.animate-cp-blink {
+  animation: cpBlink 1s ease 0s infinite normal none running !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
   }
 }
 
@@ -16,14 +98,14 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #F1F1F1;
+  background: #F1EFEA;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D4D4D8;
+  background: #D4CEBF;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #A1A1AA;
+  background: #A39B88;
 }
