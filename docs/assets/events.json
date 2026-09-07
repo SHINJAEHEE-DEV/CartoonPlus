@@ -1,0 +1,40 @@
+{
+  "affiliations_and_events": [
+    {
+      "id": "snu-official-partnership",
+      "title": "2026 서울대학교 단과대학생회장연석회의 공식 제휴 (2026 놀러오샤)",
+      "type": "AFFILIATION",
+      "partner": "서울대학교 (Seoul National University)",
+      "target": "서울대학교 학부생 및 대학원생 전원",
+      "period": "2026.01.01 ~ 2026.12.31 (상시 제휴)",
+      "verification": "학생증 실물 또는 서울대학교 포털 모바일 학생증 제시 필수",
+      "benefits": [
+        "패키지 요금제(2시간/3시간/5시간+음료) 10% 즉시 현장 할인",
+        "평일 종일권 결제 시 아메리카노 또는 아이스티 1잔 무료 업그레이드 제공",
+        "중간/기말 시험 기간 야간 집중 & 힐링 스페셜 패키지 프로모션"
+      ],
+      "poster_image": "docs/assets/snu_partnership_banner.png"
+    },
+    {
+      "id": "free-topping-ramen",
+      "title": "한강 즉석 라면 무제한 무료 토핑 바 상시 이벤트",
+      "type": "EVENT",
+      "target": "즉석 라면 구매 고객 전원",
+      "period": "상시 진행",
+      "benefits": [
+        "신라면, 진라면, 너구리, 불닭볶음면, 짜파게티 등 주문 시 대파, 숙주나물, 떡사리, 계란 무제한 무료 제공"
+      ]
+    },
+    {
+      "id": "naver-review-gift",
+      "title": "네이버 영수증 포토 리뷰 & SNS 인증 이벤트",
+      "type": "EVENT",
+      "target": "방문 후기 작성 고객",
+      "period": "상시 진행",
+      "benefits": [
+        "네이버 영수증 포토 리뷰 작성 시 음료/스낵 즉시 증정",
+        "블로그/인스타그램 방문 인증 후기 작성 시 재방문 1시간 무료 이용권 증정"
+      ]
+    }
+  ]
+}
