@@ -4,7 +4,7 @@
 
 **Blocked by:** 01: 운영용 Supabase·GitHub Pages 환경 준비.
 
-**Status:** ready-for-agent
+**Status:** blocked
 
 - [ ] 검증된 CSV 재고가 Book과 BookInventory로 안전하게 저장된다.
 - [ ] 도서명·작가명 부분 검색, 공백 무시 정규화, 초성 검색이 동작한다.
@@ -14,3 +14,4 @@
 
 ## Comments
 
+- 2026-09-07: 고객 검색 화면, 공백 무시·초성 검색, 무결과 입고 신청 시작 화면, Supabase 공개 카탈로그 스키마를 구현했다. 제공된 기준 CSV에는 `shelf_location`이 없으므로 실제 위치를 고객에게 정확히 표시할 수 없다. 서가 위치가 검증된 재고 자료와 Supabase 초기 적재가 완료될 때까지 이 티켓은 완료할 수 없다.
