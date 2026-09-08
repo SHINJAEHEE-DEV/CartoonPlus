@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-read -rsp 'Supabase service_role key (not saved): ' SUPABASE_SERVICE_ROLE_KEY
+read -rsp 'Supabase secret key 또는 legacy service_role key (저장하지 않음): ' SUPABASE_SERVICE_ROLE_KEY
 printf '\n'
 export SUPABASE_SERVICE_ROLE_KEY
 set -a; source .env.local; set +a

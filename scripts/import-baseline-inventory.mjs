@@ -9,7 +9,7 @@ const normalise = (value) => value.toLowerCase().replace(/[\s\p{P}\p{S}]/gu, '')
 const initial = (value) => [...value].map((c) => { const code = c.charCodeAt(0); return code >= 0xac00 && code <= 0xd7a3 ? initials[Math.floor((code - 0xac00) / 588)] : c; }).join('');
 const csvLine = (line) => { const out=[]; let value='', quoted=false; for(let i=0;i<line.length;i+=1){const c=line[i]; if(c==='"'&&line[i+1]==='"'&&quoted){value+='"';i+=1;}else if(c==='"'){quoted=!quoted;}else if(c===','&&!quoted){out.push(value);value='';}else{value+=c;}} out.push(value); return out; };
 const titleParts = (value) => { const m=/^(.*\S)\s+(\d+)$/u.exec(value.trim()); return m ? { title:m[1], volume:`1~${m[2]}권` } : { title:value.trim(), volume:'' }; };
-const request = async (path, options={}) => { const response=await fetch(`${url}/rest/v1/${path}`, { ...options, headers:{ apikey:key, Authorization:`Bearer ${key}`, 'Content-Type':'application/json', Prefer:'resolution=merge-duplicates,return=representation', ...(options.headers ?? {}) }}); if(!response.ok) throw new Error(`${path}: ${await response.text()}`); return response.status===204 ? null : response.json(); };
+const request = async (path, options={}) => { const response=await fetch(`${url}/rest/v1/${path}`, { ...options, headers:{ apikey:key, 'Content-Type':'application/json', Prefer:'resolution=merge-duplicates,return=representation', ...(options.headers ?? {}) }}); if(!response.ok) throw new Error(`${path}: ${await response.text()}`); return response.status===204 ? null : response.json(); };
 
 const [header,...lines] = (await readFile('docs/assets/seoul_univ_2026-Sep-04_1021.csv','utf8')).trim().split(/\r?\n/);
 const columns=csvLine(header);
