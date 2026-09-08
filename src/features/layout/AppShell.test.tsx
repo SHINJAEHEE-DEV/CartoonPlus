@@ -1,7 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { CustomerShell } from './AppShell';
+import { CustomerShell, StaffShell } from './AppShell';
 
 afterEach(cleanup);
 
@@ -16,5 +16,10 @@ describe('CustomerShell', () => {
     expect(screen.getByRole('link', { name: '이벤트·공지' }).getAttribute('href')).toBe('/events');
     expect(screen.getByRole('link', { name: '매장 안내' }).getAttribute('href')).toBe('/store');
     expect(screen.queryByRole('searchbox')).toBeNull();
+  });
+
+  it('hides account management from Staff navigation', () => {
+    render(<StaffShell currentPath="/staff/dashboard" isAdmin={false}><h1>운영</h1></StaffShell>);
+    expect(screen.queryByRole('link', { name: '계정 관리' })).toBeNull();
   });
 });

@@ -17,6 +17,6 @@ export function CustomerShell({ children, currentPath }: { children: ReactNode; 
   return <div className="site-shell customer-shell"><header className="site-header"><Brand/><Nav links={customerLinks} currentPath={currentPath}/><a className="staff-entry" href="/staff">직원 로그인</a></header><main className="page-content">{children}</main><footer className="site-footer"><strong>카툰플러스 서울대입구역점</strong><span>오늘도 편안한 휴식을 준비합니다.</span></footer></div>;
 }
 
-export function StaffShell({ children, currentPath }: { children: ReactNode; currentPath: string }) {
-  return <div className="staff-shell"><aside className="staff-sidebar"><Brand/><p className="staff-label">매장 운영</p><Nav links={staffLinks} currentPath={currentPath}/><a className="staff-account" href="/staff/accounts">계정 관리</a><a className="staff-back" href="/">고객 화면 보기</a></aside><main className="staff-content">{children}</main></div>;
+export function StaffShell({ children, currentPath, isAdmin }: { children: ReactNode; currentPath: string; isAdmin: boolean }) {
+  return <div className="staff-shell"><aside className="staff-sidebar"><Brand/><p className="staff-label">매장 운영</p><Nav links={staffLinks} currentPath={currentPath}/>{isAdmin&&<a className="staff-account" href="/staff/accounts">계정 관리</a>}<a className="staff-back" href="/">고객 화면 보기</a></aside><main className="staff-content">{children}</main></div>;
 }
