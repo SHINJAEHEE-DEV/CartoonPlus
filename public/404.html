@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <script>
+      (function () {
+        var base = '/CartoonPlus/';
+        var path = window.location.pathname;
+        if (path.indexOf(base) === 0) {
+          var route = path.slice(base.length);
+          window.location.replace(base + '#/' + route + window.location.search);
+        } else {
+          window.location.replace(base);
+        }
+      }());
+    </script>
+  </head>
+  <body></body>
+</html>

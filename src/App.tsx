@@ -23,13 +23,31 @@ const legacyRoutes: Record<string, string> = { '/search': '/books', '/entertainm
 
 export default function App() {
   const [books, setBooks] = useState<SearchableBook[]>([]); const [error, setError] = useState(false);
-  const path = window.location.pathname.replace(/\/$/, '') || '/'; const redirect = legacyRoutes[path];
-  useEffect(() => { if (redirect) window.history.replaceState(null, '', redirect); }, [redirect]);
-  const currentPath = redirect ?? path; const isStaff = currentPath.startsWith('/staff'); const booksPath = currentPath === '/books';
+  const [, setNavigationVersion] = useState(0);
+  useEffect(() => {
+    const renderForNavigation = () => setNavigationVersion((version) => version + 1);
+    const followInternalLink = (event: MouseEvent) => {
+      const target = (event.target as Element | null)?.closest<HTMLAnchorElement>('a[href]');
+      if (!target || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const destination = new URL(target.href);
+      if (destination.origin !== window.location.origin || !destination.pathname.startsWith('/') || destination.pathname.startsWith('/CartoonPlus/')) return;
+      event.preventDefault();
+      window.location.hash = destination.pathname + destination.search;
+    };
+    window.addEventListener('hashchange', renderForNavigation);
+    window.addEventListener('popstate', renderForNavigation);
+    document.addEventListener('click', followInternalLink);
+    return () => { window.removeEventListener('hashchange', renderForNavigation); window.removeEventListener('popstate', renderForNavigation); document.removeEventListener('click', followInternalLink); };
+  }, []);
+  const hashPath = window.location.hash.startsWith('#/') ? window.location.hash.slice(1) : '/';
+  const [path, hashQuery = ''] = hashPath.split('?');
+  const normalizedPath = path.replace(/\/$/, '') || '/'; const redirect = legacyRoutes[normalizedPath];
+  useEffect(() => { if (redirect) window.location.hash = redirect; }, [redirect]);
+  const currentPath = redirect ?? normalizedPath; const isStaff = currentPath.startsWith('/staff'); const booksPath = currentPath === '/books';
   const [role, setRole] = useState<'staff'|'admin'|null|undefined>(undefined);
   useEffect(()=>{if(!isStaff||currentPath==='/staff')return; const client=supabase;if(!client){setRole(null);return} void client.auth.getUser().then(async({data})=>{if(!data.user){setRole(null);return}const {data:account}=await client.from('staff_accounts').select('role,status').single();setRole(account?.status==='approved'?(account.role as 'staff'|'admin'):null)});},[isStaff,currentPath]);
   useEffect(() => { if (!booksPath) return; loadPublicCatalogue().then(setBooks).catch(() => setError(true)); }, [booksPath]);
-  const requestedTitle = new URLSearchParams(window.location.search).get('title') ?? '';
+  const requestedTitle = new URLSearchParams(hashQuery).get('title') ?? '';
   let page: React.ReactNode;
   if (currentPath === '/staff') page = <StaffAccessPage />;
   else if (currentPath === '/staff/dashboard') page = <DashboardPage />;
