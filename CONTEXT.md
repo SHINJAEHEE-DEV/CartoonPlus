@@ -13,7 +13,7 @@
 | **도서 재고 / 권수** | `BookInventory` | 특정 지점에 비치된 실제 권수 범위(예: 1~15권), 서가 위치, 최신 갱신일. 카툰플러스 도서는 대여하지 않는다. |
 | **도서 입고 신청** | `BookRequest` | 손님이 매장에 없는 도서의 입고를 신청하고 직원이 `접수`, `주문 완료`, `입고 완료`, `입고 불가` 단계로 내부 처리하는 내역. 입고 완료 도서는 신규 입고 도서로 고객에게 공개한다. |
 | **서가 위치** | `ShelfLocation` | 매장 내 도서가 비치된 위치 코드 및 텍스트 설명 (예: `A-03 (순정만화 구역)`). |
-| **즐길거리 (게임/보드게임)** | `EntertainmentItem` | 매장 내 구비된 닌텐도 스위치 / Xbox 게임 팩 및 보드게임 (타이틀명, 플레이 인원, 장르 등). |
+| **즐길거리 (게임/보드게임)** | `EntertainmentItem` | 매장 내 구비된 닌텐도 스위치 / PlayStation 4 / Xbox 게임 팩 및 보드게임 (타이틀명, 플레이 인원, 장르 등). |
 | **점검 중 게임 목록** | `Pending Game Catalog` | 실제 매장 보유 여부가 아직 확인되지 않은 게임 목록의 공개 상태. 확인된 게임만 고객에게 노출한다. |
 | **식음료 메뉴** | `MenuItem` | 매장에서 판매하는 음식 및 음료 (카테고리: 라면, 스낵, 커피/음료, 요금제 등, 가격, 베스트 여부). |
 | **방송 프리셋** | `BroadcastPreset` | 매장 스피커로 송출할 사전 정의된 안내 음성 멘트 (제목, 재생 텍스트/TTS). |
@@ -83,7 +83,7 @@ erDiagram
     ENTERTAINMENT_ITEM {
         string id PK
         string store_id FK
-        string type "종류 (NINTENDO | XBOX | BOARD_GAME)"
+        string type "종류 (NINTENDO | PLAYSTATION_4 | XBOX | BOARD_GAME)"
         string title "타이틀명"
         string players "지원 인원 (예: 1~4인)"
         string genre "장르/난이도"

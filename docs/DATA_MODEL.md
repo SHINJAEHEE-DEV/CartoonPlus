@@ -77,7 +77,7 @@ erDiagram
     ENTERTAINMENT_ITEMS {
         UUID id PK "아이템 ID"
         VARCHAR(20) store_id FK "지점 ID (STORES.id)"
-        VARCHAR(20) type "종류 (NINTENDO | XBOX | BOARD_GAME)"
+        VARCHAR(20) type "종류 (NINTENDO | PLAYSTATION_4 | XBOX | BOARD_GAME)"
         VARCHAR(100) title "타이틀명"
         VARCHAR(50) genre "장르/카테고리"
         VARCHAR(50) players "지원 인원"
