@@ -11,6 +11,7 @@ import { BookRequestsPage } from './features/staff/BookRequestsPage';
 import { HomePage } from './features/customer/HomePage';
 import { PublicInfoPage } from './features/customer/PublicInfoPage';
 import { StoreContentPage } from './features/staff/StoreContentPage';
+import { EventsPage } from './features/staff/EventsPage';
 import type { SearchableBook } from './lib/bookSearch';
 
 export default function App() {
@@ -25,14 +26,15 @@ export default function App() {
   const booksPath = window.location.pathname.endsWith('/books');
   const publicKind = ['games','events','store'].find((kind)=>window.location.pathname.endsWith(`/${kind}`));
   const contentPath = window.location.pathname.endsWith('/staff/content');
+  const eventsAdminPath = window.location.pathname.endsWith('/staff/events');
   const requestedTitle = new URLSearchParams(window.location.search).get('title') ?? '';
 
   useEffect(() => {
-    if (requestPath || staffPath || adminPath || inventoryPath || requestsPath || contentPath || publicKind || !booksPath) return;
+    if (requestPath || staffPath || adminPath || inventoryPath || requestsPath || contentPath || eventsAdminPath || publicKind || !booksPath) return;
     loadPublicCatalogue()
       .then(setBooks)
       .catch(() => setError(true));
-  }, [requestPath, staffPath, adminPath, inventoryPath, requestsPath, contentPath, booksPath, publicKind]);
+  }, [requestPath, staffPath, adminPath, inventoryPath, requestsPath, contentPath, eventsAdminPath, booksPath, publicKind]);
 
   if (requestPath) return <BookRequestForm title={requestedTitle} />;
   if (staffPath) return <StaffAccessPage />;
@@ -41,6 +43,7 @@ export default function App() {
   if (requestsPath) return <BookRequestsPage />;
   if (publicKind) return <PublicInfoPage kind={publicKind as 'games'|'events'|'store'} />;
   if (contentPath) return <StoreContentPage />;
+  if (eventsAdminPath) return <EventsPage />;
   if (!booksPath) return <HomePage />;
 
   if (error) {
