@@ -1,0 +1,2 @@
+export type ScheduledBroadcast={scheduleType:'daily'|'weekdays'|'once';targetTime:string;targetDays?:string[];targetDate?:string;isEnabled:boolean};
+export function isDue(schedule:ScheduledBroadcast,now:Date):boolean{if(!schedule.isEnabled||schedule.targetTime!==now.toTimeString().slice(0,5))return false;if(schedule.scheduleType==='daily')return true;if(schedule.scheduleType==='once')return schedule.targetDate===now.toISOString().slice(0,10);return schedule.targetDays?.includes(['SUN','MON','TUE','WED','THU','FRI','SAT'][now.getDay()])??false;}
