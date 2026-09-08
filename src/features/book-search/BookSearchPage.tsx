@@ -19,6 +19,8 @@ export function BookSearchPage({ books }: BookSearchPageProps) {
         <p>도서명, 작가명 또는 초성으로 매장 재고와 서가 위치를 찾아보세요.</p>
       </header>
 
+      <a className="primary-action" href="/new-arrivals">신규 입고 도서 보기 <span>→</span></a>
+
       <label className="search-field" htmlFor="book-search">
         <span className="sr-only">도서 검색</span>
         <input
