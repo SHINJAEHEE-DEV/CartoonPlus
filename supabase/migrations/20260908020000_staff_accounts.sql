@@ -3,7 +3,7 @@ create table if not exists public.staff_accounts (
   store_id uuid not null references public.stores(id),
   name text not null,
   login_id text not null unique,
-  phone_last4 text not null check (phone_last4 ~ '^\\d{4}$'),
+  phone_last4 text not null check (phone_last4 ~ '^[0-9]{4}$'),
   role text not null default 'staff' check (role in ('staff','admin')),
   status text not null default 'pending' check (status in ('pending','approved','deactivated')),
   approved_at timestamptz,
