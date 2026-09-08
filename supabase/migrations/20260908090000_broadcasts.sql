@@ -1,0 +1,6 @@
+create table if not exists public.broadcast_presets(id uuid primary key default gen_random_uuid(),store_id uuid references public.stores(id),title text not null,message_text text not null,created_at timestamptz default now());
+create table if not exists public.scheduled_broadcasts(id uuid primary key default gen_random_uuid(),store_id uuid references public.stores(id),message_text text not null,schedule_type text not null check(schedule_type in ('daily','weekdays','once')),target_time time not null,target_days text[],target_date date,is_enabled boolean not null default true,archived_at timestamptz);
+create table if not exists public.broadcast_runs(id uuid primary key default gen_random_uuid(),scheduled_broadcast_id uuid references public.scheduled_broadcasts(id),message_text text not null,status text not null check(status in ('pending','success','failure')),triggered_at timestamptz default now(),error_message text);
+alter table public.broadcast_presets enable row level security;alter table public.scheduled_broadcasts enable row level security;alter table public.broadcast_runs enable row level security;
+create policy "staff manages broadcasts" on public.scheduled_broadcasts for all using(public.is_approved_staff()) with check(public.is_approved_staff());
+create policy "staff reads runs" on public.broadcast_runs for select using(public.is_approved_staff());
