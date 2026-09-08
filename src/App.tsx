@@ -12,6 +12,7 @@ import { HomePage } from './features/customer/HomePage';
 import { PublicInfoPage } from './features/customer/PublicInfoPage';
 import { StoreContentPage } from './features/staff/StoreContentPage';
 import { EventsPage } from './features/staff/EventsPage';
+import { GamesPage } from './features/staff/GamesPage';
 import type { SearchableBook } from './lib/bookSearch';
 
 export default function App() {
@@ -27,14 +28,15 @@ export default function App() {
   const publicKind = ['games','events','store'].find((kind)=>window.location.pathname.endsWith(`/${kind}`));
   const contentPath = window.location.pathname.endsWith('/staff/content');
   const eventsAdminPath = window.location.pathname.endsWith('/staff/events');
+  const gamesAdminPath = window.location.pathname.endsWith('/staff/games');
   const requestedTitle = new URLSearchParams(window.location.search).get('title') ?? '';
 
   useEffect(() => {
-    if (requestPath || staffPath || adminPath || inventoryPath || requestsPath || contentPath || eventsAdminPath || publicKind || !booksPath) return;
+    if (requestPath || staffPath || adminPath || inventoryPath || requestsPath || contentPath || eventsAdminPath || gamesAdminPath || publicKind || !booksPath) return;
     loadPublicCatalogue()
       .then(setBooks)
       .catch(() => setError(true));
-  }, [requestPath, staffPath, adminPath, inventoryPath, requestsPath, contentPath, eventsAdminPath, booksPath, publicKind]);
+  }, [requestPath, staffPath, adminPath, inventoryPath, requestsPath, contentPath, eventsAdminPath, gamesAdminPath, booksPath, publicKind]);
 
   if (requestPath) return <BookRequestForm title={requestedTitle} />;
   if (staffPath) return <StaffAccessPage />;
@@ -44,6 +46,7 @@ export default function App() {
   if (publicKind) return <PublicInfoPage kind={publicKind as 'games'|'events'|'store'} />;
   if (contentPath) return <StoreContentPage />;
   if (eventsAdminPath) return <EventsPage />;
+  if (gamesAdminPath) return <GamesPage />;
   if (!booksPath) return <HomePage />;
 
   if (error) {
