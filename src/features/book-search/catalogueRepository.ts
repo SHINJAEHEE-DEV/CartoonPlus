@@ -1,6 +1,7 @@
 import type { SearchableBook } from '../../lib/bookSearch';
 import { supabase } from '../../lib/supabase';
 import { parseBaselineInventory } from '../../lib/inventoryCsv';
+import { isNewArrival } from '../../lib/newArrival';
 
 type CatalogueRow = {
   inventory_id: string;
@@ -9,6 +10,7 @@ type CatalogueRow = {
   category: string | null;
   volume_range: string;
   shelf_location: string | null;
+  first_registered_at?: string;
 };
 
 function toSearchableBook(row: CatalogueRow): SearchableBook {
@@ -40,4 +42,15 @@ export async function loadPublicCatalogue(): Promise<SearchableBook[]> {
   }
 
   return loadBaselineCsv();
+}
+
+export async function loadNewArrivals(): Promise<SearchableBook[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('customer_book_catalogue')
+    .select('inventory_id,title,author,category,volume_range,shelf_location,first_registered_at')
+    .eq('store_slug', 'snu')
+    .order('first_registered_at', { ascending: false });
+  if (error || !data) return [];
+  return data.filter((row) => row.first_registered_at && isNewArrival(row.first_registered_at)).map(toSearchableBook);
 }

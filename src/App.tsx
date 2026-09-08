@@ -14,6 +14,7 @@ import { StoreContentPage } from './features/staff/StoreContentPage';
 import { EventsPage } from './features/staff/EventsPage';
 import { GamesPage } from './features/staff/GamesPage';
 import { BroadcastPage } from './features/staff/BroadcastPage';
+import { NewArrivalsPage } from './features/customer/NewArrivalsPage';
 import type { SearchableBook } from './lib/bookSearch';
 
 export default function App() {
@@ -26,6 +27,7 @@ export default function App() {
   const inventoryPath = window.location.pathname.endsWith('/staff/inventory');
   const requestsPath = window.location.pathname.endsWith('/staff/requests');
   const booksPath = window.location.pathname.endsWith('/books');
+  const newArrivalsPath = window.location.pathname.endsWith('/new-arrivals');
   const publicKind = ['games','events','store'].find((kind)=>window.location.pathname.endsWith(`/${kind}`));
   const contentPath = window.location.pathname.endsWith('/staff/content');
   const eventsAdminPath = window.location.pathname.endsWith('/staff/events');
@@ -34,17 +36,18 @@ export default function App() {
   const requestedTitle = new URLSearchParams(window.location.search).get('title') ?? '';
 
   useEffect(() => {
-    if (requestPath || staffPath || adminPath || inventoryPath || requestsPath || contentPath || eventsAdminPath || gamesAdminPath || broadcastPath || publicKind || !booksPath) return;
+    if (requestPath || staffPath || adminPath || inventoryPath || requestsPath || contentPath || eventsAdminPath || gamesAdminPath || broadcastPath || newArrivalsPath || publicKind || !booksPath) return;
     loadPublicCatalogue()
       .then(setBooks)
       .catch(() => setError(true));
-  }, [requestPath, staffPath, adminPath, inventoryPath, requestsPath, contentPath, eventsAdminPath, gamesAdminPath, broadcastPath, booksPath, publicKind]);
+  }, [requestPath, staffPath, adminPath, inventoryPath, requestsPath, contentPath, eventsAdminPath, gamesAdminPath, broadcastPath, newArrivalsPath, booksPath, publicKind]);
 
   if (requestPath) return <BookRequestForm title={requestedTitle} />;
   if (staffPath) return <StaffAccessPage />;
   if (adminPath) return <AdminAccountsPage />;
   if (inventoryPath) return <InventoryPage />;
   if (requestsPath) return <BookRequestsPage />;
+  if (newArrivalsPath) return <NewArrivalsPage />;
   if (publicKind) return <PublicInfoPage kind={publicKind as 'games'|'events'|'store'} />;
   if (contentPath) return <StoreContentPage />;
   if (eventsAdminPath) return <EventsPage />;
