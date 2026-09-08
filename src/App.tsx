@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { BookSearchPage } from './features/book-search/BookSearchPage';
 import { loadPublicCatalogue } from './features/book-search/catalogueRepository';
 import { BookRequestStartPage } from './features/book-request/BookRequestStartPage';
+import { BookRequestForm } from './features/book-request/BookRequestForm';
 import { StaffAccessPage } from './features/staff/StaffAccessPage';
 import { AdminAccountsPage } from './features/staff/AdminAccountsPage';
 import { InventoryPage } from './features/staff/InventoryPage';
@@ -25,7 +26,7 @@ export default function App() {
       .catch(() => setError(true));
   }, [requestPath, staffPath, adminPath, inventoryPath]);
 
-  if (requestPath) return <BookRequestStartPage title={requestedTitle} />;
+  if (requestPath) return <BookRequestForm title={requestedTitle} />;
   if (staffPath) return <StaffAccessPage />;
   if (adminPath) return <AdminAccountsPage />;
   if (inventoryPath) return <InventoryPage />;
