@@ -4,6 +4,52 @@ import type { SearchableBook } from '../../lib/bookSearch';
 
 export function NewArrivalsPage() {
   const [books, setBooks] = useState<SearchableBook[]>([]);
-  useEffect(() => { void loadNewArrivals().then(setBooks); }, []);
-  return <main className="app-notice"><h1>신규 입고 도서</h1><p>처음 등록한 날부터 30일 동안만 보여 드립니다.</p>{books.length === 0 ? <p>새로 등록된 도서가 없습니다.</p> : <ul>{books.map((book) => <li key={book.id}><strong>{book.title}</strong> · {book.author || '작가 미상'} · {book.volumeRange} · {book.shelfLocation}</li>)}</ul>}<a href="./books">도서 검색으로 이동</a></main>;
+
+  useEffect(() => {
+    void loadNewArrivals().then(setBooks);
+  }, []);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div className="section-header">
+        <div>
+          <div className="section-kicker">NEW ARRIVALS</div>
+          <h1 className="section-title">최근 30일 신규 입고</h1>
+          <p style={{ fontSize: '14px', fontWeight: 600, color: '#6B6354', marginTop: '6px' }}>
+            새로 입고된 인기 만화와 신간 단행본 목록입니다. (입고일 기준 30일간 표시)
+          </p>
+        </div>
+        <a href="/books" className="view-all-btn">
+          ← 도서 검색으로
+        </a>
+      </div>
+
+      {books.length > 0 ? (
+        <div className="new-arrivals-grid">
+          {books.map((book) => (
+            <div key={book.id} className="new-book-card">
+              <div className="book-badges">
+                <span className="badge-new">NEW</span>
+                <span className="badge-genre">{book.category || '기타'}</span>
+              </div>
+              <div className="new-book-title">{book.title}</div>
+              <div className="new-book-author">{book.author || '작가 미표기'}</div>
+              <div className="new-book-meta">
+                <span>{book.volumeRange}</span>
+                <span style={{ color: '#8A8175' }}>·</span>
+                <span className="new-book-shelf">{book.shelfLocation || '서가 확인 중'}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="empty-search-box">
+          <p style={{ fontWeight: 700, color: '#6B6354' }}>현재 등록된 신규 입고 도서가 없습니다.</p>
+          <a href="/books" className="primary-btn">
+            전체 도서 검색하기
+          </a>
+        </div>
+      )}
+    </div>
+  );
 }
