@@ -1,0 +1,7 @@
+create table if not exists public.entertainment_items (id uuid primary key default gen_random_uuid(),store_id uuid not null references public.stores(id),item_type text not null,title text not null,players text,genre text,is_verified boolean not null default false,is_available boolean not null default true,archived_at timestamptz,created_at timestamptz not null default now());
+create table if not exists public.store_events (id uuid primary key default gen_random_uuid(),store_id uuid not null references public.stores(id),title text not null,content text not null,start_date date not null,end_date date not null,image_url text,is_public boolean not null default false,archived_at timestamptz,created_at timestamptz not null default now());
+alter table public.entertainment_items enable row level security; alter table public.store_events enable row level security;
+create policy "public reads verified games" on public.entertainment_items for select using (is_verified and is_available and archived_at is null);
+create policy "staff manages games" on public.entertainment_items for all using(public.is_approved_staff()) with check(public.is_approved_staff());
+create policy "public reads current events" on public.store_events for select using(is_public and archived_at is null and current_date between start_date and end_date);
+create policy "staff manages events" on public.store_events for all using(public.is_approved_staff()) with check(public.is_approved_staff());
