@@ -27,7 +27,7 @@ export default function App() {
   useEffect(() => { if (redirect) window.history.replaceState(null, '', redirect); }, [redirect]);
   const currentPath = redirect ?? path; const isStaff = currentPath.startsWith('/staff'); const booksPath = currentPath === '/books';
   const [role, setRole] = useState<'staff'|'admin'|null|undefined>(undefined);
-  useEffect(()=>{if(!isStaff||currentPath==='/staff')return; if(!supabase){setRole(null);return} void supabase.auth.getUser().then(async({data})=>{if(!data.user){setRole(null);return}const {data:account}=await supabase.from('staff_accounts').select('role,status').single();setRole(account?.status==='approved'?(account.role as 'staff'|'admin'):null)});},[isStaff,currentPath]);
+  useEffect(()=>{if(!isStaff||currentPath==='/staff')return; const client=supabase;if(!client){setRole(null);return} void client.auth.getUser().then(async({data})=>{if(!data.user){setRole(null);return}const {data:account}=await client.from('staff_accounts').select('role,status').single();setRole(account?.status==='approved'?(account.role as 'staff'|'admin'):null)});},[isStaff,currentPath]);
   useEffect(() => { if (!booksPath) return; loadPublicCatalogue().then(setBooks).catch(() => setError(true)); }, [booksPath]);
   const requestedTitle = new URLSearchParams(window.location.search).get('title') ?? '';
   let page: React.ReactNode;
