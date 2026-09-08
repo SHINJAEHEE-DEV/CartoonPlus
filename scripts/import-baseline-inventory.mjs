@@ -15,7 +15,7 @@ const [header,...lines] = (await readFile('docs/assets/seoul_univ_2026-Sep-04_10
 const columns=csvLine(header);
 const rows=lines.map((line)=>Object.fromEntries(columns.map((column,i)=>[column,csvLine(line)[i]??''])));
 const store=(await request('stores?on_conflict=slug',{method:'POST',body:JSON.stringify({slug:'snu',name:'서울대입구역점'})}))[0];
-const parsed=rows.filter((r)=>r.title?.trim()).map((r)=>({ ...r, ...titleParts(r.title) }));
+const parsed=[...new Map(rows.filter((r)=>r.title?.trim()).map((r)=>{ const parsed={ ...r, ...titleParts(r.title) }; return [`${parsed.title}\u0000${parsed.author?.trim()??''}`,parsed]; })).values()];
 const books=await request('books?on_conflict=title,author',{method:'POST',body:JSON.stringify(parsed.map((r)=>({title:r.title,author:r.author?.trim()??'',category:r.genre?.trim()??'',normalized_title:normalise(r.title),normalized_author:normalise(r.author??''),initial_consonants:initial(normalise(`${r.title}${r.author??''}`))})))});
 const byKey=new Map(books.map((book)=>[`${book.title}\u0000${book.author}`,book.id]));
 await request('book_inventories?on_conflict=store_id,book_id',{method:'POST',body:JSON.stringify(parsed.map((r)=>({store_id:store.id,book_id:byKey.get(`${r.title}\u0000${r.author?.trim()??''}`),volume_range:r.volume||'확인 중',shelf_location:`책장 ${r.number.trim()}번`})))});
