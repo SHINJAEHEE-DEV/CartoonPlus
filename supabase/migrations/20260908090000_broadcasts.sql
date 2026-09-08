@@ -4,3 +4,5 @@ create table if not exists public.broadcast_runs(id uuid primary key default gen
 alter table public.broadcast_presets enable row level security;alter table public.scheduled_broadcasts enable row level security;alter table public.broadcast_runs enable row level security;
 create policy "staff manages broadcasts" on public.scheduled_broadcasts for all using(public.is_approved_staff()) with check(public.is_approved_staff());
 create policy "staff reads runs" on public.broadcast_runs for select using(public.is_approved_staff());
+create policy "staff records runs" on public.broadcast_runs for insert with check(public.is_approved_staff());
+create policy "staff updates runs" on public.broadcast_runs for update using(public.is_approved_staff()) with check(public.is_approved_staff());
