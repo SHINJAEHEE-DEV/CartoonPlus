@@ -13,13 +13,13 @@ import { StoreContentPage } from './features/staff/StoreContentPage';
 import { EventsPage } from './features/staff/EventsPage';
 import { GamesPage } from './features/staff/GamesPage';
 import { BroadcastPage } from './features/staff/BroadcastPage';
+import { DashboardPage } from './features/staff/DashboardPage';
 import { NewArrivalsPage } from './features/customer/NewArrivalsPage';
 import { CustomerShell, StaffShell } from './features/layout/AppShell';
 import type { SearchableBook } from './lib/bookSearch';
 import { supabase } from './lib/supabase';
 
 const legacyRoutes: Record<string, string> = { '/search': '/books', '/entertainment': '/games', '/event': '/events' };
-function Dashboard(){ return <section className="dashboard-page"><p className="section-kicker">OPERATIONS</p><h1>오늘의 매장 운영</h1><p className="page-lede">처리할 업무를 확인하고 바로 시작하세요.</p><div className="dashboard-grid"><a href="/staff/requests"><strong>도서 입고 신청</strong><span>처리 대기 항목 확인</span></a><a href="/staff/broadcast"><strong>오늘의 예약 방송</strong><span>예약과 실패 기록 확인</span></a><a href="/staff/inventory"><strong>최근 재고 작업</strong><span>도서 재고 관리로 이동</span></a></div></section>; }
 
 export default function App() {
   const [books, setBooks] = useState<SearchableBook[]>([]); const [error, setError] = useState(false);
@@ -32,7 +32,7 @@ export default function App() {
   const requestedTitle = new URLSearchParams(window.location.search).get('title') ?? '';
   let page: React.ReactNode;
   if (currentPath === '/staff') page = <StaffAccessPage />;
-  else if (currentPath === '/staff/dashboard') page = <Dashboard />;
+  else if (currentPath === '/staff/dashboard') page = <DashboardPage />;
   else if (currentPath === '/staff/accounts') page = role === 'admin' ? <AdminAccountsPage /> : <p className="state-card">관리자만 직원 계정을 관리할 수 있습니다.</p>;
   else if (currentPath === '/staff/inventory') page = <InventoryPage />;
   else if (currentPath === '/staff/requests') page = <BookRequestsPage />;
