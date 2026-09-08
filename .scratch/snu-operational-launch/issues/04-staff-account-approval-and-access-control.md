@@ -4,7 +4,7 @@
 
 **Blocked by:** 01: 운영용 Supabase·GitHub Pages 환경 준비.
 
-**Status:** ready-for-agent
+**Status:** blocked
 
 - [ ] 가입 대기 직원은 운영 데이터 읽기·쓰기와 직원 화면 접근이 차단된다.
 - [ ] 승인된 직원은 로그인 아이디와 비밀번호로 직원 운영 기능을 사용한다.
@@ -13,4 +13,6 @@
 - [ ] 고객 공개 데이터와 Staff·Admin 권한 경계가 Supabase 정책으로 검증된다.
 
 ## Comments
+
+- 2026-09-08: 로그인 ID의 내부 인증 식별자 매핑과 `staff_accounts`, 승인 상태, Admin 판별, 승인 Staff 재고 쓰기 RLS 정책을 추가했다. Supabase 마이그레이션 적용 및 직원 가입·로그인·관리 화면 구현이 남아 있어 완료할 수 없다.
 
