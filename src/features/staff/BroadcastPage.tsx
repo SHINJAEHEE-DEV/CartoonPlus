@@ -1,0 +1,3 @@
+import { useState } from 'react';import { speakKorean } from '../../lib/broadcast';
+const presets=['음료와 음식이 준비되었습니다. 카운터에서 픽업해 주세요.','매장 마감 10분 전입니다. 소지품을 확인해 주세요.'];
+export function BroadcastPage(){const [text,setText]=useState('');const [status,setStatus]=useState('대기');const play=async(value:string)=>{setStatus('재생 중');try{await speakKorean(value);setStatus('성공')}catch{setStatus('실패')}};return <main className="app-notice"><h1>매장 방송</h1>{presets.map(p=><button key={p} onClick={()=>void play(p)}>{p}</button>)}<textarea value={text} onChange={e=>setText(e.target.value)} placeholder="직접 입력 방송"/><button onClick={()=>void play(text)} disabled={!text}>직접 방송</button><p>상태: {status}</p></main>}
