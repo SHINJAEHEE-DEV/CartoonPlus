@@ -8,9 +8,17 @@ const books = [
     id: 'chainsaw-man',
     title: '체인소 맨',
     author: '후지모토 타츠키',
-    category: '소년',
+    category: '소년,SF',
     volumeRange: '1~21권',
     shelfLocation: 'A-01 소년만화 서가',
+  },
+  {
+    id: 'natsume',
+    title: '나츠메 우인장',
+    author: '미도리카와 유키',
+    category: '순정',
+    volumeRange: '1~32권',
+    shelfLocation: 'B-03 순정만화 서가',
   },
 ];
 
@@ -25,6 +33,18 @@ describe('BookSearchPage', () => {
     expect(screen.getByText('체인소 맨')).toBeTruthy();
     expect(screen.getByText('1~21권')).toBeTruthy();
     expect(screen.getByText('A-01 소년만화 서가')).toBeTruthy();
+  });
+
+  it('filters books by selected genre chips when no search query is present', () => {
+    render(<BookSearchPage books={books} />);
+
+    expect(screen.getByText('체인소 맨')).toBeTruthy();
+    expect(screen.getByText('나츠메 우인장')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: '순정' }));
+
+    expect(screen.queryByText('체인소 맨')).toBeNull();
+    expect(screen.getByText('나츠메 우인장')).toBeTruthy();
   });
 
   it('offers a book request with the entered title when there are no results', () => {

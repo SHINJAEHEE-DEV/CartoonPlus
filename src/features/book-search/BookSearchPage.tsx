@@ -33,6 +33,9 @@ export function BookSearchPage({ books }: BookSearchPageProps) {
     if (selectedGenre !== '전체') {
       result = result.filter((book) => splitBookCategories(book.category).includes(selectedGenre));
     }
+    if (!query.trim()) {
+      return result;
+    }
     return searchBooks(result, query);
   }, [books, query, selectedGenre]);
 
