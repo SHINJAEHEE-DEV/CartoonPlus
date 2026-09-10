@@ -20,7 +20,9 @@ returns boolean language sql stable security definer set search_path=public as $
  select exists(select 1 from staff_accounts where id=auth.uid() and status='approved' and role='admin');
 $$;
 
+drop policy if exists "staff reads own account" on public.staff_accounts;
 create policy "staff reads own account" on public.staff_accounts for select using (id=auth.uid() or public.is_admin());
+drop policy if exists "admin updates accounts" on public.staff_accounts;
 create policy "admin updates accounts" on public.staff_accounts for update using (public.is_admin()) with check (public.is_admin());
 
 create or replace function public.apply_for_staff_account(p_name text,p_login_id text,p_phone_last4 text)

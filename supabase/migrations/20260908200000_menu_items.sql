@@ -12,8 +12,10 @@ create table if not exists public.menu_items (
 
 alter table public.menu_items enable row level security;
 
+drop policy if exists "public reads menu items" on public.menu_items;
 create policy "public reads menu items" on public.menu_items
   for select using (true);
 
+drop policy if exists "staff manages menu items" on public.menu_items;
 create policy "staff manages menu items" on public.menu_items
   for all using (public.is_approved_staff()) with check (public.is_approved_staff());
