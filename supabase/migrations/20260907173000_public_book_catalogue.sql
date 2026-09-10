@@ -61,7 +61,8 @@ select
   books.author,
   books.category,
   inventories.volume_range,
-  inventories.shelf_location
+  inventories.shelf_location,
+  inventories.first_registered_at
 from public.book_inventories as inventories
 join public.books on books.id = inventories.book_id
 join public.stores on stores.id = inventories.store_id
