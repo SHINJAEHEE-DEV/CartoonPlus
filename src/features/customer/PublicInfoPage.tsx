@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import gamingMascot from '../../../docs/assets/mascot/mascot_gaming.png';
-import coffeeMascot from '../../../docs/assets/mascot/mascot_coffee.png';
-import snuBanner from '../../../docs/assets/snu_partnership_banner.png';
-import storePhoto1 from '../../../docs/assets/store_photos/store_photo_01.jpg';
-import storePhoto2 from '../../../docs/assets/store_photos/store_photo_02.jpg';
+import gamingMascot from '../../assets/mascot_gaming.png';
+import coffeeMascot from '../../assets/mascot_coffee.png';
+import snuBanner from '../../assets/snu_partnership_banner.png';
+import storePhoto1 from '../../assets/store_photo_01.jpg';
+import storePhoto2 from '../../assets/store_photo_02.jpg';
 
 type Item = {
   id: string;

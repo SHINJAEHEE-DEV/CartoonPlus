@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import relaxingMascot from '../../../docs/assets/mascot/mascot_relaxing.png';
-import readingMascot from '../../../docs/assets/mascot/mascot_reading.png';
-import ottMascot from '../../../docs/assets/mascot/mascot_ott.png';
-import gamingMascot from '../../../docs/assets/mascot/mascot_gaming.png';
-import massageMascot from '../../../docs/assets/mascot/mascot_massage.png';
-import storePhoto1 from '../../../docs/assets/store_photos/store_photo_01.jpg';
-import storePhoto2 from '../../../docs/assets/store_photos/store_photo_02.jpg';
-import storePhoto3 from '../../../docs/assets/store_photos/store_photo_03.jpg';
+import relaxingMascot from '../../assets/mascot_relaxing.png';
+import readingMascot from '../../assets/mascot_reading.png';
+import ottMascot from '../../assets/mascot_ott.png';
+import gamingMascot from '../../assets/mascot_gaming.png';
+import massageMascot from '../../assets/mascot_massage.png';
+import storePhoto1 from '../../assets/store_photo_01.jpg';
+import storePhoto2 from '../../assets/store_photo_02.jpg';
+import storePhoto3 from '../../assets/store_photo_03.jpg';
 
 import { loadNewArrivals } from '../book-search/catalogueRepository';
 import type { SearchableBook } from '../../lib/bookSearch';

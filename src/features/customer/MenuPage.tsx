@@ -1,4 +1,4 @@
-import coffeeMascot from '../../../docs/assets/mascot/mascot_coffee.png';
+import coffeeMascot from '../../assets/mascot_coffee.png';
 
 const PRICES = [
   { name: '기본 1시간', price: '3,600원', note: '음료 미포함 · 초과 10분당 추가 요금' },

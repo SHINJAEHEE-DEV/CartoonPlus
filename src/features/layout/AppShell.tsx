@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import mascotLogo from '../../../docs/assets/mascot/mascot_logo_circle.png';
+import mascotLogo from '../../assets/mascot_logo_circle.png';
 
 const customerLinks = [
   ['홈', '/'],

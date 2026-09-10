@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import thinkingMascot from '../../../docs/assets/mascot/mascot_thinking.png';
+import thinkingMascot from '../../assets/mascot_thinking.png';
 
 export function BookRequestForm({ title = '' }: { title?: string }) {
   const [message, setMessage] = useState('');

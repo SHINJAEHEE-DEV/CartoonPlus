@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import thinkingMascot from '../../../docs/assets/mascot/mascot_thinking.png';
+import thinkingMascot from '../../assets/mascot_thinking.png';
 import { searchBooks, type SearchableBook } from '../../lib/bookSearch';
 
 type BookSearchPageProps = {
