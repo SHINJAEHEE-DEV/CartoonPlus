@@ -19,6 +19,15 @@ export function normalizeSearchText(value: string): string {
   return value.toLowerCase().replace(/[\s\p{P}\p{S}]/gu, '');
 }
 
+export function normalizeBookCategory(value: string): string {
+  const normalized = value.trim().replace(/\s*,\s*/gu, ',').replace(/(^|,)sf(?=,|$)/giu, '$1SF');
+  return normalized === 'SF,판타지' ? '판타지,SF' : normalized;
+}
+
+export function splitBookCategories(value: string): string[] {
+  return normalizeBookCategory(value).split(/[,·/]/u).map((category) => category.trim()).filter(Boolean);
+}
+
 export function toInitialConsonants(value: string): string {
   return [...value]
     .map((character) => {

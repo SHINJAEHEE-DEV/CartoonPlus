@@ -1,22 +1,37 @@
 import { useMemo, useState } from 'react';
 import thinkingMascot from '../../assets/mascot_thinking.png';
-import { searchBooks, type SearchableBook } from '../../lib/bookSearch';
+import { normalizeBookCategory, searchBooks, splitBookCategories, type SearchableBook } from '../../lib/bookSearch';
 
 type BookSearchPageProps = {
   books: SearchableBook[];
 };
 
 const SAMPLE_QUERIES = ['체인소맨', '원피스', '주술회전', '귀멸의 칼날', '스파이 패밀리'];
-const GENRES = ['전체', '소년', '순정', '판타지', '웹툰', '액션', '일상'];
-
 export function BookSearchPage({ books }: BookSearchPageProps) {
   const [query, setQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('전체');
 
+  // 실제 저장된 도서들의 카테고리/장르를 동적으로 추출
+  const dynamicGenres = useMemo(() => {
+    const genreCounts = new Map<string, number>();
+    for (const book of books) {
+      if (!book.category) continue;
+      const parts = splitBookCategories(book.category);
+      for (const part of parts) {
+        genreCounts.set(part, (genreCounts.get(part) || 0) + 1);
+      }
+    }
+    const sorted = Array.from(genreCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([name]) => name);
+
+    return ['전체', ...sorted];
+  }, [books]);
+
   const filteredBooks = useMemo(() => {
     let result = books;
     if (selectedGenre !== '전체') {
-      result = result.filter((b) => (b.category || '').includes(selectedGenre));
+      result = result.filter((book) => splitBookCategories(book.category).includes(selectedGenre));
     }
     return searchBooks(result, query);
   }, [books, query, selectedGenre]);
@@ -76,7 +91,7 @@ export function BookSearchPage({ books }: BookSearchPageProps) {
         {/* 장르 필터 */}
         <div className="chips-row">
           <span className="chip-label">장르 구분</span>
-          {GENRES.map((g) => (
+          {dynamicGenres.map((g) => (
             <button
               key={g}
               type="button"
@@ -105,7 +120,7 @@ export function BookSearchPage({ books }: BookSearchPageProps) {
           {filteredBooks.map((book) => (
             <div key={book.id} className="search-result-card">
               <div className="book-badges">
-                <span className="badge-genre">{book.category || '기타'}</span>
+                <span className="badge-genre">{normalizeBookCategory(book.category) || '기타'}</span>
                 <span className="badge-new">보유중</span>
               </div>
               <h2 style={{ fontSize: '17px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.3 }}>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { searchBooks, type SearchableBook } from './bookSearch';
+import { normalizeBookCategory, searchBooks, splitBookCategories, type SearchableBook } from './bookSearch';
 
 const books: SearchableBook[] = [
   {
@@ -39,5 +39,14 @@ describe('searchBooks', () => {
     expect(searchBooks(books, '')).toEqual([]);
     expect(searchBooks(books, ' --- ')).toEqual([]);
     expect(searchBooks(books, 'ㅉㅉ')).toEqual([]);
+  });
+});
+
+describe('normalizeBookCategory', () => {
+  it('merges spacing and case-only SF variants without merging distinct genres', () => {
+    expect(normalizeBookCategory(' 아이, 판타지 ')).toBe('아이,판타지');
+    expect(normalizeBookCategory('Sf')).toBe('SF');
+    expect(normalizeBookCategory('sf, 판타지')).toBe('판타지,SF');
+    expect(splitBookCategories('판타지,SF')).toEqual(['판타지', 'SF']);
   });
 });

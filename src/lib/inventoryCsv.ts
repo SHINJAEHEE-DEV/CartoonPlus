@@ -1,4 +1,4 @@
-import type { SearchableBook } from './bookSearch';
+import { normalizeBookCategory, type SearchableBook } from './bookSearch';
 
 type InventoryCsvRow = {
   title: string;
@@ -51,7 +51,7 @@ export function parseBaselineInventory(csv: string): SearchableBook[] {
       id: `baseline-${index}-${book.title}`,
       title: book.title,
       author: row.author?.trim() ?? '',
-      category: row.genre?.trim() ?? '',
+      category: normalizeBookCategory(row.genre ?? ''),
       volumeRange: book.volumeRange,
       shelfLocation: `책장 ${row.number.trim()}번`,
     }];
