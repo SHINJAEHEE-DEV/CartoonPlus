@@ -17,7 +17,7 @@ const FNB_ITEMS = [
   '김치볶음밥 · 치킨마요',
   '핫도그 · 소떡소떡',
   '과자 · 스낵류',
-  '한강 즉석 라면',
+  '즉석 라면',
 ];
 
 export function MenuPage() {
@@ -85,7 +85,7 @@ export function MenuPage() {
               ALWAYS ON
             </div>
             <div style={{ fontSize: '17px', fontWeight: 900, letterSpacing: '-0.02em', marginTop: '4px' }}>
-              한강 즉석 라면 무제한 무료 토핑 바
+              즉석 라면 무제한 무료 토핑 바
             </div>
             <div style={{ fontSize: '12px', fontWeight: 600, color: '#CFC7B4', marginTop: '6px', lineHeight: 1.5 }}>
               라면 주문 시 대파, 숙주나물, 떡사리, 계란을 무제한 무료로 제공합니다.

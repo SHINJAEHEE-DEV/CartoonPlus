@@ -4,8 +4,8 @@ import readingMascot from '../../assets/mascot_reading.png';
 import ottMascot from '../../assets/mascot_ott.png';
 import gamingMascot from '../../assets/mascot_gaming.png';
 import massageMascot from '../../assets/mascot_massage.png';
-import storePhoto1 from '../../assets/store_photo_01.jpg';
-import storePhoto2 from '../../assets/store_photo_02.jpg';
+import storePhoto1 from '../../assets/store_photo_043.jpg';
+import storePhoto2 from '../../assets/store_photo_049.jpg';
 import storePhoto3 from '../../assets/store_photo_03.jpg';
 
 import { loadNewArrivals } from '../book-search/catalogueRepository';
@@ -30,7 +30,7 @@ const ENJOY_POINTS = [
   {
     icon: gamingMascot,
     title: '게임 · 보드게임',
-    desc: '실물 확인된 스위치·PS4 타이틀과 보드게임 100여 종 자유 이용',
+    desc: '실물 확인된 스위치·PS4 타이틀과 보드게임 자유 이용',
     cta: '즐길거리 →',
     href: '/games',
   },
@@ -64,7 +64,7 @@ export function HomePage() {
           <span className="hero-badge">서울대입구역 3번 출구 도보 1분</span>
           <h1>만화, 게임, 그리고<br />제대로 쉬는 시간</h1>
           <p className="hero-desc">
-            수만 권의 만화와 OTT 룸, 닌텐도 스위치, 보드게임, 무료 안마의자, 한강 즉석 라면 셀프바까지.
+            수만 권의 만화와 OTT 룸, 닌텐도 스위치, 보드게임, 무료 안마의자, 즉석 라면 셀프바까지.
             하루를 통째로 쉬어 갈 수 있는 복합 힐링 공간입니다.
           </p>
           <div className="hero-actions">

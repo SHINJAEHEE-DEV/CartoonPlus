@@ -3,14 +3,16 @@ import { supabase } from '../../lib/supabase';
 import gamingMascot from '../../assets/mascot_gaming.png';
 import coffeeMascot from '../../assets/mascot_coffee.png';
 import snuBanner from '../../assets/snu_partnership_banner.png';
-import storePhoto1 from '../../assets/store_photo_01.jpg';
-import storePhoto2 from '../../assets/store_photo_02.jpg';
+import storePhoto1 from '../../assets/store_photo_043.jpg';
+import storePhoto2 from '../../assets/store_photo_049.jpg';
 
 type Item = {
   id: string;
   title: string;
   players?: string | null;
   genre?: string | null;
+  item_type?: string;
+  quantity?: number;
   content?: string | null;
   is_always_on?: boolean;
 };
@@ -42,16 +44,24 @@ const DEFAULT_GAMES = {
     { tag: 'PS4', title: '이풋볼', en: 'eFootball™' },
   ],
   board: [
-    { tag: 'BOARD', title: '루미큐브', en: 'Rummikub' },
-    { tag: 'BOARD', title: '스플렌더', en: 'Splendor' },
-    { tag: 'BOARD', title: '다빈치코드', en: 'Da Vinci Code' },
-    { tag: 'BOARD', title: '할리갈리', en: 'Halli Galli' },
+    { tag: 'BOARD', title: '다빈치코드', en: '3개' }, { tag: 'BOARD', title: '시타델', en: '2개' },
+    { tag: 'BOARD', title: '라스베가스', en: '' }, { tag: 'BOARD', title: '스플렌더 확장: 찬란한 도시', en: '' },
+    { tag: 'BOARD', title: '스플렌더', en: '2개' }, { tag: 'BOARD', title: '요트다이스', en: '' },
+    { tag: 'BOARD', title: '우봉고', en: '' }, { tag: 'BOARD', title: '젬블로', en: '' },
+    { tag: 'BOARD', title: '오델로 클래식', en: '' }, { tag: 'BOARD', title: '반지의 제왕', en: '' },
+    { tag: 'BOARD', title: 'ACUITY', en: '' }, { tag: 'BOARD', title: '루빅스 레이스', en: '' },
+    { tag: 'BOARD', title: '텔레스트레이션', en: '' }, { tag: 'BOARD', title: '체스&체커', en: '' },
+    { tag: 'BOARD', title: '뒤죽박죽 서커스', en: '' }, { tag: 'BOARD', title: '루핑루이', en: '' },
+    { tag: 'BOARD', title: '카탄', en: '' }, { tag: 'BOARD', title: '루미큐브 클래식', en: '' },
+    { tag: 'BOARD', title: '라비린스', en: '' }, { tag: 'BOARD', title: '뱅!', en: '' },
+    { tag: 'BOARD', title: '로스트 시티', en: '2개' }, { tag: 'BOARD', title: '콰르토', en: '' },
+    { tag: 'BOARD', title: '쿼리도', en: '' },
   ],
 };
 
 const DEFAULT_EVENTS = [
   {
-    title: '한강 즉석 라면 무제한 무료 토핑 바',
+    title: '즉석 라면 무제한 무료 토핑 바',
     period: '상시 진행',
     target: '즉석 라면 구매 고객 전원',
     detail: '신라면, 진라면, 너구리, 불닭볶음면, 짜파게티 등 주문 시 대파, 숙주나물, 떡사리, 계란을 무제한 무료로 제공합니다.',
@@ -83,10 +93,10 @@ const FACILITIES = [
   { zone: 'Book Zone · 도서/서가', description: '수만 권 규모의 인기 웹툰 단행본, 순정·소년·액션 만화, 그래픽 노블. 매주 신간 업데이트와 도서 검색 전용 PC 비치.' },
   { zone: 'Media Zone · OTT 룸', description: '넷플릭스, 왓챠, 티빙, 디즈니+, 유튜브 프리미엄 시청이 가능한 대형 스크린과 아늑한 암막 굴방.' },
   { zone: 'Gaming Zone · 콘솔 룸', description: '닌텐도 스위치 및 PS4 멀티플레이 타이틀을 2~4인이 동시에 즐길 수 있는 콘솔 전용 좌석.' },
-  { zone: 'Board Game Zone', description: '루미큐브, 스플렌더, 다빈치코드, 할리갈리 등 100여 종의 프리미엄 보드게임 자유 이용.' },
+  { zone: 'Board Game Zone', description: '다빈치코드, 스플렌더, 카탄 등 프리미엄 보드게임 자유 이용.' },
   { zone: 'Healing Zone · 안마의자', description: '매장 이용 고객 누구나 100% 무료로 이용 가능한 고급 바디프랜드 안마의자 비치.' },
   { zone: 'Private Rooms · 좌석', description: '1~2인 복층 굴방, 리클라이너 소파석, 카페형 테이블석. 전 좌석 콘센트와 극세사 담요 제공.' },
-  { zone: 'K-Ramen & F&B Bar', description: '한강 즉석 라면 조리기계 완비. 계란·파·숙주·떡사리 무제한 무료 토핑 바 운영.' },
+  { zone: 'K-Ramen & F&B Bar', description: '즉석 라면 조리기계 완비. 계란·파·숙주·떡사리 무제한 무료 토핑 바 운영.' },
 ];
 
 const AMENITIES = [
@@ -109,7 +119,7 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
     const today = new Date().toISOString().slice(0, 10);
     const query =
       kind === 'games'
-        ? supabase.from('entertainment_items').select('id,title,players,genre').eq('is_verified', true).eq('is_available', true).is('archived_at', null)
+        ? supabase.from('entertainment_items').select('id,title,players,genre,item_type,quantity').eq('is_verified', true).eq('is_available', true).is('archived_at', null)
         : kind === 'events'
         ? supabase.from('store_events').select('id,title,content,is_always_on').eq('is_public', true).is('archived_at', null).or('is_always_on.eq.true,and(start_date.lte.' + today + ',end_date.gte.' + today + ')')
         : null;
@@ -121,7 +131,13 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
 
   // 1. 즐길거리 (Games) 화면
   if (kind === 'games') {
-    const list = DEFAULT_GAMES[gameTab] || [];
+    const remoteType = gameTab === 'switch' ? 'NINTENDO' : gameTab === 'ps4' ? 'PLAYSTATION_4' : 'BOARD_GAME';
+    const remoteGames = (items ?? []).filter((item) => item.item_type === remoteType);
+    const fallbackGames = DEFAULT_GAMES[gameTab];
+    // The local list keeps the public page accurate until the corresponding DB seed migration is applied.
+    const list = remoteGames.length >= fallbackGames.length
+      ? remoteGames.map((item) => ({ tag: gameTab === 'board' ? 'BOARD' : gameTab === 'switch' ? 'NSW' : 'PS4', title: item.title, en: item.quantity && item.quantity > 1 ? `${item.quantity}개` : '' }))
+      : fallbackGames;
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <div>
@@ -175,10 +191,10 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
           <img src={gamingMascot} alt="게임 마스코트" style={{ width: '64px', height: '64px', objectFit: 'contain', flexShrink: 0 }} />
           <div>
             <div style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '-0.02em' }}>
-              보드게임 100여 종은 보드게임 존에서 자유 이용
+              보드게임은 보드게임 존에서 자유 이용
             </div>
             <div style={{ fontSize: '13px', fontWeight: 700, color: '#5C5344', marginTop: '4px' }}>
-              루미큐브 · 스플렌더 · 다빈치코드 · 할리갈리 외. 실물 확인이 끝나지 않은 타이틀은 점검 중으로 표시됩니다.
+              다빈치코드 · 스플렌더 · 카탄 · 루미큐브 클래식 외. 실물 확인이 끝나지 않은 타이틀은 점검 중으로 표시됩니다.
             </div>
           </div>
         </div>
