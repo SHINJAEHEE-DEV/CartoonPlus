@@ -224,7 +224,7 @@ export function BookRequestsPage() {
 
                       {item.status === 'completed' && (
                         <a
-                          href={`/staff/inventory?title=${encodeURIComponent(item.title)}`}
+                          href={`/staff/inventory?title=${encodeURIComponent(item.title)}&author=${encodeURIComponent(item.author || '')}&volume=${encodeURIComponent(item.desired_volume || '')}`}
                           style={{
                             padding: '6px 12px',
                             borderRadius: '8px',

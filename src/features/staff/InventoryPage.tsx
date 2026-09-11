@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
 import { validateInventoryCsv } from '../../lib/inventoryImport';
 import { parseBaselineInventory } from '../../lib/inventoryCsv';
@@ -13,6 +14,11 @@ interface InventoryItem {
 }
 
 export function InventoryPage() {
+  const [searchParams] = useSearchParams();
+  const defaultTitle = searchParams.get('title') || '';
+  const defaultAuthor = searchParams.get('author') || '';
+  const defaultVolume = searchParams.get('volume') || '';
+
   const [message, setMessage] = useState('');
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [searchFilter, setSearchFilter] = useState('');
@@ -44,7 +50,14 @@ export function InventoryPage() {
       p_shelf_location: String(form.get('shelf')),
     });
     setMessage(error?.message ?? '도서 재고를 저장했습니다.');
-    if (!error) await load();
+    if (!error) {
+      await load();
+      form.delete('title');
+      form.delete('author');
+      form.delete('category');
+      form.delete('volume');
+      form.delete('shelf');
+    }
   };
 
   const importCsv = async (file: File) => {
@@ -59,13 +72,12 @@ export function InventoryPage() {
         p_title: book.title,
         p_author: book.author,
         p_category: book.category,
-        p_volume_range: book.volumeRange || '확인 중',
+        p_volume_range: book.volumeRange,
         p_shelf_location: book.shelfLocation,
       });
-      if (error) return setMessage(error.message);
-      done += 1;
+      if (!error) done++;
     }
-    setMessage(`${done}개 도서 재고를 추가하거나 갱신했습니다.`);
+    setMessage(`${done}건의 재고 데이터를 업데이트했습니다.`);
     await load();
   };
 
@@ -81,16 +93,15 @@ export function InventoryPage() {
 
   // 검색 필터링
   const filteredItems = useMemo(() => {
-    if (!searchFilter.trim()) return items;
+    if (!searchFilter) return items;
     const q = searchFilter.toLowerCase();
-    return items.filter((item) => {
-      const b = item.books[0];
-      return (
-        b?.title?.toLowerCase().includes(q) ||
-        b?.author?.toLowerCase().includes(q) ||
-        item.shelf_location?.toLowerCase().includes(q)
-      );
-    });
+    return items.filter(
+      (item) =>
+        item.books[0]?.title.toLowerCase().includes(q) ||
+        item.books[0]?.author.toLowerCase().includes(q) ||
+        item.volume_range.toLowerCase().includes(q) ||
+        item.shelf_location.toLowerCase().includes(q)
+    );
   }, [items, searchFilter]);
 
   // 페이지네이션 슬라이싱
@@ -103,9 +114,9 @@ export function InventoryPage() {
     <main style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div>
         <span style={{ fontSize: '12px', fontWeight: 900, color: '#8A6A00', letterSpacing: '0.08em' }}>STAFF INVENTORY</span>
-        <h1 style={{ fontSize: '26px', fontWeight: 900, marginTop: '2px' }}>도서 재고 마스터 관리</h1>
+        <h1 style={{ fontSize: '26px', fontWeight: 900, marginTop: '2px' }}>도서 재고 관리</h1>
         <p style={{ fontSize: '13px', fontWeight: 600, color: '#6B6354', marginTop: '4px' }}>
-          지점별 도서 실물 재고와 서가 위치를 등록·수정하거나 CSV 대량 업로드를 진행합니다.
+          단건 등록 및 Caspio CSV 대량 가져오기를 통해 현재 서가 내 실물 재고를 관리합니다.
         </p>
       </div>
 
@@ -164,10 +175,10 @@ export function InventoryPage() {
           }}
           style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}
         >
-          <input name="title" placeholder="도서명 *" required style={{ padding: '10px 12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '13px' }} />
-          <input name="author" placeholder="작가명" style={{ padding: '10px 12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '13px' }} />
+          <input name="title" defaultValue={defaultTitle} placeholder="도서명 *" required style={{ padding: '10px 12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '13px' }} />
+          <input name="author" defaultValue={defaultAuthor} placeholder="작가명" style={{ padding: '10px 12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '13px' }} />
           <input name="category" placeholder="장르 (예: 액션/소년)" style={{ padding: '10px 12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '13px' }} />
-          <input name="volume" placeholder="권수 (예: 1~22권) *" required style={{ padding: '10px 12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '13px' }} />
+          <input name="volume" defaultValue={defaultVolume} placeholder="권수 (예: 1~22권) *" required style={{ padding: '10px 12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '13px' }} />
           <input name="shelf" placeholder="서가 (예: A-03) *" required style={{ padding: '10px 12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '13px' }} />
           <button
             type="submit"
