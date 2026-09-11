@@ -1,0 +1,30 @@
+{
+  "name": "카툰플러스 서울대입구역점",
+  "short_name": "카툰플러스",
+  "description": "카툰플러스 서울대입구역점 실시간 도서 검색 및 매장 안내",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFF9EC",
+  "theme_color": "#FED943",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
