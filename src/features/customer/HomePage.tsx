@@ -7,6 +7,7 @@ import massageMascot from '../../assets/mascot_massage.png';
 import storePhoto1 from '../../assets/store_photo_043.jpg';
 import storePhoto2 from '../../assets/store_photo_049.jpg';
 import storePhoto3 from '../../assets/store_photo_03.jpg';
+import snuBanner from '../../assets/snu_partnership_banner.png';
 
 import { loadNewArrivals } from '../book-search/catalogueRepository';
 import type { SearchableBook } from '../../lib/bookSearch';
@@ -211,30 +212,28 @@ export function HomePage() {
 
         {/* 제휴 안내 */}
         <div className="panel-partnership">
-          <div className="section-kicker" style={{ color: '#FED943' }}>PARTNERSHIP</div>
-          <h3 style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.25 }}>
-            2026 서울대학교<br />단과대학생회장연석회의 공식 제휴
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div className="partnership-bullet">· 패키지 요금제 10% 현장 즉시 할인</div>
-            <div className="partnership-bullet">· 평일 종일권 결제 시 음료 무료 사이즈업/업그레이드</div>
-            <div className="partnership-bullet">· 학생증 실물 또는 모바일 학생증 제시 필수</div>
+          <div className="partnership-left">
+            <div>
+              <div className="section-kicker" style={{ color: '#FED943' }}>PARTNERSHIP</div>
+              <h3 className="partnership-title">
+                2026 서울대학교<br />단과대학생회장연석회의 공식 제휴
+              </h3>
+              <div className="partnership-bullets">
+                <div className="partnership-bullet">· 패키지 요금제 10% 현장 즉시 할인</div>
+                <div className="partnership-bullet">· 평일 종일권 결제 시 음료 무료 사이즈업/업그레이드</div>
+                <div className="partnership-bullet">· 학생증 실물 또는 모바일 학생증 제시 필수</div>
+              </div>
+            </div>
+            <a
+              href="/events"
+              className="partnership-btn"
+            >
+              제휴 혜택 자세히 →
+            </a>
           </div>
-          <a
-            href="/events"
-            style={{
-              alignSelf: 'flex-start',
-              marginTop: 'auto',
-              padding: '11px 18px',
-              borderRadius: '999px',
-              background: '#FED943',
-              color: '#1E1E1E',
-              fontSize: '13px',
-              fontWeight: 800,
-            }}
-          >
-            제휴 혜택 자세히 →
-          </a>
+          <div className="partnership-right">
+            <img src={snuBanner} alt="서울대학교 공식 제휴 배너" />
+          </div>
         </div>
       </section>
 
