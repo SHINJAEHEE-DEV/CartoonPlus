@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { applyForStaff, signInStaff } from './staffAuth';
 import mascotLogo from '../../assets/mascot_logo_circle.png';
 
 export function StaffAccessPage() {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false);
@@ -27,7 +29,7 @@ export function StaffAccessPage() {
         setIsError(false);
       } else {
         await signInStaff(String(form.get('loginId')), String(form.get('password')));
-        window.location.hash = '/staff/dashboard';
+        navigate('/staff/dashboard');
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '처리에 실패했습니다.');

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { BookSearchPage } from './features/book-search/BookSearchPage';
 import { loadPublicCatalogue } from './features/book-search/catalogueRepository';
 import { BookRequestForm } from './features/book-request/BookRequestForm';
@@ -19,54 +20,101 @@ import { CustomerShell, StaffShell } from './features/layout/AppShell';
 import type { SearchableBook } from './lib/bookSearch';
 import { supabase } from './lib/supabase';
 
-const legacyRoutes: Record<string, string> = { '/search': '/books', '/entertainment': '/games', '/event': '/events' };
-
-export default function App() {
-  const [books, setBooks] = useState<SearchableBook[]>([]); const [error, setError] = useState(false);
-  const [, setNavigationVersion] = useState(0);
+function InternalLinkInterceptor() {
+  const navigate = useNavigate();
   useEffect(() => {
-    const renderForNavigation = () => setNavigationVersion((version) => version + 1);
     const followInternalLink = (event: MouseEvent) => {
       const target = (event.target as Element | null)?.closest<HTMLAnchorElement>('a[href]');
       if (!target || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const destination = new URL(target.href);
       if (destination.origin !== window.location.origin || !destination.pathname.startsWith('/') || destination.pathname.startsWith('/CartoonPlus/')) return;
+      
+      // Allow external links or downloads to bypass
+      if (target.target === '_blank' || target.hasAttribute('download')) return;
+
       event.preventDefault();
-      window.location.hash = destination.pathname + destination.search;
+      navigate(destination.pathname + destination.search);
     };
-    window.addEventListener('hashchange', renderForNavigation);
-    window.addEventListener('popstate', renderForNavigation);
     document.addEventListener('click', followInternalLink);
-    return () => { window.removeEventListener('hashchange', renderForNavigation); window.removeEventListener('popstate', renderForNavigation); document.removeEventListener('click', followInternalLink); };
-  }, []);
-  const hashPath = window.location.hash.startsWith('#/') ? window.location.hash.slice(1) : '/';
-  const [path, hashQuery = ''] = hashPath.split('?');
-  const normalizedPath = path.replace(/\/$/, '') || '/'; const redirect = legacyRoutes[normalizedPath];
-  useEffect(() => { if (redirect) window.location.hash = redirect; }, [redirect]);
-  const currentPath = redirect ?? normalizedPath; const isStaff = currentPath.startsWith('/staff'); const booksPath = currentPath === '/books';
+    return () => { document.removeEventListener('click', followInternalLink); };
+  }, [navigate]);
+  return null;
+}
+
+function ProtectedStaffRoute({ children, requiredRole }: { children: React.ReactNode, requiredRole?: 'admin' }) {
+  const location = useLocation();
   const [role, setRole] = useState<'staff'|'admin'|null|undefined>(undefined);
-  useEffect(()=>{if(!isStaff||currentPath==='/staff')return; const client=supabase;if(!client){setRole(null);return} void client.auth.getUser().then(async({data})=>{if(!data.user){setRole(null);return}const {data:account}=await client.from('staff_accounts').select('role,status').single();setRole(account?.status==='approved'?(account.role as 'staff'|'admin'):null)});},[isStaff,currentPath]);
-  useEffect(() => { if (!booksPath) return; loadPublicCatalogue().then(setBooks).catch(() => setError(true)); }, [booksPath]);
-  const requestedTitle = new URLSearchParams(hashQuery).get('title') ?? '';
-  let page: React.ReactNode;
-  if (currentPath === '/staff') page = <StaffAccessPage />;
-  else if (currentPath === '/staff/dashboard') page = <DashboardPage />;
-  else if (currentPath === '/staff/accounts') page = role === 'admin' ? <AdminAccountsPage /> : <p className="state-card">관리자만 직원 계정을 관리할 수 있습니다.</p>;
-  else if (currentPath === '/staff/inventory') page = <InventoryPage />;
-  else if (currentPath === '/staff/requests') page = <BookRequestsPage />;
-  else if (currentPath === '/staff/content') page = <StoreContentPage />;
-  else if (currentPath === '/staff/events') page = <EventsPage />;
-  else if (currentPath === '/staff/games') page = <GamesPage />;
-  else if (currentPath === '/staff/broadcast') page = <BroadcastPage />;
-  else if (currentPath === '/book-request') page = <BookRequestForm title={requestedTitle} />;
-  else if (currentPath === '/new-arrivals') page = <NewArrivalsPage />;
-  else if (currentPath === '/games' || currentPath === '/events' || currentPath === '/store') page = <PublicInfoPage kind={currentPath.slice(1) as 'games'|'events'|'store'} />;
-  else if (currentPath === '/menu') page = <MenuPage />;
-  else if (booksPath) page = error ? <p className="state-card">도서 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p> : <BookSearchPage books={books} isLoading={books.length === 0} />;
-  else if (isStaff) page = <p className="state-card">요청한 직원 화면을 찾을 수 없습니다.</p>;
-  else page = <HomePage />;
-  if (currentPath === '/staff') return <div className="staff-access-shell">{page}</div>;
-  if(isStaff&&role===undefined)return <p className="state-card">직원 권한을 확인하는 중입니다.</p>;
-  if(isStaff&&role===null)return <div className="staff-access-shell"><p className="state-card">승인된 직원 계정으로 로그인해 주세요.</p></div>;
-  return isStaff ? <StaffShell currentPath={currentPath} isAdmin={role==='admin'}>{page}</StaffShell> : <CustomerShell currentPath={currentPath}>{page}</CustomerShell>;
+  
+  useEffect(() => {
+    const client = supabase;
+    if (!client) { setRole(null); return; }
+    void client.auth.getUser().then(async ({ data }) => {
+      if (!data.user) { setRole(null); return; }
+      const { data: account } = await client.from('staff_accounts').select('role,status').single();
+      setRole(account?.status === 'approved' ? (account.role as 'staff'|'admin') : null);
+    });
+  }, []);
+  
+  if (role === undefined) return <p className="state-card">직원 권한을 확인하는 중입니다.</p>;
+  if (role === null) return <div className="staff-access-shell"><p className="state-card">승인된 직원 계정으로 로그인해 주세요.</p></div>;
+  if (requiredRole === 'admin' && role !== 'admin') return <p className="state-card">관리자만 직원 계정을 관리할 수 있습니다.</p>;
+  
+  return <StaffShell currentPath={location.pathname} isAdmin={role === 'admin'}>{children}</StaffShell>;
+}
+
+function BooksRoute() {
+  const [books, setBooks] = useState<SearchableBook[]>([]); 
+  const [error, setError] = useState(false);
+  useEffect(() => { loadPublicCatalogue().then(setBooks).catch(() => setError(true)); }, []);
+  if (error) return <p className="state-card">도서 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>;
+  return <BookSearchPage books={books} isLoading={books.length === 0} />;
+}
+
+function BookRequestRoute() {
+  const location = useLocation();
+  const requestedTitle = new URLSearchParams(location.search).get('title') ?? '';
+  return <BookRequestForm title={requestedTitle} />;
+}
+
+function CustomerRoute({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  return <CustomerShell currentPath={location.pathname}>{children}</CustomerShell>;
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <InternalLinkInterceptor />
+      <Routes>
+        {/* Legacy Redirects */}
+        <Route path="/search" element={<Navigate to="/books" replace />} />
+        <Route path="/entertainment" element={<Navigate to="/games" replace />} />
+        <Route path="/event" element={<Navigate to="/events" replace />} />
+
+        {/* Customer Routes */}
+        <Route path="/" element={<CustomerRoute><HomePage /></CustomerRoute>} />
+        <Route path="/books" element={<CustomerRoute><BooksRoute /></CustomerRoute>} />
+        <Route path="/menu" element={<CustomerRoute><MenuPage /></CustomerRoute>} />
+        <Route path="/new-arrivals" element={<CustomerRoute><NewArrivalsPage /></CustomerRoute>} />
+        <Route path="/games" element={<CustomerRoute><PublicInfoPage kind="games" /></CustomerRoute>} />
+        <Route path="/events" element={<CustomerRoute><PublicInfoPage kind="events" /></CustomerRoute>} />
+        <Route path="/store" element={<CustomerRoute><PublicInfoPage kind="store" /></CustomerRoute>} />
+        <Route path="/book-request" element={<CustomerRoute><BookRequestRoute /></CustomerRoute>} />
+
+        {/* Staff Routes */}
+        <Route path="/staff" element={<div className="staff-access-shell"><StaffAccessPage /></div>} />
+        <Route path="/staff/dashboard" element={<ProtectedStaffRoute><DashboardPage /></ProtectedStaffRoute>} />
+        <Route path="/staff/accounts" element={<ProtectedStaffRoute requiredRole="admin"><AdminAccountsPage /></ProtectedStaffRoute>} />
+        <Route path="/staff/inventory" element={<ProtectedStaffRoute><InventoryPage /></ProtectedStaffRoute>} />
+        <Route path="/staff/requests" element={<ProtectedStaffRoute><BookRequestsPage /></ProtectedStaffRoute>} />
+        <Route path="/staff/content" element={<ProtectedStaffRoute><StoreContentPage /></ProtectedStaffRoute>} />
+        <Route path="/staff/events" element={<ProtectedStaffRoute><EventsPage /></ProtectedStaffRoute>} />
+        <Route path="/staff/games" element={<ProtectedStaffRoute><GamesPage /></ProtectedStaffRoute>} />
+        <Route path="/staff/broadcast" element={<ProtectedStaffRoute><BroadcastPage /></ProtectedStaffRoute>} />
+        
+        {/* Not Found */}
+        <Route path="*" element={<CustomerRoute><p className="state-card">페이지를 찾을 수 없습니다.</p></CustomerRoute>} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
