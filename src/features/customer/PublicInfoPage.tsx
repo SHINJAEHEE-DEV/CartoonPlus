@@ -18,47 +18,7 @@ type Item = {
   is_always_on?: boolean;
 };
 
-// 정적 기본 데이터 (와이어프레임 및 교정된 게임 목록)
-const DEFAULT_GAMES = {
-  switch: [
-    { tag: 'NSW', title: '슈퍼 마리오 파티 잼버리', en: 'Super Mario Party Jamboree' },
-    { tag: 'NSW', title: '오버쿡드', en: 'Overcooked!' },
-    { tag: 'NSW', title: '폴가이즈', en: 'Fall Guys' },
-    { tag: 'NSW', title: '슈퍼 버니 맨', en: 'Super Bunny Man' },
-    { tag: 'NSW', title: '태고의 달인 쿵딱! 원더풀 페스티벌', en: 'Taiko no Tatsujin: Rhythm Festival' },
-    { tag: 'NSW', title: '슈퍼 커비 헌터즈', en: 'Super Kirby Clash' },
-    { tag: 'NSW', title: '포켓몬 챔피언스', en: 'Pokémon Champions' },
-    { tag: 'NSW', title: '리듬 세상', en: 'Rhythm Heaven' },
-  ],
-  ps4: [
-    { tag: 'PS4', title: '잇 테익스 투', en: 'It Takes Two' },
-    { tag: 'PS4', title: '휴먼: 폴 플랫', en: 'Human: Fall Flat' },
-    { tag: 'PS4', title: '오버쿡드 2', en: 'Overcooked! 2' },
-    { tag: 'PS4', title: '무빙 아웃', en: 'Moving Out' },
-    { tag: 'PS4', title: '리틀 나이트메어 2', en: 'Little Nightmares II' },
-    { tag: 'PS4', title: '노바디 세이브즈 더 월드', en: 'Nobody Saves the World' },
-    { tag: 'PS4', title: '태고의 달인 모두 함께 쿵딱쿵!', en: 'Taiko no Tatsujin: Drum Session!' },
-    { tag: 'PS4', title: '브롤할라', en: 'Brawlhalla' },
-    { tag: 'PS4', title: '드래곤볼 제노버스 2', en: 'Dragon Ball Xenoverse 2' },
-    { tag: 'PS4', title: '로블록스', en: 'Roblox' },
-    { tag: 'PS4', title: '포트나이트', en: 'Fortnite' },
-    { tag: 'PS4', title: '이풋볼', en: 'eFootball™' },
-  ],
-  board: [
-    { tag: 'BOARD', title: '다빈치코드', en: '3개' }, { tag: 'BOARD', title: '시타델', en: '2개' },
-    { tag: 'BOARD', title: '라스베가스', en: '' }, { tag: 'BOARD', title: '스플렌더 확장: 찬란한 도시', en: '' },
-    { tag: 'BOARD', title: '스플렌더', en: '2개' }, { tag: 'BOARD', title: '요트다이스', en: '' },
-    { tag: 'BOARD', title: '우봉고', en: '' }, { tag: 'BOARD', title: '젬블로', en: '' },
-    { tag: 'BOARD', title: '오델로 클래식', en: '' }, { tag: 'BOARD', title: '반지의 제왕', en: '' },
-    { tag: 'BOARD', title: 'ACUITY', en: '' }, { tag: 'BOARD', title: '루빅스 레이스', en: '' },
-    { tag: 'BOARD', title: '텔레스트레이션', en: '' }, { tag: 'BOARD', title: '체스&체커', en: '' },
-    { tag: 'BOARD', title: '뒤죽박죽 서커스', en: '' }, { tag: 'BOARD', title: '루핑루이', en: '' },
-    { tag: 'BOARD', title: '카탄', en: '' }, { tag: 'BOARD', title: '루미큐브 클래식', en: '' },
-    { tag: 'BOARD', title: '라비린스', en: '' }, { tag: 'BOARD', title: '뱅!', en: '' },
-    { tag: 'BOARD', title: '로스트 시티', en: '2개' }, { tag: 'BOARD', title: '콰르토', en: '' },
-    { tag: 'BOARD', title: '쿼리도', en: '' },
-  ],
-};
+
 
 
 
@@ -128,13 +88,16 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
 
   // 1. 즐길거리 (Games) 화면
   if (kind === 'games') {
+    const isReady = items !== null;
+    const isMaintenance = isReady && items.length === 0;
+
     const remoteType = gameTab === 'switch' ? 'NINTENDO' : gameTab === 'ps4' ? 'PLAYSTATION_4' : 'BOARD_GAME';
     const remoteGames = (items ?? []).filter((item) => item.item_type === remoteType);
-    const fallbackGames = DEFAULT_GAMES[gameTab];
-    // The local list keeps the public page accurate until the corresponding DB seed migration is applied.
-    const list = remoteGames.length >= fallbackGames.length
-      ? remoteGames.map((item) => ({ tag: gameTab === 'board' ? 'BOARD' : gameTab === 'switch' ? 'NSW' : 'PS4', title: item.title, en: item.quantity && item.quantity > 1 ? `${item.quantity}개` : '' }))
-      : fallbackGames;
+
+    const switchCount = (items ?? []).filter(i => i.item_type === 'NINTENDO').length;
+    const ps4Count = (items ?? []).filter(i => i.item_type === 'PLAYSTATION_4').length;
+    const boardCount = (items ?? []).filter(i => i.item_type === 'BOARD_GAME').length;
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <div>
@@ -145,43 +108,64 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
           </p>
         </div>
 
-        {/* 탭 버튼 */}
-        <div className="chips-row">
-          <button
-            type="button"
-            onClick={() => setGameTab('switch')}
-            className={`chip ${gameTab === 'switch' ? 'active' : ''}`}
-          >
-            닌텐도 스위치 ({DEFAULT_GAMES.switch.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setGameTab('ps4')}
-            className={`chip ${gameTab === 'ps4' ? 'active' : ''}`}
-          >
-            PlayStation 4 ({DEFAULT_GAMES.ps4.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setGameTab('board')}
-            className={`chip ${gameTab === 'board' ? 'active' : ''}`}
-          >
-            보드게임 ({DEFAULT_GAMES.board.length})
-          </button>
-        </div>
-
-        {/* 게임 그리드 */}
-        <div className="game-grid">
-          {list.map((g) => (
-            <div key={g.title} className="game-card">
-              <div className="game-tag-box">{g.tag}</div>
-              <div style={{ minWidth: 0 }}>
-                <div className="game-title-kr">{g.title}</div>
-                <div className="game-title-en">{g.en}</div>
-              </div>
+        {isMaintenance ? (
+          <div style={{ background: '#FFF9EC', border: '3px solid #1E1E1E', borderRadius: '24px', padding: '40px 24px', textAlign: 'center', boxShadow: '5px 5px 0 #1E1E1E' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚧</div>
+            <h2 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '8px' }}>게임 목록 점검 중</h2>
+            <p style={{ fontSize: '15px', fontWeight: 600, color: '#6B6354' }}>
+              현재 매장에 보유 중인 게임 데이터를 최신 상태로 점검하고 있습니다.<br />
+              이용 가능한 게임은 매장 카운터에 문의해 주세요.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* 탭 버튼 */}
+            <div className="chips-row">
+              <button
+                type="button"
+                onClick={() => setGameTab('switch')}
+                className={`chip ${gameTab === 'switch' ? 'active' : ''}`}
+              >
+                닌텐도 스위치 ({switchCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setGameTab('ps4')}
+                className={`chip ${gameTab === 'ps4' ? 'active' : ''}`}
+              >
+                PlayStation 4/5 ({ps4Count})
+              </button>
+              <button
+                type="button"
+                onClick={() => setGameTab('board')}
+                className={`chip ${gameTab === 'board' ? 'active' : ''}`}
+              >
+                보드게임 ({boardCount})
+              </button>
             </div>
-          ))}
-        </div>
+
+            {/* 게임 그리드 */}
+            <div className="game-grid">
+              {remoteGames.length > 0 ? (
+                remoteGames.map((g) => (
+                  <div key={g.id} className="game-card">
+                    <div className="game-tag-box">{gameTab === 'board' ? 'BOARD' : gameTab === 'switch' ? 'NSW' : 'PS4'}</div>
+                    <div style={{ minWidth: 0 }}>
+                      <div className="game-title-kr">{g.title}</div>
+                      <div className="game-title-en" style={{ fontSize: '12px', marginTop: '2px', color: '#6B6354' }}>
+                        {[g.genre, g.players].filter(Boolean).join(' · ')} {g.quantity && g.quantity > 1 ? `(${g.quantity}개)` : ''}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '32px', color: '#8A8175', fontWeight: 700 }}>
+                  해당 기기의 등록된 게임이 없습니다.
+                </div>
+              )}
+            </div>
+          </>
+        )}
 
         {/* 하단 보드게임 배너 */}
         <div className="banner-card-yellow">
@@ -280,7 +264,7 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
                           fontWeight: 800,
                         }}
                       >
-                        ✨ {bullet}
+                        {bullet}
                       </div>
                     ))}
                   </div>

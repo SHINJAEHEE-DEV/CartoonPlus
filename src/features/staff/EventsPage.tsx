@@ -155,6 +155,40 @@ export function EventsPage() {
     setTimeout(() => setMessage(''), 3000);
   };
 
+  // 보관(아카이브) / 복구
+  const handleArchiveToggle = (id: string) => {
+    const updated = events.map((ev) =>
+      ev.id === id
+        ? { ...ev, archivedAt: ev.archivedAt ? null : new Date().toISOString() }
+        : ev
+    );
+    setEvents(updated);
+    saveManagedEvents(updated);
+    const target = events.find((ev) => ev.id === id);
+    setMessage(target?.archivedAt ? `'${target.title}' 이벤트를 공개 목록으로 복구했습니다.` : `'${target?.title}' 이벤트를 보관 처리했습니다.`);
+    setTimeout(() => setMessage(''), 3000);
+  };
+
+  // 이벤트 복사 (종료된 이벤트를 새 초안으로 복제)
+  const handleCopy = (source: ManagedEvent) => {
+    const copy: ManagedEvent = {
+      ...source,
+      id: 'evt-' + Date.now(),
+      title: source.title + ' (사본)',
+      isPublic: false,
+      isFeatured: false,
+      archivedAt: null,
+      startDate: '',
+      endDate: '',
+      createdAt: new Date().toISOString(),
+    };
+    const updated = [copy, ...events];
+    setEvents(updated);
+    saveManagedEvents(updated);
+    setMessage(`'${source.title}' 이벤트를 복사했습니다. 비공개 초안으로 생성되었습니다.`);
+    setTimeout(() => setMessage(''), 4000);
+  };
+
   return (
     <main style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '28px' }}>
       {/* 헤더 */}
@@ -215,7 +249,7 @@ export function EventsPage() {
             color: '#1E1E1E',
           }}
         >
-          🔔 {message}
+          {message}
         </div>
       )}
 
@@ -231,7 +265,7 @@ export function EventsPage() {
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 900 }}>
-            {isEditing ? '✏️ 이벤트 수정' : '➕ 새 이벤트 등록'}
+            {isEditing ? '이벤트 수정' : '새 이벤트 등록'}
           </h2>
           {isEditing && (
             <button
@@ -438,7 +472,7 @@ export function EventsPage() {
                 onChange={(e) => setIsFeatured(e.target.checked)}
                 style={{ width: '18px', height: '18px', accentColor: '#1E1E1E' }}
               />
-              ⭐️ 홈페이지 메인 대표 카드로 노출 (Featured)
+              홈페이지 메인 대표 카드로 노출 (Featured)
             </label>
           </div>
 
@@ -525,7 +559,7 @@ export function EventsPage() {
                         border: '1px solid #1E1E1E',
                       }}
                     >
-                      ⭐️ 홈 메인 노출 중
+                      홈 메인 노출 중
                     </span>
                   )}
                   <span
@@ -541,6 +575,21 @@ export function EventsPage() {
                   >
                     {ev.isPublic ? '공개 중' : '비공개(숨김)'}
                   </span>
+                  {ev.archivedAt && (
+                    <span
+                      style={{
+                        padding: '2px 8px',
+                        borderRadius: '6px',
+                        background: '#FFF3E0',
+                        color: '#E65100',
+                        fontSize: '11px',
+                        fontWeight: 900,
+                        border: '1px solid #E65100',
+                      }}
+                    >
+                      보관됨
+                    </span>
+                  )}
                   <span
                     style={{
                       padding: '2px 8px',
@@ -589,7 +638,7 @@ export function EventsPage() {
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    ⭐️ 홈 메인 지정
+                    홈 메인 지정
                   </button>
                 )}
                 <button
@@ -641,6 +690,38 @@ export function EventsPage() {
                   }}
                 >
                   삭제
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleArchiveToggle(ev.id)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #1E1E1E',
+                    background: ev.archivedAt ? '#D6F5E3' : '#F5F3EF',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {ev.archivedAt ? '복구 ⟲' : '보관'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCopy(ev)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #1E1E1E',
+                    background: '#FFF9EC',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  복사
                 </button>
               </div>
             </div>
