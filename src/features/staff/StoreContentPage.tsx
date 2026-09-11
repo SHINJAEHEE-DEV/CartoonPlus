@@ -324,7 +324,7 @@ export function StoreContentPage() {
               cursor: 'pointer',
             }}
           >
-            ☕ 음료 메뉴 ({beverages.length})
+            음료 메뉴 ({beverages.length})
           </button>
           <button
             onClick={() => { setActiveTab('foods'); setSearchQuery(''); }}
@@ -338,7 +338,7 @@ export function StoreContentPage() {
               cursor: 'pointer',
             }}
           >
-            🍜 식사·디저트·스낵 ({foods.length})
+            식사·디저트·스낵 ({foods.length})
           </button>
         </div>
       </div>
@@ -397,7 +397,7 @@ export function StoreContentPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}>
                   <input type="checkbox" name="isPopular" style={{ width: '18px', height: '18px' }} />
-                  ⭐ 인기 뱃지 부여
+                  인기 뱃지 부여
                 </label>
               </div>
               <div>
@@ -478,7 +478,7 @@ export function StoreContentPage() {
                         cursor: 'pointer',
                       }}
                     >
-                      {pkg.isPopular ? '인기 해제' : '⭐ 인기 지정'}
+                      {pkg.isPopular ? '인기 해제' : '인기 지정'}
                     </button>
                     <button
                       onClick={() => handleDeletePackage(idx)}
@@ -597,7 +597,7 @@ export function StoreContentPage() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-              <div style={{ fontSize: '18px', fontWeight: 900 }}>☕ 음료 메뉴 ({filteredBeverages.length}종)</div>
+              <div style={{ fontSize: '18px', fontWeight: 900 }}>음료 메뉴 ({filteredBeverages.length}종)</div>
               
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <input
@@ -747,7 +747,7 @@ export function StoreContentPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '8px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}>
                   <input type="checkbox" name="isPopular" style={{ width: '18px', height: '18px' }} />
-                  ⭐ 인기 뱃지
+                  인기 뱃지
                 </label>
               </div>
               <div>
@@ -786,7 +786,7 @@ export function StoreContentPage() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-              <div style={{ fontSize: '18px', fontWeight: 900 }}>🍜 식사·디저트·스낵 상품 ({filteredFoods.length}종)</div>
+              <div style={{ fontSize: '18px', fontWeight: 900 }}>식사·디저트·스낵 상품 ({filteredFoods.length}종)</div>
 
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <input
@@ -849,7 +849,7 @@ export function StoreContentPage() {
                     </div>
 
                     <div style={{ fontSize: '15px', fontWeight: 900, color: '#1E1E1E' }}>{item.name}</div>
-                    {item.note && <div style={{ fontSize: '11px', fontWeight: 700, color: '#E65100', marginTop: '2px' }}>💡 {item.note}</div>}
+                    {item.note && <div style={{ fontSize: '11px', fontWeight: 700, color: '#E65100', marginTop: '2px' }}>{item.note}</div>}
                     <div style={{ fontSize: '14px', fontWeight: 900, color: '#1E1E1E', marginTop: '6px' }}>
                       {item.price.toLocaleString()}원
                     </div>

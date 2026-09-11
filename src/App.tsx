@@ -51,7 +51,7 @@ function ProtectedStaffRoute({ children, requiredRole }: { children: React.React
     if (!client) { setRole(null); return; }
     void client.auth.getUser().then(async ({ data }) => {
       if (!data.user) { setRole(null); return; }
-      const { data: account } = await client.from('staff_accounts').select('role,status').single();
+      const { data: account } = await client.from('staff_accounts').select('role,status').eq('id', data.user.id).single();
       setRole(account?.status === 'approved' ? (account.role as 'staff'|'admin') : null);
     });
   }, []);

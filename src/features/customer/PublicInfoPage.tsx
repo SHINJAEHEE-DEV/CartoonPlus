@@ -62,11 +62,12 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
       setItems([]);
       return;
     }
+    const client = supabase;
     const today = new Date().toISOString().slice(0, 10);
     if (kind === 'store') {
-      void supabase.from('stores').select('id').eq('slug', 'snu').single().then(({ data: store }) => {
+      void client.from('stores').select('id').eq('slug', 'snu').single().then(({ data: store }) => {
         if (store) {
-          void supabase.from('store_content').select('content_value').eq('store_id', store.id).eq('content_key', 'store_info').single().then(({ data }) => {
+          void client.from('store_content').select('content_value').eq('store_id', store.id).eq('content_key', 'store_info').single().then(({ data }) => {
             if (data?.content_value) setStoreInfo(data.content_value);
           });
         }
@@ -76,9 +77,9 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
 
     const query =
       kind === 'games'
-        ? supabase.from('entertainment_items').select('id,title,players,genre,item_type,quantity').eq('is_verified', true).eq('is_available', true).is('archived_at', null)
+        ? client.from('entertainment_items').select('id,title,players,genre,item_type,quantity').eq('is_verified', true).eq('is_available', true).is('archived_at', null)
         : kind === 'events'
-        ? supabase.from('store_events').select('id,title,content,is_always_on').eq('is_public', true).is('archived_at', null).or('is_always_on.eq.true,and(start_date.lte.' + today + ',end_date.gte.' + today + ')')
+        ? client.from('store_events').select('id,title,content,is_always_on').eq('is_public', true).is('archived_at', null).or('is_always_on.eq.true,and(start_date.lte.' + today + ',end_date.gte.' + today + ')')
         : null;
 
     if (query) {

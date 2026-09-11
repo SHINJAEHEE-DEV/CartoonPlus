@@ -239,7 +239,7 @@ export function GamesPage() {
             alignItems: 'center',
           }}
         >
-          <span>🎮 {message}</span>
+          <span>{message}</span>
           <button
             onClick={() => setMessage('')}
             style={{ background: 'none', border: 'none', fontSize: '16px', fontWeight: 900, cursor: 'pointer' }}
@@ -279,10 +279,10 @@ export function GamesPage() {
                 boxSizing: 'border-box',
               }}
             >
-              <option value="NINTENDO">🎮 닌텐도 스위치</option>
-              <option value="PLAYSTATION_4">🕹️ PlayStation 4/5</option>
-              <option value="BOARD_GAME">🎲 보드게임</option>
-              <option value="XBOX">🎯 Xbox</option>
+              <option value="NINTENDO">닌텐도 스위치</option>
+              <option value="PLAYSTATION_4">PlayStation 4/5</option>
+              <option value="BOARD_GAME">보드게임</option>
+              <option value="XBOX">Xbox</option>
             </select>
           </div>
 
@@ -376,7 +376,7 @@ export function GamesPage() {
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ fontSize: '18px', fontWeight: 900 }}>📦 비치된 게임 목록 ({filteredItems.length}종)</div>
+          <div style={{ fontSize: '18px', fontWeight: 900 }}>비치된 게임 목록 ({filteredItems.length}종)</div>
           
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
             <input
@@ -470,7 +470,7 @@ export function GamesPage() {
                           fontWeight: 900,
                         }}
                       >
-                        {platformEmojis[item.item_type] ?? '🎮'} {labels[item.item_type] ?? item.item_type}
+                        {labels[item.item_type] ?? item.item_type}
                       </span>
                       <span
                         style={{
@@ -503,7 +503,7 @@ export function GamesPage() {
                               fontWeight: 700,
                             }}
                           >
-                            👥 {item.players}
+                            {item.players}
                           </span>
                         )}
                         {item.genre && (
@@ -517,7 +517,7 @@ export function GamesPage() {
                               fontWeight: 700,
                             }}
                           >
-                            🏷️ {item.genre}
+                            {item.genre}
                           </span>
                         )}
                       </div>

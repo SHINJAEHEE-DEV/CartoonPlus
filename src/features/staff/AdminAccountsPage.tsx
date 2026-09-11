@@ -97,7 +97,7 @@ export function AdminAccountsPage() {
             alignItems: 'center',
           }}
         >
-          <span>🔔 {message}</span>
+          <span>{message}</span>
           <button
             onClick={() => setMessage('')}
             style={{ background: 'none', border: 'none', fontSize: '16px', fontWeight: 900, cursor: 'pointer' }}
@@ -262,7 +262,7 @@ export function AdminAccountsPage() {
                             border: '1px solid #1E1E1E',
                           }}
                         >
-                          {a.role === 'admin' ? '👑 슈퍼관리자' : '스태프'}
+                          {a.role === 'admin' ? '슈퍼관리자' : '스태프'}
                         </span>
                         <span
                           style={{
@@ -334,7 +334,7 @@ export function AdminAccountsPage() {
                         cursor: 'pointer',
                       }}
                     >
-                      🔑 임시 비밀번호
+                      임시 비밀번호
                     </button>
                   </div>
                 </div>

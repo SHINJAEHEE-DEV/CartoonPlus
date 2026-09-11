@@ -46,6 +46,74 @@ function Nav({ links, currentPath }: { links: readonly (readonly [string, string
   );
 }
 
+function HomeIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  );
+}
+
+function BooksIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+}
+
+function GamesIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="6" width="20" height="12" rx="3" />
+      <path d="M6 12h4m-2-2v4" />
+      <circle cx="17" cy="10" r="1" fill="currentColor" />
+      <circle cx="15" cy="14" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+      <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+      <line x1="6" y1="1" x2="6" y2="4" />
+      <line x1="10" y1="1" x2="10" y2="4" />
+      <line x1="14" y1="1" x2="14" y2="4" />
+    </svg>
+  );
+}
+
+function EventsIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z" />
+      <path d="M13 5v2m0 4v2m0 4v2" />
+    </svg>
+  );
+}
+
+function StoreIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+}
+
+const mobileNavItems = [
+  { label: '홈', href: '/', icon: HomeIcon },
+  { label: '도서 검색', href: '/books', icon: BooksIcon },
+  { label: '즐길거리', href: '/games', icon: GamesIcon },
+  { label: '메뉴·요금', href: '/menu', icon: MenuIcon },
+  { label: '이벤트·공지', href: '/events', icon: EventsIcon },
+  { label: '매장 안내', href: '/store', icon: StoreIcon },
+] as const;
+
 export function CustomerShell({ children, currentPath }: { children: ReactNode; currentPath: string }) {
   const currentHour = new Date().getHours();
   const isOpen = currentHour >= 10 && currentHour < 23;
@@ -70,6 +138,24 @@ export function CustomerShell({ children, currentPath }: { children: ReactNode; 
       </header>
 
       <main className="page-content">{children}</main>
+
+      {/* 모바일 하단 고정 언더바 (Bottom Navigation Bar) */}
+      <nav className="mobile-bottom-nav" aria-label="모바일 하단 주요 탐색">
+        {mobileNavItems.map(({ label, href, icon: Icon }) => {
+          const isActive = currentPath === href || (href !== '/' && currentPath.startsWith(href));
+          return (
+            <a
+              key={href}
+              href={href}
+              className={`mobile-tab-btn ${isActive ? 'active' : ''}`}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              <Icon />
+              <span>{label}</span>
+            </a>
+          );
+        })}
+      </nav>
 
       <footer className="site-footer">
         <div className="footer-inner">
@@ -110,7 +196,7 @@ export function StaffShell({ children, currentPath, isAdmin }: { children: React
               fontWeight: 800,
             }}
           >
-            ⚙️ 계정 관리
+            계정 관리
           </a>
         )}
         <a

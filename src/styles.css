@@ -1222,36 +1222,37 @@ button {
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 50;
+    z-index: 100;
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 2px;
-    padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
-    background: var(--color-panel-cream);
+    gap: 4px;
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+    background: #ffffff;
     border-top: 3px solid var(--color-border);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
   }
   .mobile-tab-btn {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 4px;
     padding: 6px 2px;
-    border-radius: 8px;
-    font-size: 11px;
+    border-radius: 10px;
+    font-size: 10.5px;
     font-weight: 800;
     color: #6B6354;
     text-align: center;
+    transition: all 0.15s ease;
+  }
+  .mobile-tab-btn svg {
+    flex-shrink: 0;
   }
   .mobile-tab-btn[aria-current="page"], .mobile-tab-btn.active {
     background: var(--color-dark);
     color: var(--color-yellow);
-  }
-  .mobile-tab-dot {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: currentColor;
+    box-shadow: 2px 2px 0 var(--color-yellow);
+    font-weight: 900;
   }
 }
 

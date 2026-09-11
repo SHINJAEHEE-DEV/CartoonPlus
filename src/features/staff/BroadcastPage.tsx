@@ -398,7 +398,7 @@ export function BroadcastPage() {
                 boxShadow: text.trim() ? '3px 3px 0 #1E1E1E' : 'none',
               }}
             >
-              🚀 매장 전체 즉시 송출
+              매장 전체 즉시 송출
             </button>
           </div>
         </div>
@@ -750,7 +750,7 @@ export function BroadcastPage() {
 
         {failedRuns.length === 0 ? (
           <div style={{ fontSize: '13px', color: '#1A7A3E', fontWeight: 700 }}>
-            ✨ 최근 실패한 방송 기록이 없습니다. 정상 운영 중입니다.
+            최근 실패한 방송 기록이 없습니다. 정상 운영 중입니다.
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

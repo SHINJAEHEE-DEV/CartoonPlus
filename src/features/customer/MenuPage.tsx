@@ -47,9 +47,10 @@ export function MenuPage() {
     window.addEventListener('storage', handleStorage);
 
     if (supabase) {
-      void supabase.from('stores').select('id').eq('slug', 'snu').single().then(({ data: store }) => {
+      const client = supabase;
+      void client.from('stores').select('id').eq('slug', 'snu').single().then(({ data: store }) => {
         if (store) {
-          void supabase.from('store_content').select('content_key, content_value').eq('store_id', store.id).then(({ data }) => {
+          void client.from('store_content').select('content_key, content_value').eq('store_id', store.id).then(({ data }) => {
             if (data) {
               for (const item of data) {
                 if (item.content_key === 'price_packages' && Array.isArray(item.content_value?.packages)) {
@@ -420,7 +421,7 @@ function FoodCard({ item }: { item: MenuItem }) {
         <div style={{ fontSize: '15px', fontWeight: 900, letterSpacing: '-0.02em' }}>{item.name}</div>
         {item.note && (
           <div style={{ fontSize: '11px', fontWeight: 700, color: '#E65100', marginTop: '3px' }}>
-            ✨ {item.note}
+            {item.note}
           </div>
         )}
       </div>

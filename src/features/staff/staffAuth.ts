@@ -12,9 +12,9 @@ export async function applyForStaff(input: { name: string; loginId: string; pass
 
 export async function signInStaff(loginId: string, password: string) {
   if (!supabase) throw new Error('Supabase 연결이 필요합니다.');
-  const { error } = await supabase.auth.signInWithPassword({ email: loginIdToInternalEmail(loginId), password });
+  const { data: authData, error } = await supabase.auth.signInWithPassword({ email: loginIdToInternalEmail(loginId), password });
   if (error) throw error;
-  const { data, error: accountError } = await supabase.from('staff_accounts').select('role,status').single();
+  const { data, error: accountError } = await supabase.from('staff_accounts').select('role,status').eq('id', authData.user.id).single();
   if (accountError || data.status !== 'approved') { await supabase.auth.signOut(); throw new Error('관리자 승인 후 이용할 수 있습니다.'); }
   return data.role as 'staff' | 'admin';
 }
