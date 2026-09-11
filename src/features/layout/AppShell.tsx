@@ -14,7 +14,7 @@ const staffLinks = [
   ['대시보드', '/staff/dashboard'],
   ['도서·입고', '/staff/inventory'],
   ['입고 신청', '/staff/requests'],
-  ['매장 콘텐츠', '/staff/content'],
+  ['메뉴·요금 관리', '/staff/content'],
   ['게임 관리', '/staff/games'],
   ['이벤트 관리', '/staff/events'],
   ['방송', '/staff/broadcast'],

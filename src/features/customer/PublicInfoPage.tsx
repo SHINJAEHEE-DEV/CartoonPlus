@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import gamingMascot from '../../assets/mascot_gaming.png';
 import coffeeMascot from '../../assets/mascot_coffee.png';
-import snuBanner from '../../assets/snu_partnership_banner.png';
 import storePhoto1 from '../../assets/store_photo_043.jpg';
 import storePhoto2 from '../../assets/store_photo_049.jpg';
+import storePhoto3 from '../../assets/store_photo_03.jpg';
+import { loadManagedEvents, getBannerImageUrl, type ManagedEvent } from '../../lib/eventRepository';
 
 type Item = {
   id: string;
@@ -59,20 +60,7 @@ const DEFAULT_GAMES = {
   ],
 };
 
-const DEFAULT_EVENTS = [
-  {
-    title: '즉석 라면 무제한 무료 토핑 바',
-    period: '상시 진행',
-    target: '즉석 라면 구매 고객 전원',
-    detail: '신라면, 진라면, 너구리, 불닭볶음면, 짜파게티 등 주문 시 대파, 숙주나물, 떡사리, 계란을 무제한 무료로 제공합니다.',
-  },
-  {
-    title: '네이버 영수증 포토 리뷰 & SNS 인증 이벤트',
-    period: '상시 진행',
-    target: '방문 후기 작성 고객',
-    detail: '네이버 영수증 포토 리뷰 작성 시 음료·스낵을 즉시 증정하고, 블로그·인스타그램 방문 인증 후기 작성 시 재방문 1시간 무료 이용권을 드립니다.',
-  },
-];
+
 
 const STORE_ROWS = [
   { k: '영업시간', v: '매일 10:00 – 23:00 (연중무휴, 공휴일·명절 정상 영업)' },
@@ -191,10 +179,10 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
           <img src={gamingMascot} alt="게임 마스코트" style={{ width: '64px', height: '64px', objectFit: 'contain', flexShrink: 0 }} />
           <div>
             <div style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '-0.02em' }}>
-              보드게임은 보드게임 존에서 자유 이용
+              인기 보드게임 상시 구비 & 자유 이용
             </div>
             <div style={{ fontSize: '13px', fontWeight: 700, color: '#5C5344', marginTop: '4px' }}>
-              다빈치코드 · 스플렌더 · 카탄 · 루미큐브 클래식 외. 실물 확인이 끝나지 않은 타이틀은 점검 중으로 표시됩니다.
+              다빈치코드 · 스플렌더 · 카탄 · 루미큐브 클래식 등 20여 종 완비! 이용 후 다음 고객님을 위해 정리 정돈 부탁드립니다.
             </div>
           </div>
         </div>
@@ -204,6 +192,13 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
 
   // 2. 이벤트 · 제휴 (Events) 화면
   if (kind === 'events') {
+    const publicEvents = loadManagedEvents().filter((ev) => {
+      if (!ev.isPublic || ev.archivedAt) return false;
+      if (ev.isAlwaysOn) return true;
+      const today = new Date().toISOString().split('T')[0];
+      return !ev.endDate || ev.endDate >= today;
+    });
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
         <div>
@@ -214,85 +209,85 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
           </p>
         </div>
 
-        {/* 서울대 제휴 배너 & 혜택 카드 */}
-        <div className="event-poster-row">
-          <div className="poster-box">
-            <img src={snuBanner} alt="2026 서울대학교 제휴 배너" />
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '14px',
-              padding: '24px',
-              background: '#FED943',
-              border: '3px solid #1E1E1E',
-              borderRadius: '24px',
-              boxShadow: '5px 5px 0 #1E1E1E',
-            }}
-          >
-            <span
-              style={{
-                alignSelf: 'flex-start',
-                padding: '5px 12px',
-                borderRadius: '999px',
-                background: '#1E1E1E',
-                color: '#FED943',
-                fontSize: '11px',
-                fontWeight: 900,
-              }}
-            >
-              상시 제휴
-            </span>
-            <div style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.3 }}>
-              2026 서울대학교 단과대학생회장연석회의 공식 제휴
-            </div>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: '#5C5344' }}>
-              2026.01.01 ~ 2026.12.31 · 서울대학교 학부생 및 대학원생 전원
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ padding: '12px 14px', background: '#FFF9EC', border: '2px solid #1E1E1E', borderRadius: '14px', fontSize: '13px', fontWeight: 700 }}>
-                · 패키지 요금제 10% 현장 즉시 할인
-              </div>
-              <div style={{ padding: '12px 14px', background: '#FFF9EC', border: '2px solid #1E1E1E', borderRadius: '14px', fontSize: '13px', fontWeight: 700 }}>
-                · 평일 종일권 결제 시 기본 음료 무료 업그레이드
-              </div>
-            </div>
-            <div style={{ fontSize: '12px', fontWeight: 800 }}>
-              학생증 실물 또는 서울대학교 포털 모바일 학생증 제시 필수
-            </div>
-          </div>
-        </div>
+        {publicEvents.length > 0 ? (
+          publicEvents.map((ev) => {
+            const bullets = ev.detail.split(/[+\n·]/).map((s) => s.trim()).filter(Boolean);
+            return (
+              <div key={ev.id} className="event-poster-row">
+                <div className="poster-box" style={{ background: '#2A2A2A', padding: '10px' }}>
+                  <img
+                    src={getBannerImageUrl(ev.bannerType, ev.customBannerUrl)}
+                    alt={ev.title}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    padding: '22px 24px',
+                    background: ev.isFeatured ? '#FFFDF5' : '#FFFFFF',
+                    border: '3px solid #1E1E1E',
+                    borderRadius: '24px',
+                    boxShadow: '5px 5px 0 #1E1E1E',
+                  }}
+                >
+                  <div>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        padding: '4px 12px',
+                        borderRadius: '999px',
+                        background: '#1E1E1E',
+                        color: '#FED943',
+                        fontSize: '11px',
+                        fontWeight: 900,
+                        marginBottom: '10px',
+                      }}
+                    >
+                      {ev.tag}
+                    </span>
+                    <div style={{ fontSize: '19px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.3 }}>
+                      {ev.title}
+                    </div>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#5C5344', marginTop: '4px' }}>
+                      {ev.isAlwaysOn ? '상시 혜택 제공' : `${ev.startDate} ~ ${ev.endDate}`}
+                      {ev.target ? ` · ${ev.target}` : ''}
+                    </div>
+                  </div>
 
-        {/* 상시 및 진행 중인 이벤트 목록 */}
-        <div className="event-grid">
-          {DEFAULT_EVENTS.map((e) => (
-            <div key={e.title} className="event-card">
-              <span
-                style={{
-                  alignSelf: 'flex-start',
-                  padding: '4px 10px',
-                  borderRadius: '999px',
-                  background: '#FFF3C9',
-                  border: '1.5px solid #1E1E1E',
-                  fontSize: '11px',
-                  fontWeight: 800,
-                }}
-              >
-                {e.period}
-              </span>
-              <div style={{ fontSize: '17px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.3 }}>
-                {e.title}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {bullets.map((bullet, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          padding: '10px 14px',
+                          background: '#FFF9EC',
+                          border: '2px solid #1E1E1E',
+                          borderRadius: '12px',
+                          fontSize: '13px',
+                          fontWeight: 800,
+                        }}
+                      >
+                        ✨ {bullet}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ fontSize: '11px', fontWeight: 800, color: '#8A8175' }}>
+                    * 현장 카운터 직원에게 문의 또는 인증 후 즉시 혜택이 적용됩니다.
+                  </div>
+                </div>
               </div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: '#6B6354', lineHeight: 1.6 }}>
-                {e.detail}
-              </div>
-              <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A6A00' }}>
-                대상 · {e.target}
-              </div>
-            </div>
-          ))}
-        </div>
+            );
+          })
+        ) : (
+          <div className="empty-search-box">
+            <p style={{ fontWeight: 700, color: '#6B6354' }}>현재 진행 중인 이벤트가 없습니다.</p>
+          </div>
+        )}
       </div>
     );
   }
@@ -438,13 +433,16 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
         </div>
       </div>
 
-      {/* 매장 실물 사진 갤러리 */}
+      {/* 매장 실물 사진 갤러리 (3장 그리드) */}
       <div className="photo-grid">
         <div className="photo-card">
           <img src={storePhoto1} alt="카툰플러스 입구 및 서가" />
         </div>
         <div className="photo-card">
           <img src={storePhoto2} alt="카툰플러스 복층 룸" />
+        </div>
+        <div className="photo-card">
+          <img src={storePhoto3} alt="카툰플러스 은은한 독서 공간" />
         </div>
       </div>
     </div>

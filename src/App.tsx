@@ -62,7 +62,7 @@ export default function App() {
   else if (currentPath === '/new-arrivals') page = <NewArrivalsPage />;
   else if (currentPath === '/games' || currentPath === '/events' || currentPath === '/store') page = <PublicInfoPage kind={currentPath.slice(1) as 'games'|'events'|'store'} />;
   else if (currentPath === '/menu') page = <MenuPage />;
-  else if (booksPath) page = error ? <p className="state-card">도서 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p> : books.length === 0 ? <p className="state-card">도서 목록을 불러오는 중입니다.</p> : <BookSearchPage books={books} />;
+  else if (booksPath) page = error ? <p className="state-card">도서 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p> : <BookSearchPage books={books} isLoading={books.length === 0} />;
   else if (isStaff) page = <p className="state-card">요청한 직원 화면을 찾을 수 없습니다.</p>;
   else page = <HomePage />;
   if (currentPath === '/staff') return <div className="staff-access-shell">{page}</div>;

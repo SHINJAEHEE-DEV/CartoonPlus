@@ -7,10 +7,9 @@ import massageMascot from '../../assets/mascot_massage.png';
 import storePhoto1 from '../../assets/store_photo_043.jpg';
 import storePhoto2 from '../../assets/store_photo_049.jpg';
 import storePhoto3 from '../../assets/store_photo_03.jpg';
-import snuBanner from '../../assets/snu_partnership_banner.png';
-
 import { loadNewArrivals } from '../book-search/catalogueRepository';
 import type { SearchableBook } from '../../lib/bookSearch';
+import { getFeaturedEvent, getBannerImageUrl, type ManagedEvent } from '../../lib/eventRepository';
 
 // 도서검색과 게임만 링크 이동, OTT룸과 안마의자는 정보 제공
 const ENJOY_POINTS = [
@@ -52,9 +51,17 @@ const POPULAR_PRICES = [
 
 export function HomePage() {
   const [newBooks, setNewBooks] = useState<SearchableBook[]>([]);
+  const [featured, setFeatured] = useState<ManagedEvent>(() => getFeaturedEvent());
 
   useEffect(() => {
     void loadNewArrivals().then((books) => setNewBooks(books.slice(0, 3)));
+    const syncFeatured = () => setFeatured(getFeaturedEvent());
+    window.addEventListener('events_updated', syncFeatured);
+    window.addEventListener('storage', syncFeatured);
+    return () => {
+      window.removeEventListener('events_updated', syncFeatured);
+      window.removeEventListener('storage', syncFeatured);
+    };
   }, []);
 
   return (
@@ -210,29 +217,32 @@ export function HomePage() {
           </a>
         </div>
 
-        {/* 제휴 안내 */}
+        {/* 대표 이벤트 / 제휴 안내 */}
         <div className="panel-partnership">
           <div className="partnership-left">
             <div>
-              <div className="section-kicker" style={{ color: '#FED943' }}>PARTNERSHIP</div>
+              <div className="section-kicker" style={{ color: '#FED943' }}>{featured.tag || 'FEATURED EVENT'}</div>
               <h3 className="partnership-title">
-                2026 서울대학교<br />단과대학생회장연석회의 공식 제휴
+                {featured.title}
               </h3>
               <div className="partnership-bullets">
-                <div className="partnership-bullet">· 패키지 요금제 10% 현장 즉시 할인</div>
-                <div className="partnership-bullet">· 평일 종일권 결제 시 음료 무료 사이즈업/업그레이드</div>
-                <div className="partnership-bullet">· 학생증 실물 또는 모바일 학생증 제시 필수</div>
+                {featured.detail.split(/[+\n·]/).map((s) => s.trim()).filter(Boolean).map((bullet, idx) => (
+                  <div key={idx} className="partnership-bullet">· {bullet}</div>
+                ))}
               </div>
             </div>
             <a
-              href="/events"
+              href="/#events"
               className="partnership-btn"
             >
-              제휴 혜택 자세히 →
+              이벤트 혜택 자세히 →
             </a>
           </div>
           <div className="partnership-right">
-            <img src={snuBanner} alt="서울대학교 공식 제휴 배너" />
+            <img
+              src={getBannerImageUrl(featured.bannerType, featured.customBannerUrl)}
+              alt={featured.title}
+            />
           </div>
         </div>
       </section>

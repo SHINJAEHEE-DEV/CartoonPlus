@@ -1,15 +1,25 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import thinkingMascot from '../../assets/mascot_thinking.png';
 import { normalizeBookCategory, searchBooks, splitBookCategories, type SearchableBook } from '../../lib/bookSearch';
+import { Pagination } from '../common/Pagination';
 
 type BookSearchPageProps = {
   books: SearchableBook[];
+  isLoading?: boolean;
 };
 
+const PAGE_SIZE = 18;
 const SAMPLE_QUERIES = ['체인소맨', '원피스', '주술회전', '귀멸의 칼날', '스파이 패밀리'];
-export function BookSearchPage({ books }: BookSearchPageProps) {
+
+export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps) {
   const [query, setQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('전체');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // 검색어 또는 장르 변경 시 첫 페이지로 리셋
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, selectedGenre]);
 
   // 실제 저장된 도서들의 카테고리/장르를 동적으로 추출
   const dynamicGenres = useMemo(() => {
@@ -39,10 +49,15 @@ export function BookSearchPage({ books }: BookSearchPageProps) {
     return searchBooks(result, query);
   }, [books, query, selectedGenre]);
 
+  const paginatedBooks = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredBooks.slice(start, start + PAGE_SIZE);
+  }, [filteredBooks, currentPage]);
+
   const hasSearch = query.trim().length > 0;
 
   return (
-    <div className="book-search-page" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="book-search-page" style={{ display: 'flex', flexDirection: 'column', gap: '24px', minHeight: '80vh' }}>
       {/* 상단 검색 컨트롤 카드 */}
       <section className="search-box-card">
         <div>
@@ -64,6 +79,7 @@ export function BookSearchPage({ books }: BookSearchPageProps) {
             placeholder="도서명 또는 작가명 (예: 체인소맨, ㅊㅇㅅㅁ)"
             className="search-input"
             autoComplete="off"
+            disabled={isLoading}
           />
           {query && (
             <button
@@ -85,6 +101,7 @@ export function BookSearchPage({ books }: BookSearchPageProps) {
               type="button"
               onClick={() => setQuery(sample)}
               className="chip-sample"
+              disabled={isLoading}
             >
               {sample}
             </button>
@@ -100,6 +117,7 @@ export function BookSearchPage({ books }: BookSearchPageProps) {
               type="button"
               onClick={() => setSelectedGenre(g)}
               className={`chip ${selectedGenre === g ? 'active' : ''}`}
+              disabled={isLoading}
             >
               {g}
             </button>
@@ -110,7 +128,18 @@ export function BookSearchPage({ books }: BookSearchPageProps) {
       {/* 검색 결과 카운트 & 메타 */}
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '0 4px' }}>
         <div style={{ fontSize: '15px', fontWeight: 800 }}>
-          검색 결과 <span style={{ color: '#8A6A00' }}>{filteredBooks.length}</span>건
+          {isLoading ? (
+            <span>검색 데이터 로딩 중...</span>
+          ) : (
+            <>
+              검색 결과 <span style={{ color: '#8A6A00' }}>{filteredBooks.length}</span>건
+              {filteredBooks.length > PAGE_SIZE && (
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#8A8175', marginLeft: '6px' }}>
+                  ({currentPage} / {Math.ceil(filteredBooks.length / PAGE_SIZE)} 페이지)
+                </span>
+              )}
+            </>
+          )}
         </div>
         <div style={{ fontSize: '12px', fontWeight: 600, color: '#8A8175' }}>
           실시간 재고 기준
@@ -118,34 +147,73 @@ export function BookSearchPage({ books }: BookSearchPageProps) {
       </div>
 
       {/* 검색 결과 목록 */}
-      {filteredBooks.length > 0 ? (
-        <section aria-label="검색 결과" className="search-results-grid">
-          {filteredBooks.map((book) => (
-            <div key={book.id} className="search-result-card">
+      {isLoading ? (
+        <section aria-label="로딩 중" className="search-results-grid">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="search-result-card" style={{ opacity: 0.6, pointerEvents: 'none' }}>
               <div className="book-badges">
-                <span className="badge-genre">{normalizeBookCategory(book.category) || '기타'}</span>
-                <span className="badge-new">보유중</span>
+                <span className="badge-genre" style={{ width: '40px', background: '#e0d8c8', color: 'transparent' }}>분류</span>
+                <span className="badge-new" style={{ width: '40px', background: '#e0d8c8', color: 'transparent' }}>보유중</span>
               </div>
-              <h2 style={{ fontSize: '17px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.3 }}>
-                {book.title}
+              <h2 style={{ fontSize: '17px', fontWeight: 900, background: '#e0d8c8', color: 'transparent', width: '70%', borderRadius: '4px', display: 'inline-block' }}>
+                로딩중입니다
               </h2>
-              <p style={{ fontSize: '13px', fontWeight: 600, color: '#6B6354' }}>
-                {book.author || '작가 미표기'}
+              <p style={{ fontSize: '13px', fontWeight: 600, background: '#e0d8c8', color: 'transparent', width: '50%', borderRadius: '4px', marginTop: '4px' }}>
+                작가 미표기
               </p>
-              <div
-                style={{
-                  height: '1px',
-                  background: '#E6DFCF',
-                  margin: '4px 0',
-                }}
-              />
+              <div style={{ height: '1px', background: '#E6DFCF', margin: '4px 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontSize: '13px', fontWeight: 800 }}>
-                <span>{book.volumeRange}</span>
-                <span style={{ color: '#8A6A00' }}>{book.shelfLocation || '카운터에 문의해 주세요'}</span>
+                <span style={{ background: '#e0d8c8', color: 'transparent', borderRadius: '4px' }}>1-10권</span>
+                <span style={{ background: '#e0d8c8', color: 'transparent', borderRadius: '4px' }}>A-1 책장</span>
               </div>
             </div>
           ))}
         </section>
+      ) : filteredBooks.length > 0 ? (
+        <>
+          <section aria-label="검색 결과" className="search-results-grid">
+            {paginatedBooks.map((book) => (
+              <div key={book.id} className="search-result-card">
+                <div className="book-badges">
+                  <span className="badge-genre">{normalizeBookCategory(book.category) || '기타'}</span>
+                  <span className="badge-new">보유중</span>
+                </div>
+                <h2 style={{ fontSize: '17px', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.3 }}>
+                  {book.title}
+                </h2>
+                <p style={{ fontSize: '13px', fontWeight: 600, color: '#6B6354' }}>
+                  {book.author || '작가 미표기'}
+                </p>
+                <div
+                  style={{
+                    height: '1px',
+                    background: '#E6DFCF',
+                    margin: '8px 0',
+                  }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 800 }}>
+                  <span style={{ background: '#F4F0E6', padding: '4px 8px', borderRadius: '4px', color: '#6B6354' }}>
+                    {book.volumeRange}
+                  </span>
+                  <span style={{ background: '#FFF6D6', padding: '4px 8px', borderRadius: '4px', color: '#8A6A00' }}>
+                    {book.shelfLocation || '카운터 문의'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </section>
+
+          {/* 페이지네이션 */}
+          <Pagination
+            currentPage={currentPage}
+            totalItems={filteredBooks.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={(page) => {
+              setCurrentPage(page);
+              window.scrollTo({ top: 120, behavior: 'smooth' });
+            }}
+          />
+        </>
       ) : (
         /* 결과 없을 때 안내 및 신청 폼 링크 */
         <section className="empty-search-box" aria-live="polite">
