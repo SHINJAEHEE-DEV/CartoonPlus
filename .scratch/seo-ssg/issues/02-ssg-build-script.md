@@ -1,4 +1,4 @@
-Status: open
+Status: resolved
 Type: task
 
 # Ticket 02: SSG 빌드 스크립트 작성 및 Vite 연동
