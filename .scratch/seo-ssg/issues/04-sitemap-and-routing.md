@@ -1,4 +1,4 @@
-Status: open
+Status: resolved
 Type: task
 
 # Ticket 04: sitemap, robots.txt 및 Cloudflare 라우팅 점검

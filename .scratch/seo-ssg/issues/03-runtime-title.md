@@ -1,4 +1,4 @@
-Status: open
+Status: resolved
 Type: task
 
 # Ticket 03: 클라이언트 런타임 동적 Title Hook 적용
