@@ -10,7 +10,7 @@ Status: ready-for-agent
 
 ## Solution
 
-GitHub Pages에서 고객 포털과 직원 운영 콘솔을 제공하고, Supabase에서 실제 운영 데이터와 승인된 직원 계정을 중앙 관리한다. 고객은 브랜드 중심 홈에서 매장을 소개받고, 별도 도서 검색 화면에서 도서명·작가명·초성으로 도서 재고와 서가 위치를 찾는다. 게임, 이벤트, 메뉴·요금, 매장 안내와 희망 도서 신청도 로그인 없이 이용한다.
+Cloudflare Pages에서 고객 포털과 직원 운영 콘솔을 제공하고(2026-09-11 이전 승인, 검증 전 기존 GitHub Pages 유지), Supabase에서 실제 운영 데이터와 승인된 직원 계정을 중앙 관리한다. 고객은 브랜드 중심 홈에서 매장을 소개받고, 별도 도서 검색 화면에서 도서명·작가명·초성으로 도서 재고와 서가 위치를 찾는다. 게임, 이벤트, 메뉴·요금, 매장 안내와 희망 도서 신청도 로그인 없이 이용한다.
 
 승인된 직원은 재고, CSV 재고 가져오기, 희망 도서 신청, 게임·이벤트, 방송 프리셋과 예약 방송을 관리한다. 관리자는 직원이 가진 모든 권한에 더해 직원 가입 승인, 비활성화, 임시 비밀번호 발급을 처리한다. 방송은 매장 PC 브라우저가 상시 실행된 상태에서 예약 시각에 자동 재생하고, 실행 결과를 기록한다.
 
@@ -60,7 +60,7 @@ GitHub Pages에서 고객 포털과 직원 운영 콘솔을 제공하고, Supaba
 
 - The first Launch Store is 서울대입구역점 only. Customer pages expose only this store; the model remains extensible for later stores such as 잠실점.
 - The customer portal provides Home, 도서 검색, 게임 목록, 이벤트, 매장 안내, menu·요금, and 직원 로그인. Home introduces CartoonPlus and its visit experience; 도서 검색 is a separate destination.
-- React, TypeScript, Vite, Tailwind CSS, React Router, and GitHub Pages provide the static web application. The published address is `https://shinjaehee-dev.github.io/CartoonPlus/`; a purchased custom domain may be connected later.
+- React, TypeScript and Vite provide the static web application. Cloudflare Pages with GitHub integration is the approved deployment target (2026-09-11); migration is pending verification. Keep `https://shinjaehee-dev.github.io/CartoonPlus/` available during validation. Purchase and connect a custom domain only as the final task after owner approval. Deployment settings are maintained in `docs/TECHNOLOGY_DECISIONS.md`, section 3.
 - Supabase provides PostgreSQL data, storage for approved visual assets, authentication, and Row Level Security. Customer-visible data is publicly readable only where explicitly designated public. Operating writes require an approved Staff Account. Admin adds account approval, deactivation, and temporary-password privileges.
 - Staff sign-up accepts name, login ID, password, and phone-number last four digits. The implementation may map a login ID to an internal authentication identifier, but the customer-facing and staff-facing login remains ID and password. No real staff email is collected. Password recovery is an administrator-issued temporary password.
 - A Staff Account has pending, approved, and deactivated states. Pending and deactivated users cannot perform Staff operations. The Initial Admin is created manually in Supabase before staff self-registration opens.

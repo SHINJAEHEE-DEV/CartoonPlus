@@ -5,7 +5,8 @@
     <meta name="robots" content="noindex" />
     <script>
       (function () {
-        var base = '/CartoonPlus/';
+        // Keep the existing GitHub Pages URL working during the migration.
+        var base = window.location.hostname.endsWith('.github.io') ? '/CartoonPlus/' : '/';
         var path = window.location.pathname;
         if (path.indexOf(base) === 0) {
           var route = path.slice(base.length);
