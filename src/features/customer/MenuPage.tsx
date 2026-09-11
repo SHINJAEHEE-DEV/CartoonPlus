@@ -11,6 +11,7 @@ import {
 } from './menuData';
 
 import { usePageTitle } from '../../lib/usePageTitle';
+import { supabase } from '../../lib/supabase';
 
 type MenuTab = 'all' | 'beverage' | 'meal' | 'dessert' | 'snack';
 
@@ -44,6 +45,27 @@ export function MenuPage() {
       if (f) setFoods(JSON.parse(f));
     };
     window.addEventListener('storage', handleStorage);
+
+    if (supabase) {
+      void supabase.from('stores').select('id').eq('slug', 'snu').single().then(({ data: store }) => {
+        if (store) {
+          void supabase.from('store_content').select('content_key, content_value').eq('store_id', store.id).then(({ data }) => {
+            if (data) {
+              for (const item of data) {
+                if (item.content_key === 'price_packages' && Array.isArray(item.content_value?.packages)) {
+                  setPackages(item.content_value.packages);
+                } else if (item.content_key === 'beverage_items' && Array.isArray(item.content_value?.beverages)) {
+                  setBeverages(item.content_value.beverages);
+                } else if (item.content_key === 'food_items' && Array.isArray(item.content_value?.foods)) {
+                  setFoods(item.content_value.foods);
+                }
+              }
+            }
+          });
+        }
+      });
+    }
+
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 

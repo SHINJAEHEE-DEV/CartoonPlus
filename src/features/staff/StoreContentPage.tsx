@@ -10,8 +10,19 @@ import {
 } from '../customer/menuData';
 
 export function StoreContentPage() {
-  const [activeTab, setActiveTab] = useState<'packages' | 'beverages' | 'foods'>('packages');
+  const [activeTab, setActiveTab] = useState<'packages' | 'beverages' | 'foods' | 'info'>('info');
   const [message, setMessage] = useState('');
+
+  const [storeInfo, setStoreInfo] = useState(() => {
+    const saved = localStorage.getItem('cp_store_info');
+    return saved ? JSON.parse(saved) : {
+      address: '서울특별시 관악구 관악로 155, 3층 (봉천동 856-5 대우디오슈페리움 1단지)',
+      phone: '02-888-0852',
+      hours: '매일 10:00 – 23:00 (연중무휴, 공휴일·명절 정상 영업)',
+      parking: '건물 지하 주차장 이용 가능 (이용 시 카운터 문의)',
+      directions: '지하철 2호선 서울대입구역 3번 출구에서 도보 1~2분 직진. 1층 빽다방·올리브영 건물 3층.'
+    };
+  });
 
   // 1. 요금제 상태
   const [packages, setPackages] = useState<PricePackage[]>(() => {
@@ -51,6 +62,8 @@ export function StoreContentPage() {
               setBeverages(item.content_value.beverages);
             } else if (item.content_key === 'food_items' && Array.isArray(item.content_value?.foods)) {
               setFoods(item.content_value.foods);
+            } else if (item.content_key === 'store_info' && item.content_value) {
+              setStoreInfo(item.content_value);
             }
           }
         }
@@ -102,6 +115,21 @@ export function StoreContentPage() {
         );
       }
     }
+  };
+
+  const saveStoreInfoToStorage = async (newInfo: any) => {
+    setStoreInfo(newInfo);
+    localStorage.setItem('cp_store_info', JSON.stringify(newInfo));
+    if (supabase) {
+      const { data: store } = await supabase.from('stores').select('id').eq('slug', 'snu').single();
+      if (store) {
+        await supabase.from('store_content').upsert(
+          { store_id: store.id, content_key: 'store_info', content_value: newInfo },
+          { onConflict: 'store_id,content_key' }
+        );
+      }
+    }
+    setMessage('매장 정보를 저장했습니다.');
   };
 
   // --- 1. 요금제 핸들러 ---
@@ -254,7 +282,22 @@ export function StoreContentPage() {
         </div>
 
         {/* 상단 탭 스위처 */}
-        <div style={{ display: 'flex', gap: '8px', background: '#FFF9EC', padding: '6px', borderRadius: '14px', border: '2.5px solid #1E1E1E' }}>
+        <div style={{ display: 'flex', gap: '8px', background: '#FFF9EC', padding: '6px', borderRadius: '14px', border: '2.5px solid #1E1E1E', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => { setActiveTab('info'); setSearchQuery(''); }}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '10px',
+              background: activeTab === 'info' ? '#1E1E1E' : 'transparent',
+              color: activeTab === 'info' ? '#FED943' : '#1E1E1E',
+              fontWeight: 800,
+              fontSize: '14px',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            기본 정보 관리
+          </button>
           <button
             onClick={() => { setActiveTab('packages'); setSearchQuery(''); }}
             style={{
@@ -846,6 +889,59 @@ export function StoreContentPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- INFO 탭 --- */}
+      {activeTab === 'info' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ background: '#FFF', border: '3px solid #1E1E1E', borderRadius: '24px', padding: '24px', boxShadow: '5px 5px 0 #1E1E1E' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: 900, marginBottom: '16px' }}>📍 매장 기본 정보 설정</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const f = new FormData(e.currentTarget);
+                void saveStoreInfoToStorage({
+                  address: String(f.get('address')),
+                  phone: String(f.get('phone')),
+                  hours: String(f.get('hours')),
+                  parking: String(f.get('parking')),
+                  directions: String(f.get('directions')),
+                });
+              }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+            >
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '6px' }}>영업시간</label>
+                <input name="hours" defaultValue={storeInfo.hours} required style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '14px', fontWeight: 700 }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '6px' }}>주소</label>
+                <input name="address" defaultValue={storeInfo.address} required style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '14px', fontWeight: 700 }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '6px' }}>오시는 길</label>
+                <textarea name="directions" defaultValue={storeInfo.directions} rows={2} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '14px', fontWeight: 700, resize: 'none' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '6px' }}>주차 정보</label>
+                <input name="parking" defaultValue={storeInfo.parking} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '14px', fontWeight: 700 }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, marginBottom: '6px' }}>매장 연락처 (문의)</label>
+                <input name="phone" defaultValue={storeInfo.phone} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '14px', fontWeight: 700 }} />
+              </div>
+
+              <div style={{ marginTop: '10px', textAlign: 'right' }}>
+                <button
+                  type="submit"
+                  style={{ padding: '12px 24px', background: '#FED943', border: '2px solid #1E1E1E', borderRadius: '10px', fontSize: '14px', fontWeight: 900, cursor: 'pointer' }}
+                >
+                  기본 정보 저장
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

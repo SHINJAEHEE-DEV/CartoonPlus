@@ -62,13 +62,6 @@ const DEFAULT_GAMES = {
 
 
 
-const STORE_ROWS = [
-  { k: '영업시간', v: '매일 10:00 – 23:00 (연중무휴, 공휴일·명절 정상 영업)' },
-  { k: '주소', v: '서울특별시 관악구 관악로 155, 3층 (봉천동 856-5 대우디오슈페리움 1단지)' },
-  { k: '오시는 길', v: '지하철 2호선 서울대입구역 3번 출구에서 도보 1~2분 직진. 1층 빽다방·올리브영 건물 3층.' },
-  { k: '주차', v: '건물 지하 주차장 이용 가능 (이용 시 카운터 문의)' },
-  { k: '문의', v: '02-888-0852 · 매장 이용 및 도서 재고 문의' },
-];
 
 const GUIDE_STEPS = [
   { n: '1', title: '키오스크에서 입실', desc: '이용 시간과 음료를 선택한 뒤 결제해 주세요.' },
@@ -101,6 +94,7 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
   const titles = { games: '즐길거리', events: '진행 중인 이벤트', store: '매장 안내' };
   usePageTitle(titles[kind]);
   const [items, setItems] = useState<Item[] | null>(null);
+  const [storeInfo, setStoreInfo] = useState<{ hours?: string; address?: string; phone?: string; parking?: string; directions?: string } | null>(null);
   const [gameTab, setGameTab] = useState<'switch' | 'ps4' | 'board'>('switch');
 
   useEffect(() => {
@@ -109,6 +103,17 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
       return;
     }
     const today = new Date().toISOString().slice(0, 10);
+    if (kind === 'store') {
+      void supabase.from('stores').select('id').eq('slug', 'snu').single().then(({ data: store }) => {
+        if (store) {
+          void supabase.from('store_content').select('content_value').eq('store_id', store.id).eq('content_key', 'store_info').single().then(({ data }) => {
+            if (data?.content_value) setStoreInfo(data.content_value);
+          });
+        }
+      });
+      return;
+    }
+
     const query =
       kind === 'games'
         ? supabase.from('entertainment_items').select('id,title,players,genre,item_type,quantity').eq('is_verified', true).eq('is_available', true).is('archived_at', null)
@@ -323,18 +328,24 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
           }}
         >
           <div style={{ fontSize: '17px', fontWeight: 900 }}>영업 정보</div>
-          {STORE_ROWS.map((r) => (
+          {[
+            { k: '영업시간', v: storeInfo?.hours || '매일 10:00 – 23:00' },
+            { k: '주소', v: storeInfo?.address || '서울특별시 관악구 관악로 155, 3층' },
+            { k: '오시는 길', v: storeInfo?.directions || '지하철 2호선 서울대입구역 3번 출구에서 도보 1~2분' },
+            { k: '주차', v: storeInfo?.parking || '건물 지하 주차장 이용 가능' },
+            { k: '문의', v: storeInfo?.phone || '02-888-0852' },
+          ].map((r) => (
             <div key={r.k} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
               <div style={{ width: '74px', flexShrink: 0, fontSize: '13px', fontWeight: 800, color: '#8A8175', paddingTop: '2px' }}>
                 {r.k}
               </div>
-              <div style={{ fontSize: '14px', fontWeight: 700, lineHeight: 1.55, minWidth: 0 }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, lineHeight: 1.55, minWidth: 0, whiteSpace: 'pre-line' }}>
                 {r.v}
               </div>
             </div>
           ))}
           <a
-            href="tel:0288880852"
+            href={`tel:${(storeInfo?.phone || '0288880852').replace(/[^0-9]/g, '')}`}
             style={{
               alignSelf: 'flex-start',
               marginTop: 'auto',
@@ -346,7 +357,7 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
               fontWeight: 800,
             }}
           >
-            전화로 문의하기 (02-888-0852)
+            전화로 문의하기 ({storeInfo?.phone || '02-888-0852'})
           </a>
         </div>
 
