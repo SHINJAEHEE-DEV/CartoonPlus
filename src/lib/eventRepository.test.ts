@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi, beforeAll, afterAll } from 'vitest';
 import { getFeaturedEvent, type ManagedEvent } from './eventRepository';
 
 const testEvents: ManagedEvent[] = [
@@ -31,6 +31,15 @@ const testEvents: ManagedEvent[] = [
 ];
 
 describe('eventRepository', () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-15T00:00:00Z'));
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   it('returns the active featured event when present', () => {
     const featured = getFeaturedEvent(testEvents);
     expect(featured.id).toBe('evt-1');
