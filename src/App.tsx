@@ -19,6 +19,7 @@ import { NewArrivalsPage } from './features/customer/NewArrivalsPage';
 import { CustomerShell, StaffShell } from './features/layout/AppShell';
 import type { SearchableBook } from './lib/bookSearch';
 import { supabase } from './lib/supabase';
+import { useGlobalBroadcastScheduler } from './lib/broadcastRunner';
 
 function InternalLinkInterceptor() {
   const navigate = useNavigate();
@@ -81,10 +82,16 @@ function CustomerRoute({ children }: { children: React.ReactNode }) {
   return <CustomerShell currentPath={location.pathname}>{children}</CustomerShell>;
 }
 
+function GlobalBroadcastService() {
+  useGlobalBroadcastScheduler();
+  return null;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <InternalLinkInterceptor />
+      <GlobalBroadcastService />
       <Routes>
         {/* Legacy Redirects */}
         <Route path="/search" element={<Navigate to="/books" replace />} />

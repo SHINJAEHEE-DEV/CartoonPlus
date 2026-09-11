@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import thinkingMascot from '../../assets/mascot_thinking.png';
 import { normalizeBookCategory, searchBooks, splitBookCategories, type SearchableBook } from '../../lib/bookSearch';
 import { Pagination } from '../common/Pagination';
+import { usePageTitle } from '../../lib/usePageTitle';
 
 type BookSearchPageProps = {
   books: SearchableBook[];
@@ -9,12 +10,13 @@ type BookSearchPageProps = {
 };
 
 const PAGE_SIZE = 18;
-const SAMPLE_QUERIES = ['체인소맨', '원피스', '주술회전', '귀멸의 칼날', '스파이 패밀리'];
 
 export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps) {
+  usePageTitle('도서 검색');
   const [query, setQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('전체');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
 
   // 검색어 또는 장르 변경 시 첫 페이지로 리셋
   useEffect(() => {
@@ -86,31 +88,25 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
               type="button"
               onClick={() => setQuery('')}
               className="search-clear-btn"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              초기화
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+              <span>초기화</span>
             </button>
           )}
         </div>
 
-        {/* 추천 검색어 */}
-        <div className="chips-row">
-          <span className="chip-label">추천 검색</span>
-          {SAMPLE_QUERIES.map((sample) => (
-            <button
-              key={sample}
-              type="button"
-              onClick={() => setQuery(sample)}
-              className="chip-sample"
-              disabled={isLoading}
-            >
-              {sample}
-            </button>
-          ))}
-        </div>
-
-        {/* 장르 필터 */}
-        <div className="chips-row">
-          <span className="chip-label">장르 구분</span>
+        {/* 1. 데스크톱 화면용: 가로 칩 형태 장르 선택 바 */}
+        <div className="genre-chips-desktop">
+          <span className="chip-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
+            장르 구분
+          </span>
           {dynamicGenres.map((g) => (
             <button
               key={g}
@@ -123,7 +119,90 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
             </button>
           ))}
         </div>
+
+        {/* 2. 모바일 화면용: 네오 브루탈리즘 모달 트리거 버튼 */}
+        <div className="genre-select-mobile">
+          <button
+            type="button"
+            className="mobile-genre-trigger"
+            onClick={() => setIsGenreModalOpen(true)}
+            aria-haspopup="dialog"
+            disabled={isLoading}
+          >
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+              </svg>
+              <span>장르: <strong>{selectedGenre === '전체' ? '전체 장르' : selectedGenre}</strong></span>
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 900, background: '#1E1E1E', color: '#FED943', padding: '4px 10px', borderRadius: '8px' }}>
+              변경
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </span>
+          </button>
+        </div>
       </section>
+
+      {/* 모바일 장르 바텀시트 모달 */}
+      {isGenreModalOpen && (
+        <div
+          className="genre-modal-backdrop"
+          onClick={() => setIsGenreModalOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="장르 선택"
+        >
+          <div className="genre-modal-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="genre-modal-header">
+              <div className="genre-modal-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                </svg>
+                <span>장르 선택 ({dynamicGenres.length})</span>
+              </div>
+              <button
+                type="button"
+                className="genre-modal-close-btn"
+                onClick={() => setIsGenreModalOpen(false)}
+                aria-label="닫기"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="genre-modal-grid">
+              {dynamicGenres.map((g) => {
+                const isSelected = selectedGenre === g;
+                return (
+                  <button
+                    key={g}
+                    type="button"
+                    className={`genre-modal-item-btn ${isSelected ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedGenre(g);
+                      setIsGenreModalOpen(false);
+                    }}
+                  >
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                      {isSelected && (
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                      <span>{g}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 검색 결과 카운트 & 메타 */}
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '0 4px' }}>

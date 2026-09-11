@@ -10,9 +10,12 @@ import {
   PricePackage,
 } from './menuData';
 
+import { usePageTitle } from '../../lib/usePageTitle';
+
 type MenuTab = 'all' | 'beverage' | 'meal' | 'dessert' | 'snack';
 
 export function MenuPage() {
+  usePageTitle('메뉴 안내');
   const [activeTab, setActiveTab] = useState<MenuTab>('all');
   const [beverageSubFilter, setBeverageSubFilter] = useState<string>('전체');
 

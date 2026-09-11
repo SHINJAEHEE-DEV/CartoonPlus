@@ -2,10 +2,12 @@ import { useEffect, useState, useMemo } from 'react';
 import { loadNewArrivals } from '../book-search/catalogueRepository';
 import type { SearchableBook } from '../../lib/bookSearch';
 import { Pagination } from '../common/Pagination';
+import { usePageTitle } from '../../lib/usePageTitle';
 
 const PAGE_SIZE = 12;
 
 export function NewArrivalsPage() {
+  usePageTitle('신규 입고 도서');
   const [books, setBooks] = useState<SearchableBook[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
 

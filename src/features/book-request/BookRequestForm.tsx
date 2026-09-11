@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import thinkingMascot from '../../assets/mascot_thinking.png';
+import { usePageTitle } from '../../lib/usePageTitle';
 
 export function BookRequestForm({ title = '' }: { title?: string }) {
+  usePageTitle('도서 입고 신청');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 

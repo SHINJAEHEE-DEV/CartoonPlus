@@ -49,7 +49,10 @@ const POPULAR_PRICES = [
   { name: '평일 종일권', price: '20,000원', note: '하루 종일 무제한 힐링' },
 ];
 
+import { usePageTitle } from '../../lib/usePageTitle';
+
 export function HomePage() {
+  usePageTitle();
   const [newBooks, setNewBooks] = useState<SearchableBook[]>([]);
   const [featured, setFeatured] = useState<ManagedEvent>(() => getFeaturedEvent());
 

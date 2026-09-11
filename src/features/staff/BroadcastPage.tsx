@@ -1,7 +1,8 @@
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { speakKorean } from '../../lib/broadcast';
-import { isDue, type ScheduledBroadcast } from '../../lib/broadcastSchedule';
+import { type ScheduledBroadcast } from '../../lib/broadcastSchedule';
 import { supabase } from '../../lib/supabase';
+import { notifyScheduleUpdated } from '../../lib/broadcastRunner';
 
 const presets = [
   ['기본', '/audio/기본.mp3', '매장 이용 에티켓 및 기본 안내'],
@@ -48,7 +49,6 @@ export function BroadcastPage() {
   const [schedule, setSchedule] = useState<ScheduleForm>(emptySchedule);
   const [scheduleStatus, setScheduleStatus] = useState('');
   const [failedRuns, setFailedRuns] = useState<FailedRun[]>([]);
-  const executedKeys = useRef(new Set<string>());
 
   const recordRun = async (message: string, scheduledId?: string) => {
     if (!supabase) return;
@@ -158,29 +158,13 @@ export function BroadcastPage() {
         await supabase
           .from('scheduled_broadcasts')
           .insert(missing.map((item) => ({ ...item, store_id: store.id, schedule_type: 'daily', is_enabled: true })));
+        notifyScheduleUpdated();
       }
       await loadSchedules();
       void loadFailedRuns();
     };
     void setup();
   }, []);
-
-  useEffect(() => {
-    const runDueSchedules = async () => {
-      const now = new Date();
-      for (const item of schedules) {
-        const key = `${item.id}:${now.toISOString().slice(0, 16)}`;
-        if (!isDue(item, now) || executedKeys.current.has(key)) continue;
-        executedKeys.current.add(key);
-        const preset = presets.find(([title]) => title === item.message_text);
-        if (preset) await playAudio(preset[1], preset[0], item.id);
-        else await play(item.message_text, item.id);
-      }
-    };
-    void runDueSchedules();
-    const timer = window.setInterval(() => void runDueSchedules(), 15_000);
-    return () => window.clearInterval(timer);
-  }, [schedules]);
 
   const saveSchedule = async (event: FormEvent) => {
     event.preventDefault();
@@ -210,6 +194,7 @@ export function BroadcastPage() {
     setSchedule(emptySchedule);
     setScheduleStatus('예약 방송을 저장했습니다.');
     await loadSchedules();
+    notifyScheduleUpdated();
   };
 
   const toggleSchedule = async (item: StoredSchedule) => {
@@ -220,20 +205,27 @@ export function BroadcastPage() {
       return;
     }
     await loadSchedules();
+    notifyScheduleUpdated();
   };
 
   const changeTime = async (item: StoredSchedule, targetTime: string) => {
     if (!supabase) return;
     const { error } = await supabase.from('scheduled_broadcasts').update({ target_time: targetTime }).eq('id', item.id);
     setScheduleStatus(error ? `시간을 변경하지 못했습니다: ${error.message}` : '예약 시간을 변경했습니다.');
-    if (!error) await loadSchedules();
+    if (!error) {
+      await loadSchedules();
+      notifyScheduleUpdated();
+    }
   };
 
   const archiveSchedule = async (item: StoredSchedule) => {
     if (!supabase) return;
     const { error } = await supabase.from('scheduled_broadcasts').delete().eq('id', item.id);
     setScheduleStatus(error ? `예약을 삭제하지 못했습니다: ${error.message}` : '예약을 삭제했습니다.');
-    if (!error) await loadSchedules();
+    if (!error) {
+      await loadSchedules();
+      notifyScheduleUpdated();
+    }
   };
 
   const statusBg =

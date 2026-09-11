@@ -95,7 +95,11 @@ const AMENITIES = [
   '무인 키오스크 셀프 입·퇴실',
 ];
 
+import { usePageTitle } from '../../lib/usePageTitle';
+
 export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' }) {
+  const titles = { games: '즐길거리', events: '진행 중인 이벤트', store: '매장 안내' };
+  usePageTitle(titles[kind]);
   const [items, setItems] = useState<Item[] | null>(null);
   const [gameTab, setGameTab] = useState<'switch' | 'ps4' | 'board'>('switch');
 

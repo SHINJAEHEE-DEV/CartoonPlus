@@ -87,6 +87,33 @@ async function generateSSG() {
     await fs.writeFile(outPath, routeHtml, 'utf-8');
     console.log(`Generated SSG route: ${route.path}/index.html`);
   }
+
+  // Generate sitemap.xml
+  const domain = 'https://snu.cartoonplus.co.kr'; // Replace with actual domain if known, assuming a canonical format
+  const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>${domain}/</loc></url>
+${routes.map(r => `  <url><loc>${domain}${r.path}</loc></url>`).join('\n')}
+</urlset>`;
+  await fs.writeFile(path.join(DIST_DIR, 'sitemap.xml'), sitemapContent, 'utf-8');
+  console.log('Generated sitemap.xml');
+
+  // Generate robots.txt
+  const robotsContent = `User-agent: *
+Disallow: /staff
+
+Sitemap: ${domain}/sitemap.xml`;
+  await fs.writeFile(path.join(DIST_DIR, 'robots.txt'), robotsContent, 'utf-8');
+  console.log('Generated robots.txt');
+
+  // Generate _routes.json for Cloudflare Pages SPA fallback
+  const routesJson = {
+    version: 1,
+    include: ["/*"],
+    exclude: ["/assets/*", "/audio/*", "/favicon.ico", "/favicon.svg", "/og-image.png"]
+  };
+  await fs.writeFile(path.join(DIST_DIR, '_routes.json'), JSON.stringify(routesJson, null, 2), 'utf-8');
+  console.log('Generated _routes.json');
   
   console.log('SSG Generation complete.');
 }
