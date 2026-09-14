@@ -1,5 +1,7 @@
 # Spec: 카툰플러스 서울대입구역점 운영 전환
 
+> 2026-09-14 1차 중간 피드백 반영: 아래의 브랜드 중심 홈·별도 검색 및 공개 직원 로그인 진입에 관한 이전 결정은 `docs/REQUIREMENTS.md` FR-STORE-001, FR-STORE-006, FR-AUTH-003, FR-AUTH-007로 대체한다. 이번 모바일 개선 범위와 검수 기준도 해당 문서의 공통 UI 절을 따른다. 나머지 기존 범위는 유지한다.
+
 Status: ready-for-agent
 
 ## Problem Statement
@@ -59,7 +61,7 @@ Cloudflare Pages에서 고객 포털과 직원 운영 콘솔을 제공하고(202
 ## Implementation Decisions
 
 - The first Launch Store is 서울대입구역점 only. Customer pages expose only this store; the model remains extensible for later stores such as 잠실점.
-- The customer portal provides Home, 도서 검색, 게임 목록, 이벤트, 매장 안내, menu·요금, and 직원 로그인. Home introduces CartoonPlus and its visit experience; 도서 검색 is a separate destination.
+- The customer portal provides Home, 도서 검색, 게임 목록, 이벤트, 매장 안내, and menu·요금. Home introduces CartoonPlus and its visit experience; 도서 검색 is a separate destination. Staff entry follows `docs/REQUIREMENTS.md` FR-AUTH-007 (2026-09-14 feedback decision); no visible staff login button appears in the customer portal.
 - React, TypeScript and Vite provide the static web application. Cloudflare Pages with GitHub integration is the approved deployment target (2026-09-11); migration is pending verification. Keep `https://shinjaehee-dev.github.io/CartoonPlus/` available during validation. Purchase and connect a custom domain only as the final task after owner approval. Deployment settings are maintained in `docs/TECHNOLOGY_DECISIONS.md`, section 3.
 - Supabase provides PostgreSQL data, storage for approved visual assets, authentication, and Row Level Security. Customer-visible data is publicly readable only where explicitly designated public. Operating writes require an approved Staff Account. Admin adds account approval, deactivation, and temporary-password privileges.
 - Staff sign-up accepts name, login ID, password, and phone-number last four digits. The implementation may map a login ID to an internal authentication identifier, but the customer-facing and staff-facing login remains ID and password. No real staff email is collected. Password recovery is an administrator-issued temporary password.

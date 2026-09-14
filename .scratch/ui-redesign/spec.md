@@ -1,5 +1,7 @@
 # Spec: 카툰플러스 고객·직원 UI 재설계
 
+> 2026-09-14 1차 중간 피드백 반영: 아래의 브랜드 중심 홈·별도 검색 및 공개 직원 로그인 진입에 관한 이전 결정은 `docs/REQUIREMENTS.md` FR-STORE-001, FR-STORE-006, FR-AUTH-003, FR-AUTH-007로 대체한다. 이번 모바일 개선 범위와 검수 기준도 해당 문서의 공통 UI 절을 따른다. 나머지 기존 범위는 유지한다.
+
 Status: ready-for-agent
 
 ## Problem Statement
