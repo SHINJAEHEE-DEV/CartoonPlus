@@ -129,8 +129,8 @@ export default function App() {
         <Route path="/stores/:storeSlug/book-request" element={<CustomerRoute><BookRequestRoute /></CustomerRoute>} />
         <Route path="/stores/:storeSlug/about" element={<CustomerRoute><StoreContentPendingPage /></CustomerRoute>} />
         <Route path="/stores/:storeSlug/menu" element={<CustomerRoute><StoreContentPendingPage /></CustomerRoute>} />
-        <Route path="/stores/:storeSlug/games" element={<CustomerRoute><StoreContentPendingPage /></CustomerRoute>} />
-        <Route path="/stores/:storeSlug/events" element={<CustomerRoute><StoreContentPendingPage /></CustomerRoute>} />
+        <Route path="/stores/:storeSlug/games" element={<CustomerRoute><PublicInfoPage kind="games" /></CustomerRoute>} />
+        <Route path="/stores/:storeSlug/events" element={<CustomerRoute><PublicInfoPage kind="events" /></CustomerRoute>} />
         <Route path="/stores/:storeSlug/store" element={<CustomerRoute><StoreContentPendingPage /></CustomerRoute>} />
 
         {/* Staff Routes */}

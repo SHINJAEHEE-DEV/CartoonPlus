@@ -5,7 +5,7 @@ import coffeeMascot from '../../assets/placeholder.svg';
 import storePhoto1 from '../../assets/placeholder.svg';
 import storePhoto2 from '../../assets/placeholder.svg';
 import storePhoto3 from '../../assets/placeholder.svg';
-import { loadManagedEvents, getBannerImageUrl, type ManagedEvent } from '../../lib/eventRepository';
+import { usePublicStore } from '../../lib/storeContext';
 
 type Item = {
   id: string;
@@ -51,6 +51,7 @@ const AMENITIES = [
 import { usePageTitle } from '../../lib/usePageTitle';
 
 export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' }) {
+  const { store: selectedStore } = usePublicStore();
   const titles = { games: '즐길거리', events: '진행 중인 이벤트', store: '매장 안내' };
   usePageTitle(titles[kind]);
   const [items, setItems] = useState<Item[] | null>(null);
@@ -65,7 +66,7 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
     const client = supabase;
     const today = new Date().toISOString().slice(0, 10);
     if (kind === 'store') {
-      void client.from('stores').select('id').eq('slug', 'snu').single().then(({ data: store }) => {
+      void client.from('stores').select('id').eq('slug', selectedStore.slug).single().then(({ data: store }) => {
         if (store) {
           void client.from('store_content').select('content_value').eq('store_id', store.id).eq('content_key', 'store_info').single().then(({ data }) => {
             if (data?.content_value) setStoreInfo(data.content_value);
@@ -75,17 +76,16 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
       return;
     }
 
-    const query =
-      kind === 'games'
-        ? client.from('entertainment_items').select('id,title,players,genre,item_type,quantity').eq('is_verified', true).eq('is_available', true).is('archived_at', null)
+    void client.from('stores').select('id').eq('slug', selectedStore.slug).single().then(({ data: store }) => {
+      if (!store) return setItems([]);
+      const query = kind === 'games'
+        ? client.from('entertainment_items').select('id,title,players,genre,item_type,quantity').eq('store_id', store.id).eq('is_verified', true).eq('is_available', true).is('archived_at', null)
         : kind === 'events'
-        ? client.from('store_events').select('id,title,content,is_always_on').eq('is_public', true).is('archived_at', null).or('is_always_on.eq.true,and(start_date.lte.' + today + ',end_date.gte.' + today + ')')
-        : null;
-
-    if (query) {
-      void query.then(({ data }) => setItems((data ?? []) as Item[]));
-    }
-  }, [kind]);
+          ? client.from('store_events').select('id,title,content,is_always_on').eq('store_id', store.id).eq('is_public', true).is('archived_at', null).or('is_always_on.eq.true,and(start_date.lte.' + today + ',end_date.gte.' + today + ')')
+          : null;
+      if (query) void query.then(({ data }) => setItems((data ?? []) as Item[]));
+    });
+  }, [kind, selectedStore.slug]);
 
   // 1. 즐길거리 (Games) 화면
   if (kind === 'games') {
@@ -186,12 +186,19 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
 
   // 2. 이벤트 · 제휴 (Events) 화면
   if (kind === 'events') {
-    const publicEvents = loadManagedEvents().filter((ev) => {
-      if (!ev.isPublic || ev.archivedAt) return false;
-      if (ev.isAlwaysOn) return true;
-      const today = new Date().toISOString().split('T')[0];
-      return !ev.endDate || ev.endDate >= today;
-    });
+    const publicEvents = (items ?? []).map((event) => ({
+      id: event.id,
+      title: event.title,
+      detail: event.content ?? '',
+      isAlwaysOn: Boolean(event.is_always_on),
+      startDate: '',
+      endDate: '',
+      tag: 'EVENT',
+      target: '',
+      isFeatured: false,
+      bannerType: 'default' as const,
+      customBannerUrl: '',
+    }));
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
@@ -210,7 +217,7 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
               <div key={ev.id} className="event-poster-row">
                 <div className="poster-box" style={{ background: '#2A2A2A', padding: '10px' }}>
                   <img
-                    src={getBannerImageUrl(ev.bannerType, ev.customBannerUrl)}
+                    src={gamingMascot}
                     alt={ev.title}
                     style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                   />
