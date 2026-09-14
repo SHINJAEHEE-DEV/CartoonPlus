@@ -1257,6 +1257,9 @@ button {
 }
 
 @media (max-width: 540px) {
+  .header-actions {
+    display: none;
+  }
   .feature-grid, .new-arrivals-grid, .search-results-grid, .game-grid, .photo-grid, .event-grid {
     grid-template-columns: 1fr;
   }
