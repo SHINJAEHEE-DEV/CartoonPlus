@@ -86,77 +86,92 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
   const [gameTab, setGameTab] = useState<'switch' | 'ps4' | 'board'>('switch');
 
   useEffect(() => {
+    let active = true;
+
+    if (kind === 'games') {
+      setItems(getStaticStoreGames(selectedStore.slug) as Item[]);
+    }
+
     if (!supabase) {
-      setItems([]);
+      if (kind !== 'games') setItems([]);
       return;
     }
+
     const client = supabase;
     const today = new Date().toISOString().slice(0, 10);
-    if (kind === 'store') {
-      void client
-        .from('stores')
-        .select('id')
-        .eq('slug', selectedStore.slug)
-        .single()
-        .then(({ data: store }) => {
-          if (store) {
-            void client
+
+    const loadData = async () => {
+      try {
+        if (kind === 'store') {
+          const { data: store } = await client
+            .from('stores')
+            .select('id')
+            .eq('slug', selectedStore.slug)
+            .single();
+
+          if (store && active) {
+            const { data } = await client
               .from('store_content')
               .select('content_value')
               .eq('store_id', store.id)
               .eq('content_key', 'store_info')
-              .single()
-              .then(({ data }) => {
-                if (data?.content_value) setStoreInfo(data.content_value);
-              });
+              .single();
+            if (data?.content_value && active) setStoreInfo(data.content_value);
           }
-        });
-      return;
-    }
+          return;
+        }
 
-    void client
-      .from('stores')
-      .select('id')
-      .eq('slug', selectedStore.slug)
-      .single()
-      .then(({ data: store }) => {
-        if (!store) return setItems([]);
-        const query =
-          kind === 'games'
-            ? client
-                .from('entertainment_items')
-                .select('id,title,players,genre,item_type,quantity')
-                .eq('store_id', store.id)
-                .eq('is_verified', true)
-                .eq('is_available', true)
-                .is('archived_at', null)
-            : kind === 'events'
-              ? client
-                  .from('store_events')
-                  .select('id,title,content,is_always_on')
-                  .eq('store_id', store.id)
-                  .eq('is_public', true)
-                  .is('archived_at', null)
-                  .or(
-                    'is_always_on.eq.true,and(start_date.lte.' +
-                      today +
-                      ',end_date.gte.' +
-                      today +
-                      ')'
-                  )
-              : null;
-        if (query) {
-          void query.then(({ data }) => {
+        const { data: store } = await client
+          .from('stores')
+          .select('id')
+          .eq('slug', selectedStore.slug)
+          .single();
+
+        if (!store) {
+          if (active && kind !== 'games') setItems([]);
+          return;
+        }
+
+        if (kind === 'games') {
+          const { data } = await client
+            .from('entertainment_items')
+            .select('id,title,players,genre,item_type,quantity')
+            .eq('store_id', store.id)
+            .eq('is_verified', true)
+            .eq('is_available', true)
+            .is('archived_at', null);
+
+          if (active) {
             if (data && data.length > 0) {
               setItems(data as Item[]);
-            } else if (kind === 'games') {
-              setItems(getStaticStoreGames(selectedStore.slug) as Item[]);
             } else {
-              setItems((data ?? []) as Item[]);
+              setItems(getStaticStoreGames(selectedStore.slug) as Item[]);
             }
-          });
+          }
+        } else if (kind === 'events') {
+          const { data } = await client
+            .from('store_events')
+            .select('id,title,content,is_always_on')
+            .eq('store_id', store.id)
+            .eq('is_public', true)
+            .is('archived_at', null)
+            .or(
+              'is_always_on.eq.true,and(start_date.lte.' + today + ',end_date.gte.' + today + ')'
+            );
+          if (active) setItems((data ?? []) as Item[]);
         }
-      });
+      } catch {
+        if (active && kind === 'games') {
+          setItems(getStaticStoreGames(selectedStore.slug) as Item[]);
+        }
+      }
+    };
+
+    void loadData();
+
+    return () => {
+      active = false;
+    };
   }, [kind, selectedStore.slug]);
 
   // 1. 즐길거리 (Games) 화면
