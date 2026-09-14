@@ -17,13 +17,6 @@ const labels: Record<string, string> = {
   BOARD_GAME: '보드게임',
 };
 
-const platformEmojis: Record<string, string> = {
-  NINTENDO: '🎮',
-  PLAYSTATION_4: '🕹️',
-  XBOX: '🎯',
-  BOARD_GAME: '🎲',
-};
-
 const INITIAL_GAMES: Game[] = [
   // 1. 닌텐도 스위치 (8종)
   { id: 'g-nsw-01', title: '슈퍼 마리오 파티 잼버리', item_type: 'NINTENDO', players: '1-4인', genre: '파티/보드', archived_at: null },
@@ -219,7 +212,7 @@ export function GamesPage() {
               color: '#6B6354',
             }}
           >
-            📦 보관 {archivedCount}건
+            보관 {archivedCount}건
           </div>
         </div>
       </div>

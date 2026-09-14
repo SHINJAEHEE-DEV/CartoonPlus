@@ -500,7 +500,7 @@ export function EventsPage() {
       <section>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 900 }}>
-            📋 등록된 이벤트 목록 ({events.length}건)
+            등록된 이벤트 목록 ({events.length}건)
           </h2>
         </div>
 

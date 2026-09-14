@@ -80,7 +80,7 @@ export function BookRequestsPage() {
 
       {message && (
         <div style={{ padding: '12px 18px', background: '#FFF3C9', border: '2px solid #1E1E1E', borderRadius: '14px', fontSize: '13px', fontWeight: 800 }}>
-          🔔 {message}
+          {message}
         </div>
       )}
 

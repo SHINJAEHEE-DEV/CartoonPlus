@@ -144,7 +144,7 @@ export function AdminAccountsPage() {
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ fontSize: '18px', fontWeight: 900 }}>👥 직원 명부 및 권한 관리</div>
+          <div style={{ fontSize: '18px', fontWeight: 900 }}>직원 명부 및 권한 관리</div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               onClick={() => setFilterRole('ALL')}

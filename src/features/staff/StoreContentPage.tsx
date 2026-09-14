@@ -358,7 +358,7 @@ export function StoreContentPage() {
             alignItems: 'center',
           }}
         >
-          <span>📋 {message}</span>
+          <span>{message}</span>
           <button onClick={() => setMessage('')} style={{ background: 'none', border: 'none', fontSize: '16px', fontWeight: 900, cursor: 'pointer' }}>
             ✕
           </button>
@@ -435,7 +435,7 @@ export function StoreContentPage() {
               gap: '16px',
             }}
           >
-            <div style={{ fontSize: '18px', fontWeight: 900 }}>📋 등록된 이용 요금제 ({packages.length}개)</div>
+            <div style={{ fontSize: '18px', fontWeight: 900 }}>등록된 이용 요금제 ({packages.length}개)</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
               {packages.map((pkg, idx) => (
                 <div

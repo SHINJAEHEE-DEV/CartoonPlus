@@ -286,7 +286,6 @@ export function BroadcastPage() {
           boxShadow: '3px 3px 0 #1E1E1E',
         }}
       >
-        <span style={{ fontSize: '20px' }}>📢</span>
         <div style={{ fontSize: '13px', fontWeight: 700, color: '#3D3528', lineHeight: 1.5 }}>
           <strong>운영 가이드:</strong> 카운터 PC에서 브라우저 볼륨을 매장 앰프에 맞추고 탭을 유지해 주세요. 백그라운드 탭에서도 15초 주기로 스케줄을 감지하여 자동 송출합니다.
         </div>
@@ -358,7 +357,7 @@ export function BroadcastPage() {
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: 900 }}>🎙️ 실시간 커스텀 TTS 방송</div>
+            <div style={{ fontSize: '18px', fontWeight: 900 }}>실시간 커스텀 TTS 방송</div>
             <span style={{ fontSize: '12px', fontWeight: 800, color: '#8A8175' }}>한국어 음성 합성</span>
           </div>
 
@@ -593,7 +592,7 @@ export function BroadcastPage() {
         {/* 저장된 예약 목록 타임라인 */}
         <div>
           <div style={{ fontSize: '15px', fontWeight: 900, marginBottom: '12px' }}>
-            📋 등록된 방송 스케줄 ({schedules.length}건)
+            등록된 방송 스케줄 ({schedules.length}건)
           </div>
 
           {schedules.length === 0 ? (
@@ -731,7 +730,7 @@ export function BroadcastPage() {
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: '16px', fontWeight: 900 }}>⚠️ 최근 송출 실패 로그 (최근 10건)</div>
+          <div style={{ fontSize: '16px', fontWeight: 900 }}>최근 송출 실패 로그 (최근 10건)</div>
           <button
             onClick={() => void loadFailedRuns()}
             style={{
