@@ -12,12 +12,10 @@ type JamsilShelfRow = {
   shelfTitles: string;
 };
 
-export type JamsilInventoryImport = {
+export type StoreInventoryImport = {
   books: SearchableBook[];
   ambiguousTitles: string[];
 };
-
-export type HongdaeInventoryImport = JamsilInventoryImport;
 
 function splitTitleAndLastVolume(value: string): { title: string; volumeRange: string } {
   const trimmed = value.trim();
@@ -68,7 +66,7 @@ function isAmbiguousJamsilTitle(title: string): boolean {
   return /\s\d+\s+\([^)]*\)\s*$/u.test(title.trim());
 }
 
-export function parseJamsilInventoryCsv(csv: string): JamsilInventoryImport {
+export function parseJamsilInventoryCsv(csv: string): StoreInventoryImport {
   const { columns, lines } = getCsvRows(csv);
   if (columns.length !== 2 || columns[0] !== 'a_' || columns[1] !== 'a___') {
     return { books: [], ambiguousTitles: [] };
@@ -104,7 +102,7 @@ export function parseJamsilInventoryCsv(csv: string): JamsilInventoryImport {
   return { books, ambiguousTitles };
 }
 
-export function parseHongdaeInventoryCsv(csv: string): HongdaeInventoryImport {
+export function parseHongdaeInventoryCsv(csv: string): StoreInventoryImport {
   const { columns, lines } = getCsvRows(csv);
   if (columns.length !== 3 || columns[0] !== 'a_' || columns[1] !== 'a_1' || columns[2] !== 'a_2') {
     return { books: [], ambiguousTitles: [] };
@@ -116,13 +114,9 @@ export function parseHongdaeInventoryCsv(csv: string): HongdaeInventoryImport {
     const [titleList = '', shelfNumber = '', category = ''] = parseCsvLine(line) as [string, string, string];
     if (!titleList.trim() || !shelfNumber.trim()) return;
 
-    titleList.split(/\/+/u).forEach((rawTitle, titleIndex) => {
+    titleList.split(/\s*\/\/\s*|(?<=\d)\s*\/\s+/u).forEach((rawTitle, titleIndex) => {
       const title = rawTitle.trim();
       if (!title) return;
-      if (isAmbiguousJamsilTitle(title)) {
-        ambiguousTitles.push(title);
-        return;
-      }
       const book = splitTitleAndLastVolume(title);
       books.push({
         id: `hongdae-${rowIndex}-${titleIndex}-${book.title}`,

@@ -26,6 +26,13 @@ describe('parseHongdaeInventoryCsv', () => {
     expect(parseHongdaeInventoryCsv('"a_","a_1","a_2"\n"타임 인 조선 2/ 통: 유아독존 6","28","웹툰"').books).toHaveLength(2);
     expect(isHongdaeInventoryCsv('"a_","a_1"\n"도서","27"')).toBe(false);
   });
+
+  it('preserves a slash that belongs to a Hongdae title', () => {
+    expect(parseHongdaeInventoryCsv('"a_","a_1","a_2"\n"란마 1/2 38 // Fate/stay night 4","27","판타지"').books).toEqual([
+      expect.objectContaining({ title: '란마 1/2', volumeRange: '1~38권' }),
+      expect.objectContaining({ title: 'Fate/stay night', volumeRange: '1~4권' }),
+    ]);
+  });
 });
 
 describe('parseInventoryCsv', () => {
