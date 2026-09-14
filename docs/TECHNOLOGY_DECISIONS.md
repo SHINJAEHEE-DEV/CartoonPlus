@@ -1,7 +1,7 @@
 # 카툰플러스 기술 도입 의사결정서
 
 **상태:** 승인된 MVP 기준  
-**마지막 검토:** 2026-09-11  
+**마지막 검토:** 2026-09-14
 **적용 범위:** 고객용 웹, 직원용 관리 화면, 빌드·배포, 개발·문서 관리 방식
 
 ## 1. 의사결정의 기준
@@ -22,11 +22,10 @@
 | 프레임워크 | React | 적용 | 고객·직원 화면의 상태와 재사용 UI를 관리한다. |
 | 개발 서버·빌드 | Vite | 적용 | 빠른 개발 환경과 정적 번들 생성을 제공한다. |
 | 언어 | TypeScript | 적용 | 재고, 입고 신청, 지점 데이터의 구조 오류를 줄인다. |
-| 스타일 | Tailwind CSS | 적용 | 반응형 화면과 브랜드 디자인을 일관되게 구현한다. |
+| 스타일 | CSS (`src/styles.css`) | 적용 | 현재 별도 CSS로 반응형 화면과 브랜드 디자인을 구현한다. |
 | 화면 이동 | React Router | 적용 | 고객 화면과 보호된 직원 화면을 SPA에서 분리한다. |
-| UI 보조 | Lucide React, clsx, tailwind-merge | 적용 | 아이콘과 조건부 스타일을 가볍고 일관되게 처리한다. |
 | 테스트 | Vitest, Testing Library | 적용 | 검색 같은 핵심 로직과 사용자 흐름을 빠르게 검증한다. |
-| 데이터·인증 | Supabase | 적용 예정 | 실제 지점 데이터, 입고 신청, 직원 인증을 무료 티어에서 중앙 관리한다. |
+| 데이터·인증 | Supabase | 적용 | 실제 지점 데이터, 입고 신청, 직원 인증을 중앙 관리한다. |
 | 개발 협업 | Codex | 적용 | 기획·명세·구현·검증 기록의 연결을 강화한다. |
 
 ## 3. 배포: Cloudflare Pages와 GitHub 직접 연동
@@ -49,7 +48,7 @@
 
 Supabase 공개 설정은 Cloudflare 빌드 환경에 등록 완료했다. 생성 화면에서 Production·Preview 양쪽에 적용되었으며 현재는 기존 운영 프로젝트를 연결한다. GitHub Secrets는 자동 이전되지 않는다. 서비스 역할 키는 브라우저 빌드에 넣지 않는다. Preview에서 운영 데이터를 수정하는 검증을 하지 않으며, 별도 테스트 데이터가 필요하면 Preview 연결을 분리한다.
 
-기존 `npm run build`는 `/CartoonPlus/` 경로를 유지하며 `.github/workflows/deploy-pages.yml`이 GitHub Pages에 배포한다. `npm run build:cloudflare`는 `--base /`를 적용한다. 앱은 현재 해시 기반 경로를 사용한다. `public/404.html`은 GitHub Pages에서는 `/CartoonPlus/#/...`, Cloudflare에서는 `/#/...`로 직접 경로를 변환한다.
+기존 `npm run build`는 `/CartoonPlus/` 경로를 유지하며 `.github/workflows/deploy-pages.yml`이 GitHub Pages에 배포한다. `npm run build:cloudflare`는 `--base /`를 적용한다. 앱은 React Router의 BrowserRouter와 빌드 시 정적 HTML 생성(SSG)을 사용한다. 직접 경로와 정적 자산의 호환성은 Cloudflare 배포에서 별도 검증한다.
 
 현재 서비스 주소: https://cartoonplus.pages.dev (첫 배포 커밋 `560d921`).
 
@@ -83,31 +82,23 @@ Next.js처럼 서버 렌더링 중심의 프레임워크는 현재 정적 호스
 
 TypeScript는 `Book`, `BookInventory`, `BookRequest`, `Store`처럼 서로 연결된 데이터를 다룰 때 필드 누락과 타입 불일치를 빌드 전에 발견하기 위해 사용한다. 특히 도서명·권수·서가 위치를 분리하고 지점별 재고를 연결하는 데이터 모델에서 오류를 줄인다.
 
-### Tailwind CSS
+### 스타일과 UI 보조
 
-Tailwind CSS는 화면 가까이에서 반응형 규칙과 브랜드 토큰을 함께 관리하기 위해 선택했다. 카툰플러스의 시그니처 옐로우와 차콜 색상, 고객용 모바일 화면, 직원용 POS 화면을 일관된 규칙으로 구현할 수 있다.
-
-별도의 대형 컴포넌트 라이브러리를 기본으로 채택하지 않은 이유는 MVP의 브랜드 화면을 직접 조정해야 하고, 필요한 UI가 한정되어 있기 때문이다. 접근성·복잡한 입력 컴포넌트가 반복적으로 필요해지면 검증된 접근성 기반 컴포넌트 도입을 별도 결정한다.
-
-고객 홈은 와이어프레임의 시그니처 옐로우·차콜·둥근 카드 분위기를 유지한다. 기능 조작에는 하나의 선형 SVG 아이콘 체계를 사용하며, 이모지·3D 스티커·생성형 장식 아이콘을 사용하지 않는다. 로고·마스코트·매장 사진은 실제 브랜드 자산과 사용 허가된 체험단 사진으로만 구성한다. 도서 검색과 직원 화면에서는 장식보다 정보 가독성을 우선한다.
+현재 스타일은 `src/styles.css`와 컴포넌트 인라인 스타일로 구현한다. Tailwind CSS, Lucide React, `clsx`, `tailwind-merge`는 현재 의존성에 없으므로 적용 기술로 표기하지 않는다. 브랜드 토큰과 반응형 규칙을 더 체계화할 필요가 생기면 후보를 비교한 뒤 별도 결정한다.
 
 ### React Router
 
 React Router는 홈, 검색, 즐길거리, 메뉴, 매장 안내, 직원 콘솔을 각 경로로 나누고 URL 기반 탐색을 제공한다. 직원 콘솔은 인증 상태에 따라 접근을 제어하는 경계가 필요하므로 별도 경로로 관리한다.
 
-### Lucide React, clsx, tailwind-merge
-
-Lucide React는 UI 의미를 보완하는 일관된 아이콘을 제공한다. `clsx`와 `tailwind-merge`는 상태에 따라 Tailwind 클래스를 조합하면서 충돌을 정리한다. 세 도구는 공통 UI 구현을 간결하게 유지하지만, 제품의 핵심 로직을 대신하지는 않는다.
-
 ### Vitest와 Testing Library
 
 Vitest는 Vite 프로젝트와 같은 도구 체계를 사용해 빠르게 테스트를 실행한다. Testing Library는 사용자가 보는 결과를 기준으로 화면 흐름을 검증하는 데 사용한다. 우선 검증 대상은 공백 무시·초성 검색, CSV/XLSX 가져오기, 인증 경계, TTS 상태 변화다.
 
-## 5. Supabase: 실제 운영 데이터와 인증을 위한 다음 단계
+## 5. Supabase: 실제 운영 데이터와 인증
 
 ### 도입 이유
 
-현재 MVP는 브라우저의 Mock 데이터와 `localStorage`를 사용한다. 이 방식은 화면과 검색 경험을 빠르게 검증하기에는 좋지만, 손님이 휴대폰에서 제출한 입고 신청을 직원 POS에서 볼 수 없고, 지점별 재고를 여러 기기에서 동기화할 수 없다.
+Supabase는 현재 고객 도서 카탈로그, 도서 신청, 직원 인증과 운영 데이터를 제공한다. 환경 변수가 없을 때만 로컬 CSV 카탈로그로 제한적으로 폴백한다.
 
 Supabase는 PostgreSQL 데이터베이스, 인증, 행 단위 보안 정책을 제공하므로 다음 문제를 하나의 관리 지점에서 해결할 수 있다.
 
@@ -127,7 +118,7 @@ Supabase는 PostgreSQL 데이터베이스, 인증, 행 단위 보안 정책을 �
 
 ### 도입 범위와 전제
 
-Supabase는 아직 프로젝트에 연결되지 않은 **도입 예정 기술**이다. 도입 전에는 `docs/DATA_MODEL.md`를 기준으로 스키마, `(store_id, book_id)` 중복 방지, 소프트 삭제, 입고 신청 상태 전이, STAFF/ADMIN 권한 정책을 확정한다. 실제 인증 전환 전까지 현재 로컬 인증은 개발용이며 운영 인증으로 간주하지 않는다.
+`docs/DATA_MODEL.md`를 기준으로 `(store_id, book_id)` 중복 방지, 보관, 입고 신청 상태, STAFF/ADMIN 권한을 운영한다. 현재 CSV 업로드와 공개 카탈로그는 `snu` 지점으로 고정되어 있으므로, 두 추가 지점 반영 전에 지점 선택 구현과 검증이 필요하다.
 
 ## 6. Codex 에이전트 사용
 
@@ -154,7 +145,7 @@ Codex는 제품 런타임에 포함되는 기술이 아니라 프로젝트 운�
 | 문서 | 역할 |
 | --- | --- |
 | `docs/REQUIREMENTS.md` | 기능·비기능 요구사항과 우선순위의 기준 |
-| `docs/DATA_MODEL.md` | Supabase 도입 시 적용할 데이터 모델과 제약 |
+| `docs/DATA_MODEL.md` | 적용 중인 Supabase 데이터 모델과 제약 |
 | `docs/adr/0001-frontend-stack-and-mock-first.md` | 프론트엔드 스택과 Mock-first 초기 결정 |
 | `docs/adr/0002-core-algorithms-auth-routing.md` | 검색, 인증, 라우팅 결정 |
 | `docs/TROUBLESHOOTING.md` | 실제 문제와 해결 기록 |

@@ -8,3 +8,6 @@
 - 📝 [**요구사항 명세서 (REQUIREMENTS.md)**](./REQUIREMENTS.md)
 - 🗄️ [**데이터 모델링 (DATA_MODEL.md)**](./DATA_MODEL.md)
 - 🏛️ [**기술 결정 내역 (TECHNOLOGY_DECISIONS.md)**](./TECHNOLOGY_DECISIONS.md)
+- 🧩 [**기능 명세 색인**](./FUNCTIONAL_SPECIFICATIONS.md)
+
+다지점 전환의 기준은 ADR-0005다. 현재 코드에서 다른 지점 데이터 업로드·공개는 아직 구현되지 않았으므로, URL 지점 선택과 지점 범위 권한을 구현·검증하기 전에는 추가 지점 CSV를 업로드하지 않는다.
