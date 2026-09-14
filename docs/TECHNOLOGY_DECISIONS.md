@@ -48,7 +48,7 @@
 
 Supabase 공개 설정은 Cloudflare 빌드 환경에 등록 완료했다. 생성 화면에서 Production·Preview 양쪽에 적용되었으며 현재는 기존 운영 프로젝트를 연결한다. GitHub Secrets는 자동 이전되지 않는다. 서비스 역할 키는 브라우저 빌드에 넣지 않는다. Preview에서 운영 데이터를 수정하는 검증을 하지 않으며, 별도 테스트 데이터가 필요하면 Preview 연결을 분리한다.
 
-기존 `npm run build`는 `/CartoonPlus/` 경로를 유지하며 `.github/workflows/deploy-pages.yml`이 GitHub Pages에 배포한다. `npm run build:cloudflare`는 `--base /`를 적용한다. 앱은 React Router의 BrowserRouter와 빌드 시 정적 HTML 생성(SSG)을 사용한다. 직접 경로와 정적 자산의 호환성은 Cloudflare 배포에서 별도 검증한다.
+`npm run build`와 `npm run build:cloudflare`는 모두 Cloudflare Pages 도메인 루트(`/`)를 기준으로 빌드한다. GitHub는 소스 저장소와 Cloudflare Pages의 자동 배포 연결에만 사용하며, GitHub Pages는 운영 배포 대상이 아니다. 앱은 React Router의 BrowserRouter와 빌드 시 정적 HTML 생성(SSG)을 사용한다. 직접 경로와 정적 자산의 호환성은 Cloudflare 배포에서 별도 검증한다.
 
 현재 서비스 주소: https://cartoonplus.pages.dev (첫 배포 커밋 `560d921`).
 
@@ -58,7 +58,7 @@ Supabase 공개 설정은 Cloudflare 빌드 환경에 등록 완료했다. 생�
 - 홈, 도서 검색, 메뉴, 직원 로그인 화면 및 새로고침 확인.
 - 이미지·오디오·CSV가 올바른 경로에서 제공되는지 확인.
 - 후속 main 커밋 `6cc00b6` 자동 재배포 success 확인(25초).
-- 검증 완료 전 기존 사이트와 GitHub Pages 배포를 유지한다. 새 배포에 문제가 있으면 기존 주소를 계속 사용한다.
+- 검증 완료 전 기존 사이트 주소를 유지한다. 새 Cloudflare 배포에 문제가 있으면 기존 주소를 계속 사용한다.
 
 직원 로그인 성공 여부는 배포 후 확인하고, 인증 오류가 남으면 별도 인증 정상화 작업으로 이어간다. 공식 도메인, 포털 링크 교체와 유료 서비스 해지는 이번 작업에 포함하지 않는다. 무료 플랜 범위 내 운영을 목표로 하며 비용 절감 확정은 기존 유료 구독 해지 후 판정한다.
 

@@ -2,11 +2,11 @@
 
 개발 과정에서 발생하는 이슈, 데이터 전처리 분석, 성능 최적화 및 트러블슈팅 내역을 체계적으로 기록합니다.
 
-## 2026-09-14 로컬 지점 URL이 GitHub Pages base 경로로 차단됨
+## 2026-09-14 로컬 지점 URL이 과거 GitHub Pages base 경로로 차단됨
 
 - **증상/재현 조건**: `npm run dev` 상태에서 `http://localhost:5173/stores/jamsil`처럼 루트 지점 URL로 접속하면 Vite가 `/CartoonPlus/` base URL을 요구하며 앱을 제공하지 않는다.
 - **원인**: Vite 설정이 GitHub Pages의 저장소 하위 경로(`/CartoonPlus/`)를 개발 서버에도 고정 적용했다.
-- **수정**: 개발 서버(`serve`)에서는 base를 `/`로, 기본 프로덕션 빌드에서는 `/CartoonPlus/`로 분기한다. Cloudflare 빌드는 기존 명령의 `--base /`를 유지한다.
+- **수정**: Cloudflare Pages 운영 기준으로 개발·기본 프로덕션 빌드 모두 base를 `/`로 통일한다. `build:cloudflare` 명령은 호환용 별칭으로 유지한다.
 - **검증**: `Invoke-WebRequest http://localhost:5173/stores/jamsil`이 수정 전 base URL 오류를 반환했고, 수정 후 HTTP 200을 반환했다.
 
 ## 2026-09-14 다지점 CSV·콘텐츠가 서울대입구역점 데이터와 섞일 위험
