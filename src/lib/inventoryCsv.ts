@@ -7,9 +7,14 @@ type InventoryCsvRow = {
   author: string;
 };
 
-type JamsilInventoryCsvRow = {
-  a_: string;
-  a___: string;
+type JamsilShelfRow = {
+  shelfNumber: string;
+  shelfTitles: string;
+};
+
+export type JamsilInventoryImport = {
+  books: SearchableBook[];
+  ambiguousTitles: string[];
 };
 
 function splitTitleAndLastVolume(value: string): { title: string; volumeRange: string } {
@@ -42,35 +47,63 @@ function parseCsvLine(line: string): string[] {
   return values;
 }
 
-export function parseInventoryCsv(csv: string): SearchableBook[] {
+function getCsvRows(csv: string): { columns: string[]; lines: string[] } {
   const [header, ...lines] = csv.trim().split(/\r?\n/);
-  if (!header) return [];
+  return { columns: header ? parseCsvLine(header) : [], lines };
+}
 
-  const columns = parseCsvLine(header);
-  const isJamsilShelfCsv = columns.includes('a_') && columns.includes('a___');
+export function isJamsilInventoryCsv(csv: string): boolean {
+  const { columns } = getCsvRows(csv);
+  return columns.length === 2 && columns[0] === 'a_' && columns[1] === 'a___';
+}
+
+function isAmbiguousJamsilTitle(title: string): boolean {
+  return /\s\d+\s+\([^)]*\)\s*$/u.test(title.trim());
+}
+
+export function parseJamsilInventoryCsv(csv: string): JamsilInventoryImport {
+  const { columns, lines } = getCsvRows(csv);
+  if (columns.length !== 2 || columns[0] !== 'a_' || columns[1] !== 'a___') {
+    return { books: [], ambiguousTitles: [] };
+  }
+
+  const books: SearchableBook[] = [];
+  const ambiguousTitles: string[] = [];
+
+  lines.forEach((line, rowIndex) => {
+    const [shelfNumber = '', shelfTitles = ''] = parseCsvLine(line) as [string, string];
+    const row: JamsilShelfRow = { shelfNumber: shelfNumber.trim(), shelfTitles: shelfTitles.trim() };
+    if (!row.shelfNumber || !row.shelfTitles) return;
+
+    row.shelfTitles.split('//').forEach((rawTitle, titleIndex) => {
+      const title = rawTitle.trim();
+      if (!title) return;
+      if (isAmbiguousJamsilTitle(title)) {
+        ambiguousTitles.push(title);
+        return;
+      }
+      const book = splitTitleAndLastVolume(title);
+      books.push({
+        id: `jamsil-${rowIndex}-${titleIndex}-${book.title}`,
+        title: book.title,
+        author: '',
+        category: '',
+        volumeRange: book.volumeRange,
+        shelfLocation: `책장 ${row.shelfNumber}번`,
+      });
+    });
+  });
+
+  return { books, ambiguousTitles };
+}
+
+export function parseBaselineInventory(csv: string): SearchableBook[] {
+  const { columns, lines } = getCsvRows(csv);
+  if (!columns.length) return [];
 
   return lines.flatMap((line, index) => {
     const values = parseCsvLine(line);
-    const row = Object.fromEntries(columns.map((column, columnIndex) => [column, values[columnIndex] ?? ''])) as InventoryCsvRow & JamsilInventoryCsvRow;
-
-    if (isJamsilShelfCsv) {
-      const shelf = row.a_?.trim();
-      if (!shelf || !row.a___?.trim()) return [];
-
-      return row.a___.split('//').flatMap((title, titleIndex) => {
-        const book = splitTitleAndLastVolume(title);
-        if (!book.title) return [];
-        return [{
-          id: `jamsil-${index}-${titleIndex}-${book.title}`,
-          title: book.title,
-          author: '',
-          category: '',
-          volumeRange: book.volumeRange,
-          shelfLocation: `책장 ${shelf}번`,
-        }];
-      });
-    }
-
+    const row = Object.fromEntries(columns.map((column, columnIndex) => [column, values[columnIndex] ?? ''])) as InventoryCsvRow;
     if (!row.title?.trim() || !row.number?.trim()) return [];
     const book = splitTitleAndLastVolume(row.title);
     return [{
@@ -83,7 +116,3 @@ export function parseInventoryCsv(csv: string): SearchableBook[] {
     }];
   });
 }
-
-// Existing callers use the launch-store import name. Keep it as a stable alias
-// while the shared import boundary accepts every supported Store CSV shape.
-export const parseBaselineInventory = parseInventoryCsv;
