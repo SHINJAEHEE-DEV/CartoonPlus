@@ -4,6 +4,7 @@ import { validateInventoryCsv } from '../../lib/inventoryImport';
 import { isHongdaeInventoryCsv, isJamsilInventoryCsv, parseBaselineInventory, parseHongdaeInventoryCsv, parseJamsilInventoryCsv } from '../../lib/inventoryCsv';
 import { supabase } from '../../lib/supabase';
 import { Pagination } from '../common/Pagination';
+import { useSelectedStaffStoreId } from './StaffStoreContext';
 
 interface InventoryItem {
   id: string;
@@ -14,6 +15,7 @@ interface InventoryItem {
 }
 
 export function InventoryPage() {
+  const selectedStoreId = useSelectedStaffStoreId();
   const [searchParams] = useSearchParams();
   const defaultTitle = searchParams.get('title') || '';
   const defaultAuthor = searchParams.get('author') || '';
@@ -30,6 +32,7 @@ export function InventoryPage() {
     const { data, error } = await supabase
       .from('book_inventories')
       .select('id,volume_range,shelf_location,archived_at,books(title,author,category)')
+      .eq('store_id', selectedStoreId ?? '')
       .order('updated_at', { ascending: false });
 
     if (error) setMessage(error.message);
@@ -38,11 +41,13 @@ export function InventoryPage() {
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [selectedStoreId]);
 
   const save = async (form: FormData) => {
     if (!supabase) return;
-    const { error } = await supabase.rpc('upsert_inventory', {
+    if (!selectedStoreId) return;
+    const { error } = await supabase.rpc('upsert_inventory_for_store', {
+      p_store_id: selectedStoreId,
       p_title: String(form.get('title')),
       p_author: String(form.get('author')),
       p_category: String(form.get('category')),

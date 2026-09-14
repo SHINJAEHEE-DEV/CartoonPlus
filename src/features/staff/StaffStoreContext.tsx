@@ -1,5 +1,6 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { publicStoreList, type StoreSlug } from '../../lib/storeContext';
+import { supabase } from '../../lib/supabase';
 
 type StaffStoreContextValue = { selectedStoreSlug: StoreSlug; selectStore: (slug: StoreSlug) => void; isAdmin: boolean };
 const StaffStoreContext = createContext<StaffStoreContextValue | null>(null);
@@ -14,6 +15,16 @@ export function useStaffStore() {
   const context = useContext(StaffStoreContext);
   if (!context) throw new Error('StaffStoreProvider is required');
   return context;
+}
+
+export function useSelectedStaffStoreId() {
+  const { selectedStoreSlug } = useStaffStore();
+  const [storeId, setStoreId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!supabase) return setStoreId(null);
+    void supabase.from('stores').select('id').eq('slug', selectedStoreSlug).single().then(({ data }) => setStoreId(data?.id ?? null));
+  }, [selectedStoreSlug]);
+  return storeId;
 }
 
 export function StaffStoreSelector() {
