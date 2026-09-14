@@ -80,6 +80,7 @@ export function InventoryPage() {
     }
 
     let done = 0;
+    let failed = 0;
     for (const book of books) {
       const payload = {
         p_title: book.title,
@@ -91,9 +92,10 @@ export function InventoryPage() {
       const { error } = jamsilStoreId
         ? await supabase.rpc('upsert_inventory_for_store', { p_store_id: jamsilStoreId, ...payload })
         : await supabase.rpc('upsert_inventory', payload);
-      if (!error) done++;
+      if (error) failed++;
+      else done++;
     }
-    setMessage(`${done}건의 재고 데이터를 업데이트했습니다.${jamsilImport ? ' 잠실점 재고만 반영했습니다.' : ''}`);
+    setMessage(`${done}건의 재고 데이터를 업데이트했습니다.${failed ? ` ${failed}건은 반영하지 못했습니다.` : ''}${jamsilImport ? ' 잠실점 재고만 반영했습니다.' : ''}`);
     await load();
   };
 
