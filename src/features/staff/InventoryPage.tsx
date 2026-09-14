@@ -1,7 +1,7 @@
 import { useSearchParams } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
 import { validateInventoryCsv } from '../../lib/inventoryImport';
-import { isJamsilInventoryCsv, parseBaselineInventory, parseJamsilInventoryCsv } from '../../lib/inventoryCsv';
+import { isHongdaeInventoryCsv, isJamsilInventoryCsv, parseBaselineInventory, parseHongdaeInventoryCsv, parseJamsilInventoryCsv } from '../../lib/inventoryCsv';
 import { supabase } from '../../lib/supabase';
 import { Pagination } from '../common/Pagination';
 
@@ -66,17 +66,21 @@ export function InventoryPage() {
     const validation = validateInventoryCsv(text);
     if (validation) return setMessage(validation);
 
-    const jamsilImport = isJamsilInventoryCsv(text) ? parseJamsilInventoryCsv(text) : null;
-    if (jamsilImport?.ambiguousTitles.length) {
-      return setMessage(`잠실 CSV에 검토가 필요한 제목이 ${jamsilImport.ambiguousTitles.length}건 있습니다: ${jamsilImport.ambiguousTitles.slice(0, 3).join(', ')}`);
+    const storeImport = isJamsilInventoryCsv(text)
+      ? { storeSlug: 'jamsil', storeName: '잠실점', ...parseJamsilInventoryCsv(text) }
+      : isHongdaeInventoryCsv(text)
+        ? { storeSlug: 'hongdae', storeName: '홍대점', ...parseHongdaeInventoryCsv(text) }
+        : null;
+    if (storeImport?.ambiguousTitles.length) {
+      return setMessage(`${storeImport.storeName} CSV에 검토가 필요한 제목이 ${storeImport.ambiguousTitles.length}건 있습니다: ${storeImport.ambiguousTitles.slice(0, 3).join(', ')}`);
     }
 
-    const books = jamsilImport?.books ?? parseBaselineInventory(text);
-    let jamsilStoreId: string | null = null;
-    if (jamsilImport) {
-      const { data, error } = await supabase.from('stores').select('id').eq('slug', 'jamsil').single();
-      if (error || !data) return setMessage(error?.message ?? '잠실점 정보를 찾을 수 없습니다.');
-      jamsilStoreId = data.id;
+    const books = storeImport?.books ?? parseBaselineInventory(text);
+    let targetStoreId: string | null = null;
+    if (storeImport) {
+      const { data, error } = await supabase.from('stores').select('id').eq('slug', storeImport.storeSlug).single();
+      if (error || !data) return setMessage(error?.message ?? `${storeImport.storeName} 정보를 찾을 수 없습니다.`);
+      targetStoreId = data.id;
     }
 
     let done = 0;
@@ -89,13 +93,13 @@ export function InventoryPage() {
         p_volume_range: book.volumeRange,
         p_shelf_location: book.shelfLocation,
       };
-      const { error } = jamsilStoreId
-        ? await supabase.rpc('upsert_inventory_for_store', { p_store_id: jamsilStoreId, ...payload })
+      const { error } = targetStoreId
+        ? await supabase.rpc('upsert_inventory_for_store', { p_store_id: targetStoreId, ...payload })
         : await supabase.rpc('upsert_inventory', payload);
       if (error) failed++;
       else done++;
     }
-    setMessage(`${done}건의 재고 데이터를 업데이트했습니다.${failed ? ` ${failed}건은 반영하지 못했습니다.` : ''}${jamsilImport ? ' 잠실점 재고만 반영했습니다.' : ''}`);
+    setMessage(`${done}건의 재고 데이터를 업데이트했습니다.${failed ? ` ${failed}건은 반영하지 못했습니다.` : ''}${storeImport ? ` ${storeImport.storeName} 재고만 반영했습니다.` : ''}`);
     await load();
   };
 

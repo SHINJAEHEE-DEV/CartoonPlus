@@ -17,6 +17,8 @@ export type JamsilInventoryImport = {
   ambiguousTitles: string[];
 };
 
+export type HongdaeInventoryImport = JamsilInventoryImport;
+
 function splitTitleAndLastVolume(value: string): { title: string; volumeRange: string } {
   const trimmed = value.trim();
   const match = /^(.*\S)\s+(\d+)$/u.exec(trimmed);
@@ -57,6 +59,11 @@ export function isJamsilInventoryCsv(csv: string): boolean {
   return columns.length === 2 && columns[0] === 'a_' && columns[1] === 'a___';
 }
 
+export function isHongdaeInventoryCsv(csv: string): boolean {
+  const { columns } = getCsvRows(csv);
+  return columns.length === 3 && columns[0] === 'a_' && columns[1] === 'a_1' && columns[2] === 'a_2';
+}
+
 function isAmbiguousJamsilTitle(title: string): boolean {
   return /\s\d+\s+\([^)]*\)\s*$/u.test(title.trim());
 }
@@ -94,6 +101,39 @@ export function parseJamsilInventoryCsv(csv: string): JamsilInventoryImport {
     });
   });
 
+  return { books, ambiguousTitles };
+}
+
+export function parseHongdaeInventoryCsv(csv: string): HongdaeInventoryImport {
+  const { columns, lines } = getCsvRows(csv);
+  if (columns.length !== 3 || columns[0] !== 'a_' || columns[1] !== 'a_1' || columns[2] !== 'a_2') {
+    return { books: [], ambiguousTitles: [] };
+  }
+
+  const books: SearchableBook[] = [];
+  const ambiguousTitles: string[] = [];
+  lines.forEach((line, rowIndex) => {
+    const [titleList = '', shelfNumber = '', category = ''] = parseCsvLine(line) as [string, string, string];
+    if (!titleList.trim() || !shelfNumber.trim()) return;
+
+    titleList.split(/\/+/u).forEach((rawTitle, titleIndex) => {
+      const title = rawTitle.trim();
+      if (!title) return;
+      if (isAmbiguousJamsilTitle(title)) {
+        ambiguousTitles.push(title);
+        return;
+      }
+      const book = splitTitleAndLastVolume(title);
+      books.push({
+        id: `hongdae-${rowIndex}-${titleIndex}-${book.title}`,
+        title: book.title,
+        author: '',
+        category: normalizeBookCategory(category),
+        volumeRange: book.volumeRange,
+        shelfLocation: `책장 ${shelfNumber.trim()}번`,
+      });
+    });
+  });
   return { books, ambiguousTitles };
 }
 

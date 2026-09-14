@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isJamsilInventoryCsv, parseBaselineInventory, parseJamsilInventoryCsv } from './inventoryCsv';
+import { isHongdaeInventoryCsv, isJamsilInventoryCsv, parseBaselineInventory, parseHongdaeInventoryCsv, parseJamsilInventoryCsv } from './inventoryCsv';
 
 describe('parseBaselineInventory', () => {
   it('uses number as a shelf number and separates a trailing volume from the title', () => {
@@ -11,6 +11,20 @@ describe('parseBaselineInventory', () => {
         shelfLocation: '책장 7번',
       }),
     ]);
+  });
+});
+
+describe('parseHongdaeInventoryCsv', () => {
+  it('splits the supplied Hongdae title separators and preserves shelf and genre', () => {
+    expect(parseHongdaeInventoryCsv('"a_","a_1","a_2"\n"완벽한 허니문 2//용이 산다 2","27","웹툰"').books).toEqual([
+      expect.objectContaining({ title: '완벽한 허니문', volumeRange: '1~2권', shelfLocation: '책장 27번', category: '웹툰' }),
+      expect.objectContaining({ title: '용이 산다', volumeRange: '1~2권', shelfLocation: '책장 27번', category: '웹툰' }),
+    ]);
+  });
+
+  it('accepts a single slash separator but only an exact Hongdae header', () => {
+    expect(parseHongdaeInventoryCsv('"a_","a_1","a_2"\n"타임 인 조선 2/ 통: 유아독존 6","28","웹툰"').books).toHaveLength(2);
+    expect(isHongdaeInventoryCsv('"a_","a_1"\n"도서","27"')).toBe(false);
   });
 });
 
