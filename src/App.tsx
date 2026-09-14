@@ -18,7 +18,7 @@ import { DashboardPage } from './features/staff/DashboardPage';
 import { NewArrivalsPage } from './features/customer/NewArrivalsPage';
 import { CustomerShell, StaffShell } from './features/layout/AppShell';
 import type { SearchableBook } from './lib/bookSearch';
-import { supabase } from './lib/supabase';
+import { getApprovedStaffRole } from './features/staff/staffAuth';
 import { useGlobalBroadcastScheduler } from './lib/broadcastRunner';
 
 function InternalLinkInterceptor() {
@@ -47,13 +47,7 @@ function ProtectedStaffRoute({ children, requiredRole }: { children: React.React
   const [role, setRole] = useState<'staff'|'admin'|null|undefined>(undefined);
   
   useEffect(() => {
-    const client = supabase;
-    if (!client) { setRole(null); return; }
-    void client.auth.getUser().then(async ({ data }) => {
-      if (!data.user) { setRole(null); return; }
-      const { data: account } = await client.from('staff_accounts').select('role,status').eq('id', data.user.id).single();
-      setRole(account?.status === 'approved' ? (account.role as 'staff'|'admin') : null);
-    });
+    void getApprovedStaffRole().then(setRole);
   }, []);
   
   if (role === undefined) return <p className="state-card">직원 권한을 확인하는 중입니다.</p>;

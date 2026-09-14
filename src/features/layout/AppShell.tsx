@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import type { ReactNode } from 'react';
 import mascotLogo from '../../assets/mascot_logo_circle.png';
 
@@ -20,9 +21,44 @@ const staffLinks = [
   ['방송', '/staff/broadcast'],
 ] as const;
 
-function Brand() {
+const STAFF_ENTRY_HOLD_MS = 3000;
+
+function Brand({ allowStaffEntry = false, onStaffEntry }: { allowStaffEntry?: boolean; onStaffEntry?: () => void }) {
+  const entryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearStaffEntryTimer = () => {
+    if (entryTimer.current) clearTimeout(entryTimer.current);
+    entryTimer.current = null;
+  };
+
+  const startStaffEntryTimer = () => {
+    if (!allowStaffEntry) return;
+    if (entryTimer.current) return;
+    entryTimer.current = setTimeout(() => {
+      entryTimer.current = null;
+      (onStaffEntry ?? (() => window.location.assign('/staff')))();
+    }, STAFF_ENTRY_HOLD_MS);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLAnchorElement>) => {
+    if (!allowStaffEntry || (event.key !== 'Enter' && event.key !== ' ')) return;
+    event.preventDefault();
+    startStaffEntryTimer();
+  };
+
   return (
-    <a className="brand" href="/" aria-label="카툰플러스 홈">
+    <a
+      className="brand"
+      href="/"
+      aria-label="카툰플러스 홈"
+      onPointerDown={startStaffEntryTimer}
+      onPointerUp={clearStaffEntryTimer}
+      onPointerCancel={clearStaffEntryTimer}
+      onPointerLeave={clearStaffEntryTimer}
+      onKeyDown={handleKeyDown}
+      onKeyUp={clearStaffEntryTimer}
+      onBlur={clearStaffEntryTimer}
+    >
       <div className="brand-logo-wrap">
         <img src={mascotLogo} alt="카툰플러스 로고" />
       </div>
@@ -114,7 +150,7 @@ const mobileNavItems = [
   { label: '매장 안내', href: '/store', icon: StoreIcon },
 ] as const;
 
-export function CustomerShell({ children, currentPath }: { children: ReactNode; currentPath: string }) {
+export function CustomerShell({ children, currentPath, onStaffEntry }: { children: ReactNode; currentPath: string; onStaffEntry?: () => void }) {
   const currentHour = new Date().getHours();
   const isOpen = currentHour >= 10 && currentHour < 23;
 
@@ -122,7 +158,7 @@ export function CustomerShell({ children, currentPath }: { children: ReactNode; 
     <div className="site-shell customer-shell">
       <header className="site-header">
         <div className="header-inner">
-          <Brand />
+          <Brand allowStaffEntry onStaffEntry={onStaffEntry} />
           <Nav links={customerLinks} currentPath={currentPath} />
           <div className="header-actions">
             <div className="store-status">
@@ -132,7 +168,6 @@ export function CustomerShell({ children, currentPath }: { children: ReactNode; 
             <a className="phone-btn" href="tel:0288880852" aria-label="매장 전화 걸기">
               02-888-0852
             </a>
-            <a className="staff-link" href="/staff">직원 로그인</a>
           </div>
         </div>
       </header>

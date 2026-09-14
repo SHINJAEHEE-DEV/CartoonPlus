@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const fixture = vi.hoisted(() => ({
   status: 'approved',
   role: 'admin',
+  getUser: vi.fn(),
   signOut: vi.fn(),
   signInWithPassword: vi.fn(),
 }));
@@ -26,13 +27,14 @@ vi.mock('../../lib/supabase', () => ({
   },
 }));
 
-import { signInStaff } from './staffAuth';
+import { getApprovedStaffRole, signInStaff } from './staffAuth';
 
 describe('staff login account selection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     fixture.role = 'admin';
     fixture.status = 'approved';
+    fixture.getUser.mockResolvedValue({ data: { user: { id: 'current-user' } } });
     fixture.signInWithPassword.mockResolvedValue({ data: { user: { id: 'current-user' } }, error: null });
   });
 
@@ -50,6 +52,20 @@ describe('staff login account selection', () => {
     fixture.role = 'staff';
     fixture.status = status;
     await expect(signInStaff('staff', 'test-password')).rejects.toThrow('관리자 승인 후 이용할 수 있습니다.');
+    expect(fixture.signOut).toHaveBeenCalledOnce();
+  });
+
+  it('restores an approved staff role from the saved session', async () => {
+    fixture.role = 'staff';
+
+    await expect(getApprovedStaffRole()).resolves.toBe('staff');
+    expect(fixture.signOut).not.toHaveBeenCalled();
+  });
+
+  it('clears an unapproved saved session', async () => {
+    fixture.status = 'deactivated';
+
+    await expect(getApprovedStaffRole()).resolves.toBeNull();
     expect(fixture.signOut).toHaveBeenCalledOnce();
   });
 });

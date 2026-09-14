@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { applyForStaff, signInStaff } from './staffAuth';
+import { applyForStaff, getApprovedStaffRole, signInStaff } from './staffAuth';
 import mascotLogo from '../../assets/mascot_logo_circle.png';
 
 export function StaffAccessPage() {
@@ -9,6 +9,19 @@ export function StaffAccessPage() {
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+
+  useEffect(() => {
+    let isCurrent = true;
+    void getApprovedStaffRole().then((role) => {
+      if (!isCurrent) return;
+      if (role) navigate('/staff/dashboard', { replace: true });
+      else setIsCheckingSession(false);
+    });
+    return () => { isCurrent = false; };
+  }, [navigate]);
+
+  if (isCheckingSession) return <p className="state-card">직원 로그인 상태를 확인하는 중입니다.</p>;
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
