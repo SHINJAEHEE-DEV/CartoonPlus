@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Pagination } from '../common/Pagination';
+import { useSelectedStaffStoreId } from './StaffStoreContext';
 
 interface BookRequestItem {
   id: string;
@@ -22,6 +23,7 @@ const STATUS_LABELS: Record<string, { label: string; bg: string; text: string }>
 const PAGE_SIZE = 10;
 
 export function BookRequestsPage() {
+  const selectedStoreId = useSelectedStaffStoreId();
   const [items, setItems] = useState<BookRequestItem[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -32,6 +34,7 @@ export function BookRequestsPage() {
     let query = supabase
       .from('book_requests')
       .select('id,title,author,desired_volume,user_comment,status,created_at')
+      .eq('store_id', selectedStoreId ?? '')
       .order('created_at', { ascending: false });
 
     if (statusFilter !== 'all') {
@@ -46,7 +49,7 @@ export function BookRequestsPage() {
   useEffect(() => {
     void load();
     setCurrentPage(1);
-  }, [statusFilter]);
+  }, [statusFilter, selectedStoreId]);
 
   const updateStatus = async (id: string, status: string) => {
     if (!supabase) return;
