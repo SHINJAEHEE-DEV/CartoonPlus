@@ -20,6 +20,7 @@ import { NewArrivalsPage } from './features/customer/NewArrivalsPage';
 import { CustomerShell, StaffShell } from './features/layout/AppShell';
 import type { SearchableBook } from './lib/bookSearch';
 import { getApprovedStaffContext, signOutStaff } from './features/staff/staffAuth';
+import { StaffStoreProvider } from './features/staff/StaffStoreContext';
 import { useGlobalBroadcastScheduler } from './lib/broadcastRunner';
 import { defaultPublicStore, getPublicStore, StoreContext, usePublicStore } from './lib/storeContext';
 
@@ -49,11 +50,13 @@ function ProtectedStaffRoute({ children, requiredRole }: { children: React.React
   const navigate = useNavigate();
   const [role, setRole] = useState<'staff'|'admin'|null|undefined>(undefined);
   const [storeName, setStoreName] = useState<string | null>(null);
+  const [storeSlug, setStoreSlug] = useState<'snu'|'jamsil'|'hongdae'>('snu');
   
   useEffect(() => {
     void getApprovedStaffContext().then((context) => {
       setRole(context?.role ?? null);
       setStoreName(context?.storeName ?? null);
+      setStoreSlug(context?.storeSlug ?? 'snu');
     });
   }, []);
   
@@ -61,7 +64,7 @@ function ProtectedStaffRoute({ children, requiredRole }: { children: React.React
   if (role === null) return <div className="staff-access-shell"><p className="state-card">승인된 직원 계정으로 로그인해 주세요.</p></div>;
   if (requiredRole === 'admin' && role !== 'admin') return <p className="state-card">관리자만 직원 계정을 관리할 수 있습니다.</p>;
   
-  return <StaffShell currentPath={location.pathname} isAdmin={role === 'admin'} storeName={storeName} onSignOut={() => { void signOutStaff().then(() => navigate('/', { replace: true })); }}>{children}</StaffShell>;
+  return <StaffStoreProvider isAdmin={role === 'admin'} defaultStoreSlug={storeSlug}><StaffShell currentPath={location.pathname} isAdmin={role === 'admin'} storeName={storeName} onSignOut={() => { void signOutStaff().then(() => navigate('/', { replace: true })); }}>{children}</StaffShell></StaffStoreProvider>;
 }
 
 function BooksRoute() {

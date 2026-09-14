@@ -3,7 +3,7 @@ import { loginIdToInternalEmail, validateStaffSignup } from '../../lib/staffIden
 
 type ApprovedStaffRole = 'staff' | 'admin';
 
-export type ApprovedStaffContext = { role: ApprovedStaffRole; storeName: string | null };
+export type ApprovedStaffContext = { role: ApprovedStaffRole; storeName: string | null; storeSlug: 'snu' | 'jamsil' | 'hongdae' };
 
 async function loadApprovedStaffRole(userId: string): Promise<ApprovedStaffRole | null> {
   if (!supabase) return null;
@@ -16,10 +16,10 @@ export async function getApprovedStaffContext(): Promise<ApprovedStaffContext | 
   if (!supabase) return null;
   const { data: authData } = await supabase.auth.getUser();
   if (!authData.user) return null;
-  const { data, error } = await supabase.from('staff_accounts').select('role,status,stores(name)').eq('id', authData.user.id).single();
+  const { data, error } = await supabase.from('staff_accounts').select('role,status,stores(name,slug)').eq('id', authData.user.id).single();
   if (error || data?.status !== 'approved') return null;
   const store = Array.isArray(data.stores) ? data.stores[0] : data.stores;
-  return { role: data.role as ApprovedStaffRole, storeName: store?.name ?? null };
+  return { role: data.role as ApprovedStaffRole, storeName: store?.name ?? null, storeSlug: (store?.slug ?? 'snu') as 'snu' | 'jamsil' | 'hongdae' };
 }
 
 export async function getApprovedStaffRole(): Promise<ApprovedStaffRole | null> {

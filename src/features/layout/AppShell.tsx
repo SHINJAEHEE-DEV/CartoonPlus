@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import type { ReactNode } from 'react';
 import mascotLogo from '../../assets/placeholder.svg';
 import { defaultPublicStore, publicStoreList, storePath, type PublicStore } from '../../lib/storeContext';
+import { StaffStoreSelector } from '../staff/StaffStoreContext';
 
 const customerLinks = [
   ['도서 검색', '/'],
@@ -227,6 +228,7 @@ export function StaffShell({ children, currentPath, isAdmin, storeName, onSignOu
         <div style={{ fontSize: '12px', fontWeight: 800, color: '#FFF9EC' }}>
           {isAdmin ? 'ADMIN · 전체 지점 권한' : `STAFF · ${storeName ?? '소속 지점 확인 중'}`}
         </div>
+        <StaffStoreSelector />
         <Nav links={staffLinks} currentPath={currentPath} />
         {isAdmin && (
           <a
