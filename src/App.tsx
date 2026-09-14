@@ -10,6 +10,7 @@ import { BookRequestsPage } from './features/staff/BookRequestsPage';
 import { StoreIntroductionPage } from './features/customer/StoreIntroductionPage';
 import { PublicInfoPage } from './features/customer/PublicInfoPage';
 import { MenuPage } from './features/customer/MenuPage';
+import { StoreMenuPage } from './features/customer/StoreMenuPage';
 import { StoreContentPage } from './features/staff/StoreContentPage';
 import { EventsPage } from './features/staff/EventsPage';
 import { GamesPage } from './features/staff/GamesPage';
@@ -128,7 +129,7 @@ export default function App() {
         <Route path="/stores/:storeSlug/new-arrivals" element={<CustomerRoute><NewArrivalsPage /></CustomerRoute>} />
         <Route path="/stores/:storeSlug/book-request" element={<CustomerRoute><BookRequestRoute /></CustomerRoute>} />
         <Route path="/stores/:storeSlug/about" element={<CustomerRoute><StoreContentPendingPage /></CustomerRoute>} />
-        <Route path="/stores/:storeSlug/menu" element={<CustomerRoute><StoreContentPendingPage /></CustomerRoute>} />
+        <Route path="/stores/:storeSlug/menu" element={<CustomerRoute><StoreMenuPage /></CustomerRoute>} />
         <Route path="/stores/:storeSlug/games" element={<CustomerRoute><PublicInfoPage kind="games" /></CustomerRoute>} />
         <Route path="/stores/:storeSlug/events" element={<CustomerRoute><PublicInfoPage kind="events" /></CustomerRoute>} />
         <Route path="/stores/:storeSlug/store" element={<CustomerRoute><StoreContentPendingPage /></CustomerRoute>} />
