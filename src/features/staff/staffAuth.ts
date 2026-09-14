@@ -3,11 +3,23 @@ import { loginIdToInternalEmail, validateStaffSignup } from '../../lib/staffIden
 
 type ApprovedStaffRole = 'staff' | 'admin';
 
+export type ApprovedStaffContext = { role: ApprovedStaffRole; storeName: string | null };
+
 async function loadApprovedStaffRole(userId: string): Promise<ApprovedStaffRole | null> {
   if (!supabase) return null;
   const { data, error } = await supabase.from('staff_accounts').select('role,status').eq('id', userId).single();
   if (error || data?.status !== 'approved') return null;
   return data.role as ApprovedStaffRole;
+}
+
+export async function getApprovedStaffContext(): Promise<ApprovedStaffContext | null> {
+  if (!supabase) return null;
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) return null;
+  const { data, error } = await supabase.from('staff_accounts').select('role,status,stores(name)').eq('id', authData.user.id).single();
+  if (error || data?.status !== 'approved') return null;
+  const store = Array.isArray(data.stores) ? data.stores[0] : data.stores;
+  return { role: data.role as ApprovedStaffRole, storeName: store?.name ?? null };
 }
 
 export async function getApprovedStaffRole(): Promise<ApprovedStaffRole | null> {

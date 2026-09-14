@@ -216,13 +216,16 @@ export function CustomerShell({ children, currentPath, onStaffEntry, store = def
   );
 }
 
-export function StaffShell({ children, currentPath, isAdmin, onSignOut }: { children: ReactNode; currentPath: string; isAdmin: boolean; onSignOut?: () => void }) {
+export function StaffShell({ children, currentPath, isAdmin, storeName, onSignOut }: { children: ReactNode; currentPath: string; isAdmin: boolean; storeName?: string | null; onSignOut?: () => void }) {
   return (
     <div className="staff-shell">
       <aside className="staff-sidebar">
         <Brand />
         <div style={{ fontSize: '11px', fontWeight: 900, color: '#FED943', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
           STAFF CONSOLE
+        </div>
+        <div style={{ fontSize: '12px', fontWeight: 800, color: '#FFF9EC' }}>
+          {isAdmin ? 'ADMIN · 전체 지점 권한' : `STAFF · ${storeName ?? '소속 지점 확인 중'}`}
         </div>
         <Nav links={staffLinks} currentPath={currentPath} />
         {isAdmin && (

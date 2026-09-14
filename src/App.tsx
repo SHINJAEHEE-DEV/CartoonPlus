@@ -19,7 +19,7 @@ import { DashboardPage } from './features/staff/DashboardPage';
 import { NewArrivalsPage } from './features/customer/NewArrivalsPage';
 import { CustomerShell, StaffShell } from './features/layout/AppShell';
 import type { SearchableBook } from './lib/bookSearch';
-import { getApprovedStaffRole, signOutStaff } from './features/staff/staffAuth';
+import { getApprovedStaffContext, signOutStaff } from './features/staff/staffAuth';
 import { useGlobalBroadcastScheduler } from './lib/broadcastRunner';
 import { defaultPublicStore, getPublicStore, StoreContext, usePublicStore } from './lib/storeContext';
 
@@ -48,16 +48,20 @@ function ProtectedStaffRoute({ children, requiredRole }: { children: React.React
   const location = useLocation();
   const navigate = useNavigate();
   const [role, setRole] = useState<'staff'|'admin'|null|undefined>(undefined);
+  const [storeName, setStoreName] = useState<string | null>(null);
   
   useEffect(() => {
-    void getApprovedStaffRole().then(setRole);
+    void getApprovedStaffContext().then((context) => {
+      setRole(context?.role ?? null);
+      setStoreName(context?.storeName ?? null);
+    });
   }, []);
   
   if (role === undefined) return <p className="state-card">직원 권한을 확인하는 중입니다.</p>;
   if (role === null) return <div className="staff-access-shell"><p className="state-card">승인된 직원 계정으로 로그인해 주세요.</p></div>;
   if (requiredRole === 'admin' && role !== 'admin') return <p className="state-card">관리자만 직원 계정을 관리할 수 있습니다.</p>;
   
-  return <StaffShell currentPath={location.pathname} isAdmin={role === 'admin'} onSignOut={() => { void signOutStaff().then(() => navigate('/', { replace: true })); }}>{children}</StaffShell>;
+  return <StaffShell currentPath={location.pathname} isAdmin={role === 'admin'} storeName={storeName} onSignOut={() => { void signOutStaff().then(() => navigate('/', { replace: true })); }}>{children}</StaffShell>;
 }
 
 function BooksRoute() {
