@@ -7,6 +7,11 @@ type InventoryCsvRow = {
   author: string;
 };
 
+type JamsilInventoryCsvRow = {
+  a_: string;
+  a___: string;
+};
+
 function splitTitleAndLastVolume(value: string): { title: string; volumeRange: string } {
   const trimmed = value.trim();
   const match = /^(.*\S)\s+(\d+)$/u.exec(trimmed);
@@ -37,14 +42,35 @@ function parseCsvLine(line: string): string[] {
   return values;
 }
 
-export function parseBaselineInventory(csv: string): SearchableBook[] {
+export function parseInventoryCsv(csv: string): SearchableBook[] {
   const [header, ...lines] = csv.trim().split(/\r?\n/);
   if (!header) return [];
 
   const columns = parseCsvLine(header);
+  const isJamsilShelfCsv = columns.includes('a_') && columns.includes('a___');
+
   return lines.flatMap((line, index) => {
     const values = parseCsvLine(line);
-    const row = Object.fromEntries(columns.map((column, columnIndex) => [column, values[columnIndex] ?? ''])) as InventoryCsvRow;
+    const row = Object.fromEntries(columns.map((column, columnIndex) => [column, values[columnIndex] ?? ''])) as InventoryCsvRow & JamsilInventoryCsvRow;
+
+    if (isJamsilShelfCsv) {
+      const shelf = row.a_?.trim();
+      if (!shelf || !row.a___?.trim()) return [];
+
+      return row.a___.split('//').flatMap((title, titleIndex) => {
+        const book = splitTitleAndLastVolume(title);
+        if (!book.title) return [];
+        return [{
+          id: `jamsil-${index}-${titleIndex}-${book.title}`,
+          title: book.title,
+          author: '',
+          category: '',
+          volumeRange: book.volumeRange,
+          shelfLocation: `책장 ${shelf}번`,
+        }];
+      });
+    }
+
     if (!row.title?.trim() || !row.number?.trim()) return [];
     const book = splitTitleAndLastVolume(row.title);
     return [{
@@ -57,3 +83,7 @@ export function parseBaselineInventory(csv: string): SearchableBook[] {
     }];
   });
 }
+
+// Existing callers use the launch-store import name. Keep it as a stable alias
+// while the shared import boundary accepts every supported Store CSV shape.
+export const parseBaselineInventory = parseInventoryCsv;

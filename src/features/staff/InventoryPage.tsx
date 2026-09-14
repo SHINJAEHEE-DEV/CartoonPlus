@@ -1,7 +1,7 @@
 import { useSearchParams } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
 import { validateInventoryCsv } from '../../lib/inventoryImport';
-import { parseBaselineInventory } from '../../lib/inventoryCsv';
+import { parseInventoryCsv } from '../../lib/inventoryCsv';
 import { supabase } from '../../lib/supabase';
 import { Pagination } from '../common/Pagination';
 
@@ -67,7 +67,7 @@ export function InventoryPage() {
     if (validation) return setMessage(validation);
 
     let done = 0;
-    for (const book of parseBaselineInventory(text)) {
+    for (const book of parseInventoryCsv(text)) {
       const { error } = await supabase.rpc('upsert_inventory', {
         p_title: book.title,
         p_author: book.author,
