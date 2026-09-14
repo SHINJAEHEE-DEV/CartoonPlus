@@ -114,7 +114,7 @@ export function parseHongdaeInventoryCsv(csv: string): StoreInventoryImport {
     const [titleList = '', shelfNumber = '', category = ''] = parseCsvLine(line) as [string, string, string];
     if (!titleList.trim() || !shelfNumber.trim()) return;
 
-    titleList.split(/\s*\/\/\s*|(?<=\d)\s*\/\s+/u).forEach((rawTitle, titleIndex) => {
+    titleList.split(/\s*\/\/\s*|(?<=\d)\s*\/(?=\s*[^\d\s])/u).forEach((rawTitle, titleIndex) => {
       const title = rawTitle.trim();
       if (!title) return;
       const book = splitTitleAndLastVolume(title);

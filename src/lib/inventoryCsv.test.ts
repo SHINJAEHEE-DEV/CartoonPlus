@@ -33,6 +33,13 @@ describe('parseHongdaeInventoryCsv', () => {
       expect.objectContaining({ title: 'Fate/stay night', volumeRange: '1~4권' }),
     ]);
   });
+
+  it('splits a Hongdae separator even when the following title has no leading space', () => {
+    expect(parseHongdaeInventoryCsv('"a_","a_1","a_2"\n"세상이 가르쳐 준 비밀 16/갱스타 7","27","웹툰"').books).toEqual([
+      expect.objectContaining({ title: '세상이 가르쳐 준 비밀', volumeRange: '1~16권' }),
+      expect.objectContaining({ title: '갱스타', volumeRange: '1~7권' }),
+    ]);
+  });
 });
 
 describe('parseInventoryCsv', () => {
