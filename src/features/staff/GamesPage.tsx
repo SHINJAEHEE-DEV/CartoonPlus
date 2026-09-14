@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
+import { useSelectedStaffStoreId } from './StaffStoreContext';
 
 export type Game = {
   id: string;
@@ -78,34 +79,27 @@ const INITIAL_GAMES: Game[] = [
 ];
 
 export function GamesPage() {
+  const selectedStoreId = useSelectedStaffStoreId();
   const [message, setMessage] = useState('');
   const [items, setItems] = useState<Game[]>([]);
   const [currentTab, setCurrentTab] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
   const load = async () => {
-    if (!supabase) {
-      setItems(INITIAL_GAMES);
-      return;
-    }
+    if (!supabase || !selectedStoreId) return setItems([]);
     const { data, error } = await supabase
       .from('entertainment_items')
       .select('id,title,item_type,players,genre,archived_at')
+      .eq('store_id', selectedStoreId)
       .order('created_at', { ascending: false });
 
-    if (error || !data || data.length === 0) {
-      setItems(INITIAL_GAMES);
-    } else {
-      // 기존 저장된 데이터 + 누락된 기본 데이터를 결합하여 표시
-      const existingTitles = new Set(data.map((d) => d.title));
-      const missingDefaults = INITIAL_GAMES.filter((g) => !existingTitles.has(g.title));
-      setItems([...(data as Game[]), ...missingDefaults]);
-    }
+    if (error) setMessage(error.message);
+    else setItems((data ?? []) as Game[]);
   };
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [selectedStoreId]);
 
   const save = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -117,10 +111,9 @@ export function GamesPage() {
 
     if (!newTitle) return;
 
-    if (supabase) {
-      const { data: store } = await supabase.from('stores').select('id').eq('slug', 'snu').single();
+    if (supabase && selectedStoreId) {
       const { error } = await supabase.from('entertainment_items').insert({
-        store_id: store?.id,
+        store_id: selectedStoreId,
         item_type: newType,
         title: newTitle,
         players: newPlayers,
@@ -542,5 +535,4 @@ export function GamesPage() {
     </div>
   );
 }
-
 
