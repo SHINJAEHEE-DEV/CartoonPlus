@@ -20,6 +20,10 @@ export async function getApprovedStaffRole(): Promise<ApprovedStaffRole | null> 
   return role;
 }
 
+export async function signOutStaff() {
+  if (supabase) await supabase.auth.signOut();
+}
+
 export async function applyForStaff(input: { name: string; loginId: string; password: string; phoneLast4: string }) {
   if (!supabase || !validateStaffSignup(input)) throw new Error('가입 정보를 확인해 주세요.');
   const email = loginIdToInternalEmail(input.loginId);

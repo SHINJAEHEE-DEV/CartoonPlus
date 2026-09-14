@@ -27,7 +27,7 @@ vi.mock('../../lib/supabase', () => ({
   },
 }));
 
-import { getApprovedStaffRole, signInStaff } from './staffAuth';
+import { getApprovedStaffRole, signInStaff, signOutStaff } from './staffAuth';
 
 describe('staff login account selection', () => {
   beforeEach(() => {
@@ -66,6 +66,11 @@ describe('staff login account selection', () => {
     fixture.status = 'deactivated';
 
     await expect(getApprovedStaffRole()).resolves.toBeNull();
+    expect(fixture.signOut).toHaveBeenCalledOnce();
+  });
+
+  it('ends the saved staff session on sign out', async () => {
+    await signOutStaff();
     expect(fixture.signOut).toHaveBeenCalledOnce();
   });
 });

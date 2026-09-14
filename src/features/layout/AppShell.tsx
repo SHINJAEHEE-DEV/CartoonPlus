@@ -210,7 +210,7 @@ export function CustomerShell({ children, currentPath, onStaffEntry }: { childre
   );
 }
 
-export function StaffShell({ children, currentPath, isAdmin }: { children: ReactNode; currentPath: string; isAdmin: boolean }) {
+export function StaffShell({ children, currentPath, isAdmin, onSignOut }: { children: ReactNode; currentPath: string; isAdmin: boolean; onSignOut?: () => void }) {
   return (
     <div className="staff-shell">
       <aside className="staff-sidebar">
@@ -234,6 +234,9 @@ export function StaffShell({ children, currentPath, isAdmin }: { children: React
             계정 관리
           </a>
         )}
+        <button type="button" onClick={onSignOut} style={{ padding: '10px 14px', borderRadius: '999px', border: '2px solid #4A4438', color: '#FFF9EC', fontSize: '12px', fontWeight: 800, textAlign: 'center' }}>
+          로그아웃
+        </button>
         <a
           href="/"
           style={{

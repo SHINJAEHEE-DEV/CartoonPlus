@@ -18,7 +18,7 @@ import { DashboardPage } from './features/staff/DashboardPage';
 import { NewArrivalsPage } from './features/customer/NewArrivalsPage';
 import { CustomerShell, StaffShell } from './features/layout/AppShell';
 import type { SearchableBook } from './lib/bookSearch';
-import { getApprovedStaffRole } from './features/staff/staffAuth';
+import { getApprovedStaffRole, signOutStaff } from './features/staff/staffAuth';
 import { useGlobalBroadcastScheduler } from './lib/broadcastRunner';
 
 function InternalLinkInterceptor() {
@@ -44,6 +44,7 @@ function InternalLinkInterceptor() {
 
 function ProtectedStaffRoute({ children, requiredRole }: { children: React.ReactNode, requiredRole?: 'admin' }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [role, setRole] = useState<'staff'|'admin'|null|undefined>(undefined);
   
   useEffect(() => {
@@ -54,7 +55,7 @@ function ProtectedStaffRoute({ children, requiredRole }: { children: React.React
   if (role === null) return <div className="staff-access-shell"><p className="state-card">승인된 직원 계정으로 로그인해 주세요.</p></div>;
   if (requiredRole === 'admin' && role !== 'admin') return <p className="state-card">관리자만 직원 계정을 관리할 수 있습니다.</p>;
   
-  return <StaffShell currentPath={location.pathname} isAdmin={role === 'admin'}>{children}</StaffShell>;
+  return <StaffShell currentPath={location.pathname} isAdmin={role === 'admin'} onSignOut={() => { void signOutStaff().then(() => navigate('/', { replace: true })); }}>{children}</StaffShell>;
 }
 
 function BooksRoute() {
