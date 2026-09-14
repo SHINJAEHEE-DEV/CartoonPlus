@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { MASCOT_ASSETS, STORE_PHOTOS } from '../../lib/brandAssets';
+import { MASCOT_ASSETS, STORE_PHOTOS, getStaticStoreGames } from '../../lib/brandAssets';
 import { usePublicStore } from '../../lib/storeContext';
+import {
+  ManagedEvent,
+  INITIAL_EVENTS,
+  getBannerImageUrl,
+  loadManagedEvents,
+} from '../../lib/eventRepository';
+import { usePageTitle } from '../../lib/usePageTitle';
 
 type Item = {
   id: string;
@@ -63,8 +70,6 @@ const AMENITIES = [
   '도서 검색 전용 PC',
   '무인 키오스크 셀프 입·퇴실',
 ];
-
-import { usePageTitle } from '../../lib/usePageTitle';
 
 export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' }) {
   const { store: selectedStore } = usePublicStore();
@@ -140,7 +145,17 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
                       ')'
                   )
               : null;
-        if (query) void query.then(({ data }) => setItems((data ?? []) as Item[]));
+        if (query) {
+          void query.then(({ data }) => {
+            if (data && data.length > 0) {
+              setItems(data as Item[]);
+            } else if (kind === 'games') {
+              setItems(getStaticStoreGames(selectedStore.slug) as Item[]);
+            } else {
+              setItems((data ?? []) as Item[]);
+            }
+          });
+        }
       });
   }, [kind, selectedStore.slug]);
 
@@ -275,19 +290,43 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
 
   // 2. 이벤트 · 제휴 (Events) 화면
   if (kind === 'events') {
-    const publicEvents = (items ?? []).map((event) => ({
-      id: event.id,
-      title: event.title,
-      detail: event.content ?? '',
-      isAlwaysOn: Boolean(event.is_always_on),
-      startDate: '',
-      endDate: '',
-      tag: 'EVENT',
-      target: '',
-      isFeatured: false,
-      bannerType: 'default' as const,
-      customBannerUrl: '',
-    }));
+    let publicEvents: ManagedEvent[] = [];
+
+    if (items && items.length > 0) {
+      publicEvents = items.map((event) => {
+        const matchingInitial = INITIAL_EVENTS.find((ie) => ie.title === event.title);
+        let bannerType: ManagedEvent['bannerType'] = 'weekday';
+        if (event.title.includes('라면') || event.title.includes('리뷰')) {
+          bannerType = 'naver_ramen';
+        } else if (event.title.includes('서울대')) {
+          bannerType = 'snu';
+        } else if (matchingInitial) {
+          bannerType = matchingInitial.bannerType;
+        }
+
+        return {
+          id: event.id,
+          title: event.title,
+          detail: event.content ?? '',
+          isAlwaysOn: Boolean(event.is_always_on),
+          isPublic: true,
+          startDate: matchingInitial?.startDate ?? '',
+          endDate: matchingInitial?.endDate ?? '',
+          tag: matchingInitial?.tag ?? (event.is_always_on ? '상시 혜택' : 'EVENT'),
+          target: matchingInitial?.target ?? '카툰플러스 방문 고객',
+          isFeatured: matchingInitial?.isFeatured ?? false,
+          bannerType,
+          createdAt: matchingInitial?.createdAt ?? '2026-01-01',
+        };
+      });
+    } else {
+      publicEvents = loadManagedEvents().filter((ev) => {
+        if (!ev.isPublic || ev.archivedAt) return false;
+        if (ev.storeSlug && ev.storeSlug !== selectedStore.slug) return false;
+        if (selectedStore.slug !== 'snu' && ev.bannerType === 'snu') return false;
+        return true;
+      });
+    }
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
@@ -309,7 +348,7 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
               <div key={ev.id} className="event-poster-row">
                 <div className="poster-box" style={{ background: '#2A2A2A', padding: '10px' }}>
                   <img
-                    src={MASCOT_ASSETS.gaming}
+                    src={getBannerImageUrl(ev.bannerType, ev.customBannerUrl)}
                     alt={ev.title}
                     style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                   />
@@ -400,13 +439,31 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
   }
 
   // 3. 매장 안내 (Store) 화면
+  const currentHours = storeInfo?.hours || selectedStore.hours || '영업시간 점검 중';
+  const currentAddress = storeInfo?.address || selectedStore.address || '주소 정보 점검 중';
+  const currentPhone = storeInfo?.phone || selectedStore.phone || '';
+  const currentDirections =
+    storeInfo?.directions ||
+    (selectedStore.slug === 'snu'
+      ? '지하철 2호선 서울대입구역 3번 출구에서 도보 1~2분'
+      : selectedStore.slug === 'jamsil'
+        ? '지하철 2호선 잠실새내역 4번 출구에서 도보 5분'
+        : '지하철 2호선·공항철도 홍대입구역 9번 출구에서 도보 5분');
+  const currentParking =
+    storeInfo?.parking ||
+    (selectedStore.slug === 'hongdae'
+      ? '홍익몰 건물 주차장 이용 가능'
+      : selectedStore.slug === 'jamsil'
+        ? '주변 공영 주차장 및 매장 문의'
+        : '건물 지하 주차장 이용 가능');
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
       <div>
         <div className="section-kicker">STORE INFO</div>
-        <h1 className="section-title">매장 안내</h1>
+        <h1 className="section-title">{selectedStore.name} 안내</h1>
         <p style={{ fontSize: '14px', fontWeight: 600, color: '#6B6354', marginTop: '6px' }}>
-          서울대입구역 3번 출구 도보 1분, 연중무휴 편안한 힐링 공간입니다.
+          {currentDirections}, 연중무휴 편안한 힐링 공간입니다.
         </p>
       </div>
 
@@ -427,14 +484,11 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
         >
           <div style={{ fontSize: '17px', fontWeight: 900 }}>영업 정보</div>
           {[
-            { k: '영업시간', v: storeInfo?.hours || '매일 10:00 – 23:00' },
-            { k: '주소', v: storeInfo?.address || '서울특별시 관악구 관악로 155, 3층' },
-            {
-              k: '오시는 길',
-              v: storeInfo?.directions || '지하철 2호선 서울대입구역 3번 출구에서 도보 1~2분',
-            },
-            { k: '주차', v: storeInfo?.parking || '건물 지하 주차장 이용 가능' },
-            { k: '문의', v: storeInfo?.phone || '02-888-0852' },
+            { k: '영업시간', v: currentHours },
+            { k: '주소', v: currentAddress },
+            { k: '오시는 길', v: currentDirections },
+            { k: '주차', v: currentParking },
+            { k: '문의', v: currentPhone || '매장 카운터 문의' },
           ].map((r) => (
             <div key={r.k} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
               <div
@@ -462,21 +516,23 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
               </div>
             </div>
           ))}
-          <a
-            href={`tel:${(storeInfo?.phone || '0288880852').replace(/[^0-9]/g, '')}`}
-            style={{
-              alignSelf: 'flex-start',
-              marginTop: 'auto',
-              padding: '12px 20px',
-              borderRadius: '999px',
-              background: '#1E1E1E',
-              color: '#FED943',
-              fontSize: '13px',
-              fontWeight: 800,
-            }}
-          >
-            전화로 문의하기 ({storeInfo?.phone || '02-888-0852'})
-          </a>
+          {currentPhone && (
+            <a
+              href={`tel:${currentPhone.replace(/[^0-9]/g, '')}`}
+              style={{
+                alignSelf: 'flex-start',
+                marginTop: 'auto',
+                padding: '12px 20px',
+                borderRadius: '999px',
+                background: '#1E1E1E',
+                color: '#FED943',
+                fontSize: '13px',
+                fontWeight: 800,
+              }}
+            >
+              전화로 문의하기 ({currentPhone})
+            </a>
+          )}
         </div>
 
         {/* 4단계 이용 가이드 */}

@@ -2,6 +2,11 @@ import type { SearchableBook } from '../../lib/bookSearch';
 import { supabase } from '../../lib/supabase';
 import { isNewArrival } from '../../lib/newArrival';
 import type { StoreSlug } from '../../lib/storeContext';
+import {
+  parseBaselineInventory,
+  parseHongdaeInventoryCsv,
+  parseJamsilInventoryCsv,
+} from '../../lib/inventoryCsv';
 
 type CatalogueRow = {
   inventory_id: string;
@@ -24,6 +29,30 @@ function toSearchableBook(row: CatalogueRow): SearchableBook {
   };
 }
 
+async function loadBaselineCsv(storeSlug: StoreSlug): Promise<SearchableBook[]> {
+  try {
+    const csvFileName =
+      storeSlug === 'jamsil'
+        ? 'jamsil-inventory.csv'
+        : storeSlug === 'hongdae'
+          ? 'hongdae-inventory.csv'
+          : 'initial-inventory.csv';
+
+    const response = await fetch(`${import.meta.env.BASE_URL}data/${csvFileName}`);
+    if (!response.ok) return [];
+    const text = await response.text();
+    if (storeSlug === 'jamsil') {
+      return parseJamsilInventoryCsv(text).books;
+    }
+    if (storeSlug === 'hongdae') {
+      return parseHongdaeInventoryCsv(text).books;
+    }
+    return parseBaselineInventory(text);
+  } catch {
+    return [];
+  }
+}
+
 export async function loadPublicCatalogue(storeSlug: StoreSlug = 'snu'): Promise<SearchableBook[]> {
   if (supabase) {
     const { data, error } = await supabase
@@ -35,7 +64,7 @@ export async function loadPublicCatalogue(storeSlug: StoreSlug = 'snu'): Promise
     if (!error && data && data.length > 0) return data.map(toSearchableBook);
   }
 
-  return [];
+  return loadBaselineCsv(storeSlug);
 }
 
 export async function loadNewArrivals(storeSlug: StoreSlug = 'snu'): Promise<SearchableBook[]> {

@@ -3,51 +3,51 @@ import { MASCOT_ASSETS, STORE_PHOTOS } from '../../lib/brandAssets';
 import { loadNewArrivals } from '../book-search/catalogueRepository';
 import type { SearchableBook } from '../../lib/bookSearch';
 import { getFeaturedEvent, getBannerImageUrl, type ManagedEvent } from '../../lib/eventRepository';
-
-// 도서검색과 게임만 링크 이동, OTT룸과 안마의자는 정보 제공
-const ENJOY_POINTS = [
-  {
-    icon: MASCOT_ASSETS.reading,
-    title: '만화 · 웹툰',
-    desc: '수만 권 규모 서가와 매주 들어오는 신간을 검색으로 바로 찾기',
-    cta: '도서 검색 →',
-    href: '/books',
-  },
-  {
-    icon: MASCOT_ASSETS.ott,
-    title: 'OTT 룸',
-    desc: '넷플릭스·티빙·디즈어+를 대형 스크린 암막 굴방에서 편안하게 시청',
-    cta: '상시 무료 이용',
-    href: null,
-  },
-  {
-    icon: MASCOT_ASSETS.gaming,
-    title: '게임 · 보드게임',
-    desc: '실물 확인된 스위치·PS4 타이틀과 보드게임 자유 이용',
-    cta: '즐길거리 →',
-    href: '/games',
-  },
-  {
-    icon: MASCOT_ASSETS.massage,
-    title: '무료 안마의자',
-    desc: '매장 이용 고객 누구나 100% 무료로 언제든 쓰는 바디프랜드 힐링 존',
-    cta: '100% 무료 힐링',
-    href: null,
-  },
-];
-
-const POPULAR_PRICES = [
-  { name: '기본 1시간', price: '3,600원', note: '음료 미포함' },
-  { name: '2시간 + 기본 음료', price: '9,500원', note: '가장 인기 있는 패키지' },
-  { name: '평일 종일권', price: '20,000원', note: '하루 종일 무제한 힐링' },
-];
-
+import { storePath, usePublicStore } from '../../lib/storeContext';
 import { usePageTitle } from '../../lib/usePageTitle';
 
 export function StoreIntroductionPage() {
-  usePageTitle('매장 소개');
+  const { store, scoped } = usePublicStore();
+  usePageTitle(`${store.name} 소개`);
   const [newBooks, setNewBooks] = useState<SearchableBook[]>([]);
   const [featured, setFeatured] = useState<ManagedEvent>(() => getFeaturedEvent());
+
+  const enjoyPoints = [
+    {
+      icon: MASCOT_ASSETS.reading,
+      title: '만화 · 웹툰',
+      desc: '수만 권 규모 서가와 매주 들어오는 신간을 검색으로 바로 찾기',
+      cta: '도서 검색 →',
+      href: scoped ? storePath(store, '/books') : '/books',
+    },
+    {
+      icon: MASCOT_ASSETS.ott,
+      title: 'OTT 룸',
+      desc: '넷플릭스·티빙·디즈니+를 대형 스크린 암막 굴방에서 편안하게 시청',
+      cta: '상시 무료 이용',
+      href: null,
+    },
+    {
+      icon: MASCOT_ASSETS.gaming,
+      title: '게임 · 보드게임',
+      desc: '실물 확인된 스위치·PS4 타이틀과 보드게임 자유 이용',
+      cta: '즐길거리 →',
+      href: scoped ? storePath(store, '/games') : '/games',
+    },
+    {
+      icon: MASCOT_ASSETS.massage,
+      title: '무료 안마의자',
+      desc: '매장 이용 고객 누구나 100% 무료로 언제든 쓰는 바디프랜드 힐링 존',
+      cta: '100% 무료 힐링',
+      href: null,
+    },
+  ];
+
+  const popularPrices = [
+    { name: '기본 1시간', price: '3,600원', note: '음료 미포함' },
+    { name: '2시간 + 기본 음료', price: '9,500원', note: '가장 인기 있는 패키지' },
+    { name: '종일권 + 기본 음료', price: '15,000원', note: '하루 종일 무제한 힐링' },
+  ];
 
   useEffect(() => {
     void loadNewArrivals().then((books) => setNewBooks(books.slice(0, 3)));
@@ -60,12 +60,28 @@ export function StoreIntroductionPage() {
     };
   }, []);
 
+  const badgeText =
+    store.slug === 'snu'
+      ? '서울대입구역 3번 출구 도보 1분'
+      : store.slug === 'jamsil'
+        ? '잠실새내역 4번 출구 도보 5분'
+        : '홍대입구역 9번 출구 도보 5분';
+
+  const hoursText =
+    store.slug === 'hongdae'
+      ? '24시간 연중무휴'
+      : store.slug === 'jamsil'
+        ? '평일/주말 24시 연장영업'
+        : '10:00–23:00 연중무휴';
+
   return (
     <>
       {/* 1. Hero 섹션 */}
       <section className="hero">
         <div className="hero-left">
-          <span className="hero-badge">서울대입구역 3번 출구 도보 1분</span>
+          <span className="hero-badge">
+            {badgeText} · {store.name}
+          </span>
           <h1>
             만화, 게임, 그리고
             <br />
@@ -76,17 +92,17 @@ export function StoreIntroductionPage() {
             하루를 통째로 쉬어 갈 수 있는 복합 힐링 공간입니다.
           </p>
           <div className="hero-actions">
-            <a className="primary-btn" href="/books">
+            <a className="primary-btn" href={scoped ? storePath(store, '/books') : '/books'}>
               도서 검색하기 <span>→</span>
             </a>
-            <a className="secondary-btn" href="/store">
+            <a className="secondary-btn" href={scoped ? storePath(store, '/store') : '/store'}>
               오시는 길
             </a>
           </div>
           <div className="hero-stats">
             <div>
-              <div className="hero-stat-val">10:00–23:00</div>
-              <div className="hero-stat-lbl">연중무휴 영업</div>
+              <div className="hero-stat-val">{hoursText}</div>
+              <div className="hero-stat-lbl">매장 영업 안내</div>
             </div>
             <div>
               <div className="hero-stat-val">3,600원</div>
@@ -99,7 +115,7 @@ export function StoreIntroductionPage() {
         </div>
       </section>
 
-      {/* 2. 네 가지 방식으로 쉬어 가세요 (도서검색, 게임만 이동 / OTT, 안마의자는 정보 제공) */}
+      {/* 2. 네 가지 방식으로 쉬어 가세요 */}
       <section>
         <div className="section-header">
           <div>
@@ -108,7 +124,7 @@ export function StoreIntroductionPage() {
           </div>
         </div>
         <div className="feature-grid">
-          {ENJOY_POINTS.map((item) => (
+          {enjoyPoints.map((item) => (
             <div key={item.title} className="feature-card">
               <div className="feature-icon-wrap">
                 <img src={item.icon} alt={item.title} />
@@ -194,7 +210,7 @@ export function StoreIntroductionPage() {
           </div>
           <h3 className="section-title-sm">가장 많이 고르는 요금제</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {POPULAR_PRICES.map((p) => (
+            {popularPrices.map((p) => (
               <div key={p.name} className="price-item-row">
                 <div>
                   <div className="price-item-name">{p.name}</div>
@@ -207,7 +223,7 @@ export function StoreIntroductionPage() {
             ))}
           </div>
           <a
-            href="/menu"
+            href={scoped ? storePath(store, '/menu') : '/menu'}
             style={{
               alignSelf: 'flex-start',
               marginTop: 'auto',
@@ -243,7 +259,7 @@ export function StoreIntroductionPage() {
                   ))}
               </div>
             </div>
-            <a href="/#events" className="partnership-btn">
+            <a href={scoped ? storePath(store, '/events') : '/events'} className="partnership-btn">
               이벤트 혜택 자세히 →
             </a>
           </div>
@@ -263,7 +279,7 @@ export function StoreIntroductionPage() {
             <div className="section-kicker">STORE TOUR</div>
             <h2 className="section-title">매장 둘러보기</h2>
           </div>
-          <a href="/store" className="view-all-btn">
+          <a href={scoped ? storePath(store, '/store') : '/store'} className="view-all-btn">
             매장 안내 →
           </a>
         </div>

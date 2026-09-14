@@ -55,14 +55,28 @@ describe('customer routes', () => {
     expect(screen.queryByRole('searchbox')).toBeNull();
   });
 
-  it('keeps unverified Store contact details out of a selected Store page', async () => {
+  it('shows verified Store contact details on a selected Store page', async () => {
     window.history.pushState({}, '', '/stores/jamsil');
 
     render(<App />);
 
     await waitFor(() => expect(screen.getByRole('searchbox')).toBeTruthy());
-    expect(screen.getByRole('combobox', { name: '지점 변경' })).toBeTruthy();
+    expect(screen.getAllByText('잠실점').length).toBeGreaterThan(0);
     expect(screen.queryByText('02-888-0852')).toBeNull();
-    expect(screen.getByText('매장 안내 점검 중')).toBeTruthy();
+    expect(screen.getByText('02-423-9588')).toBeTruthy();
+    expect(screen.getByText('서울특별시 송파구 백제고분로9길 23, 2층 (잠실동)')).toBeTruthy();
+  });
+
+  it.each([
+    ['/stores/jamsil/about', '만화, 게임, 그리고'],
+    ['/stores/hongdae/about', '만화, 게임, 그리고'],
+    ['/stores/jamsil/store', '잠실점 안내'],
+    ['/stores/hongdae/store', '홍대점 안내'],
+  ])('activates scoped route %s with store content', async (path, expectedContent) => {
+    window.history.pushState({}, '', path);
+
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByText(new RegExp(expectedContent))).toBeTruthy());
   });
 });

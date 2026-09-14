@@ -106,6 +106,28 @@ button {
   text-decoration: none;
   line-height: 1.1;
   white-space: nowrap;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 12px;
+  transition: background-color 0.15s ease;
+}
+
+.brand:hover {
+  background-color: rgba(30, 30, 30, 0.06);
+}
+
+.brand-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.brand-text-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .brand-logo-wrap {
@@ -133,10 +155,78 @@ button {
   color: var(--color-dark);
 }
 
+.brand-sub-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .brand-sub {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   color: #5c5344;
+}
+
+.brand-caret {
+  width: 10px;
+  height: 10px;
+  color: #1e1e1e;
+  transition: transform 0.2s ease;
+}
+
+.brand-caret.open {
+  transform: rotate(180deg);
+}
+
+/* Store Selector Dropdown / Modal */
+.store-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 50;
+  min-width: 260px;
+  background: #ffffff;
+  border: 3px solid var(--color-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-brutal);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.store-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  text-decoration: none;
+  color: var(--color-dark);
+  font-size: 13px;
+  font-weight: 800;
+  transition: all 0.15s ease;
+}
+
+.store-dropdown-item:hover {
+  background: var(--color-yellow-light);
+  border-color: var(--color-border);
+}
+
+.store-dropdown-item.active {
+  background: var(--color-dark);
+  color: var(--color-yellow);
+}
+
+.store-dropdown-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 45;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .primary-nav {
@@ -1222,6 +1312,17 @@ button {
 @media (max-width: 860px) {
   .site-header {
     padding: 10px 16px;
+  }
+  .header-inner {
+    justify-content: center;
+  }
+  .brand-wrapper {
+    margin: 0 auto;
+  }
+  .store-dropdown-menu {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 280px;
   }
   .primary-nav {
     display: none;

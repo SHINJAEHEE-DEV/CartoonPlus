@@ -61,4 +61,21 @@ describe('CustomerShell', () => {
     expect(onStaffEntry).toHaveBeenCalledTimes(2);
     vi.useRealTimers();
   });
+
+  it('toggles store dropdown menu on brand click and shows all stores', () => {
+    render(
+      <CustomerShell currentPath="/">
+        <h1>카툰플러스</h1>
+      </CustomerShell>
+    );
+
+    const brand = screen.getByRole('link', { name: '카툰플러스 홈' });
+    expect(screen.queryByRole('menu', { name: '지점 선택' })).toBeNull();
+
+    fireEvent.click(brand);
+    expect(screen.getByRole('menu', { name: '지점 선택' })).toBeTruthy();
+    expect(screen.getByRole('menuitem', { name: /잠실점/ })).toBeTruthy();
+    expect(screen.getByRole('menuitem', { name: /홍대점/ })).toBeTruthy();
+    expect(screen.getByRole('menuitem', { name: /서울대입구역점/ })).toBeTruthy();
+  });
 });

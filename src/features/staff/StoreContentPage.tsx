@@ -806,7 +806,7 @@ export function StoreContentPage() {
                 </label>
                 <select
                   name="subCategory"
-                  defaultValue="라떼/음료"
+                  defaultValue="커피/라떼"
                   style={{
                     width: '100%',
                     padding: '10px 12px',
@@ -817,6 +817,7 @@ export function StoreContentPage() {
                     boxSizing: 'border-box',
                   }}
                 >
+                  <option value="커피/라떼">커피/라떼</option>
                   <option value="아이스티/티">아이스티/티</option>
                   <option value="라떼/음료">라떼/음료</option>
                   <option value="콤부차">콤부차</option>
@@ -976,6 +977,7 @@ export function StoreContentPage() {
 
                 {[
                   'ALL',
+                  '커피/라떼',
                   '아이스티/티',
                   '라떼/음료',
                   '콤부차',

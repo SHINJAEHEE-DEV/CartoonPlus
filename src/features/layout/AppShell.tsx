@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useState, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { MASCOT_ASSETS } from '../../lib/brandAssets';
 import {
@@ -35,13 +35,17 @@ function Brand({
   onStaffEntry,
   store = defaultPublicStore,
   scoped = false,
+  enableDropdown = true,
 }: {
   allowStaffEntry?: boolean;
   onStaffEntry?: () => void;
   store?: PublicStore;
   scoped?: boolean;
+  enableDropdown?: boolean;
 }) {
   const entryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isHolding = useRef(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const clearStaffEntryTimer = () => {
     if (entryTimer.current) clearTimeout(entryTimer.current);
@@ -51,39 +55,119 @@ function Brand({
   const startStaffEntryTimer = () => {
     if (!allowStaffEntry) return;
     if (entryTimer.current) return;
+    isHolding.current = false;
     entryTimer.current = setTimeout(() => {
       entryTimer.current = null;
+      isHolding.current = true;
       (onStaffEntry ?? (() => window.location.assign('/staff')))();
     }, STAFF_ENTRY_HOLD_MS);
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLAnchorElement>) => {
-    if (!allowStaffEntry || (event.key !== 'Enter' && event.key !== ' ')) return;
-    event.preventDefault();
-    startStaffEntryTimer();
+  const handlePointerUp = () => {
+    clearStaffEntryTimer();
+  };
+
+  const handleClick = (event: React.MouseEvent) => {
+    if (isHolding.current) {
+      isHolding.current = false;
+      return;
+    }
+    if (enableDropdown) {
+      event.preventDefault();
+      setIsOpen((prev) => !prev);
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      if (allowStaffEntry) {
+        startStaffEntryTimer();
+      }
+      if (enableDropdown) {
+        event.preventDefault();
+        setIsOpen((prev) => !prev);
+      }
+    }
   };
 
   return (
-    <a
-      className="brand"
-      href={scoped ? storePath(store) : '/'}
-      aria-label="카툰플러스 홈"
-      onPointerDown={startStaffEntryTimer}
-      onPointerUp={clearStaffEntryTimer}
-      onPointerCancel={clearStaffEntryTimer}
-      onPointerLeave={clearStaffEntryTimer}
-      onKeyDown={handleKeyDown}
-      onKeyUp={clearStaffEntryTimer}
-      onBlur={clearStaffEntryTimer}
-    >
-      <div className="brand-logo-wrap">
-        <img src={MASCOT_ASSETS.logoCircle} alt="카툰플러스 로고" />
-      </div>
-      <div>
-        <div className="brand-title">CARTOON PLUS</div>
-        <div className="brand-sub">{store.name}</div>
-      </div>
-    </a>
+    <div className="brand-wrapper">
+      <a
+        className="brand"
+        href={scoped ? storePath(store) : '/'}
+        aria-label="카툰플러스 홈"
+        aria-expanded={enableDropdown ? isOpen : undefined}
+        aria-haspopup={enableDropdown ? 'menu' : undefined}
+        onClick={handleClick}
+        onPointerDown={startStaffEntryTimer}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={clearStaffEntryTimer}
+        onPointerLeave={clearStaffEntryTimer}
+        onKeyDown={handleKeyDown}
+        onKeyUp={clearStaffEntryTimer}
+        onBlur={clearStaffEntryTimer}
+      >
+        <div className="brand-logo-wrap">
+          <img src={MASCOT_ASSETS.logoCircle} alt="카툰플러스 로고" />
+        </div>
+        <div className="brand-text-col">
+          <div className="brand-title">CARTOON PLUS</div>
+          <div className="brand-sub-wrap">
+            <span className="brand-sub">{store.name}</span>
+            {enableDropdown && (
+              <svg
+                className={`brand-caret ${isOpen ? 'open' : ''}`}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            )}
+          </div>
+        </div>
+      </a>
+
+      {enableDropdown && isOpen && (
+        <>
+          <div className="store-dropdown-backdrop" onClick={() => setIsOpen(false)} />
+          <div className="store-dropdown-menu" role="menu" aria-label="지점 선택">
+            <div
+              style={{
+                padding: '6px 10px',
+                fontSize: '11px',
+                fontWeight: 900,
+                color: '#8A6A00',
+                letterSpacing: '0.05em',
+              }}
+            >
+              매장 지점 선택
+            </div>
+            {publicStoreList.map((target) => {
+              const isCurrent = target.slug === store.slug;
+              return (
+                <a
+                  key={target.slug}
+                  href={storePath(target)}
+                  className={`store-dropdown-item ${isCurrent ? 'active' : ''}`}
+                  role="menuitem"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <span>{target.name}</span>
+                  {isCurrent && (
+                    <span style={{ fontSize: '11px', fontWeight: 900 }}>현재 지점</span>
+                  )}
+                </a>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -262,27 +346,6 @@ export function CustomerShell({
             currentPath={currentPath}
           />
           <div className="header-actions">
-            <label>
-              <span className="sr-only">지점 변경</span>
-              <select
-                aria-label="지점 변경"
-                value={store.slug}
-                onChange={(event) => {
-                  window.location.assign(
-                    storePath(
-                      publicStoreList.find((candidate) => candidate.slug === event.target.value) ??
-                        defaultPublicStore
-                    )
-                  );
-                }}
-              >
-                {publicStoreList.map((candidate) => (
-                  <option key={candidate.slug} value={candidate.slug}>
-                    {candidate.name}
-                  </option>
-                ))}
-              </select>
-            </label>
             <div className="store-status">
               <span
                 className="status-dot"
@@ -333,7 +396,7 @@ export function CustomerShell({
             <div
               style={{ fontWeight: 900, color: '#1E1E1E', fontSize: '14px', marginBottom: '4px' }}
             >
-              카툰플러스 서울대입구역점
+              카툰플러스 {store.name}
             </div>
             <div>{store.address ?? '매장 안내 점검 중'}</div>
             <div>{store.hours ?? '영업시간 점검 중'}</div>

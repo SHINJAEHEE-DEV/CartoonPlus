@@ -15,6 +15,7 @@ export interface ManagedEvent {
   isFeatured?: boolean;
   archivedAt?: string | null;
   createdAt: string;
+  storeSlug?: 'snu' | 'jamsil' | 'hongdae';
 }
 
 export const STORAGE_KEY = 'cartoonplus_managed_events';
@@ -24,7 +25,7 @@ export const INITIAL_EVENTS: ManagedEvent[] = [
     id: 'evt-1',
     title: '평일 종일 이용권 추가 혜택 이벤트',
     tag: '10월 말까지 한정',
-    target: '평일 종일 이용권 결제 고객',
+    target: '평일 종일 이용권 결제 고객 전원',
     detail: '음료 포함 15,000원 특가 이용 + 젤라또(무료) 또는 라면(무료) 택 1 추가 증정',
     bannerType: 'weekday',
     startDate: '2026-09-01',
@@ -36,28 +37,56 @@ export const INITIAL_EVENTS: ManagedEvent[] = [
   },
   {
     id: 'evt-2',
-    title: '네이버 영수증 포토 리뷰 — 라면무료 쿠폰',
+    title: '네이버 영수증 포토 리뷰 — 라면 무료 쿠폰',
     tag: '상시 리뷰 쿠폰',
     target: '네이버 플레이스 영수증 인증 후 포토 리뷰 작성 고객 전원',
-    detail: '라면 무료 + 대파·숙주·떡사리·계란 무제한 토핑 바 무료(공짜) 쿠폰 즉시 적용',
+    detail: '즉석 한강 라면 무료 + 계란·대파·숙주·떡사리 4종 무제한 토핑 바 100% 무료 제공',
     bannerType: 'naver_ramen',
+    isAlwaysOn: true,
+    isPublic: true,
+    isFeatured: true,
+    createdAt: '2026-09-01T00:00:00.000Z',
+  },
+  {
+    id: 'evt-3',
+    title: '맘맘(MomMom) 멤버십 제휴 — 젤라또 & 무제한 토핑 무료',
+    tag: '네이버·멤버십 제휴',
+    target: '맘맘(MomMom) 멤버십 QR 인증 고객 전원 (타 이벤트 중복 가능)',
+    detail:
+      '현장에서 맘맘 멤버십 QR 제시 시 프리미엄 젤라또 1개 무료 + 라면 토핑 바 무제한 무료 이용',
+    bannerType: 'weekday',
     isAlwaysOn: true,
     isPublic: true,
     isFeatured: false,
     createdAt: '2026-09-01T00:00:00.000Z',
   },
   {
-    id: 'evt-3',
+    id: 'evt-4',
+    title: '잠실 직관 티켓 인증 — 4,000원 음료 무료 증정',
+    tag: '잠실점 단독 이벤트',
+    target: '잠실 야구장 경기 또는 종합운동장 공연/콘서트 당일 티켓 소지 고객',
+    detail:
+      '당일 실물 또는 모바일 티켓 인증 시 카툰플러스 4,000원 상당 음료(아메리카노/아이스티 등) 무료 증정',
+    bannerType: 'weekday',
+    isAlwaysOn: true,
+    isPublic: true,
+    isFeatured: false,
+    storeSlug: 'jamsil',
+    createdAt: '2026-09-01T00:00:00.000Z',
+  },
+  {
+    id: 'evt-5',
     title: '2026 서울대학교 단과대학생회장연석회의 공식 제휴',
-    tag: '상시 제휴',
-    target: '서울대학교 학부생 및 대학원생 전원',
+    tag: '서울대점 단독 제휴',
+    target: '서울대학교 학부생 및 대학원생 전원 (학생증 제시)',
     detail: '패키지 요금제 10% 현장 즉시 할인 + 평일 종일권 결제 시 기본 음료 무료 업그레이드',
     bannerType: 'snu',
     startDate: '2026-01-01',
     endDate: '2026-12-31',
     isAlwaysOn: true,
     isPublic: true,
-    isFeatured: true,
+    isFeatured: false,
+    storeSlug: 'snu',
     createdAt: '2026-01-01T00:00:00.000Z',
   },
 ];

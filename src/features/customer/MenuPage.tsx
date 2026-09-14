@@ -11,36 +11,50 @@ import {
 
 import { usePageTitle } from '../../lib/usePageTitle';
 import { supabase } from '../../lib/supabase';
+import { usePublicStore } from '../../lib/storeContext';
 
 type MenuTab = 'all' | 'beverage' | 'meal' | 'dessert' | 'snack';
 
 export function MenuPage() {
-  usePageTitle('메뉴 안내');
+  const { store } = usePublicStore();
+  usePageTitle(store ? `${store.name} 메뉴 안내` : '메뉴 안내');
   const [activeTab, setActiveTab] = useState<MenuTab>('all');
   const [beverageSubFilter, setBeverageSubFilter] = useState<string>('전체');
 
   const [packages, setPackages] = useState<PricePackage[]>(() => {
-    const saved = localStorage.getItem('cp_price_packages');
+    const saved =
+      localStorage.getItem(`cp_price_packages_${store?.slug || 'snu'}`) ||
+      localStorage.getItem('cp_price_packages');
     return saved ? JSON.parse(saved) : INITIAL_PRICE_PACKAGES;
   });
 
   const [beverages, setBeverages] = useState<BeverageItem[]>(() => {
-    const saved = localStorage.getItem('cp_beverage_items');
+    const saved =
+      localStorage.getItem(`cp_beverage_items_${store?.slug || 'snu'}`) ||
+      localStorage.getItem('cp_beverage_items');
     return saved ? JSON.parse(saved) : INITIAL_BEVERAGE_ITEMS;
   });
 
   const [foods, setFoods] = useState<MenuItem[]>(() => {
-    const saved = localStorage.getItem('cp_food_items');
+    const saved =
+      localStorage.getItem(`cp_food_items_${store?.slug || 'snu'}`) ||
+      localStorage.getItem('cp_food_items');
     return saved ? JSON.parse(saved) : INITIAL_FOOD_ITEMS;
   });
 
   useEffect(() => {
     const handleStorage = () => {
-      const p = localStorage.getItem('cp_price_packages');
+      const p =
+        localStorage.getItem(`cp_price_packages_${store?.slug || 'snu'}`) ||
+        localStorage.getItem('cp_price_packages');
       if (p) setPackages(JSON.parse(p));
-      const b = localStorage.getItem('cp_beverage_items');
+      const b =
+        localStorage.getItem(`cp_beverage_items_${store?.slug || 'snu'}`) ||
+        localStorage.getItem('cp_beverage_items');
       if (b) setBeverages(JSON.parse(b));
-      const f = localStorage.getItem('cp_food_items');
+      const f =
+        localStorage.getItem(`cp_food_items_${store?.slug || 'snu'}`) ||
+        localStorage.getItem('cp_food_items');
       if (f) setFoods(JSON.parse(f));
     };
     window.addEventListener('storage', handleStorage);
@@ -50,16 +64,16 @@ export function MenuPage() {
       void client
         .from('stores')
         .select('id')
-        .eq('slug', 'snu')
+        .eq('slug', store?.slug || 'snu')
         .single()
-        .then(({ data: store }) => {
-          if (store) {
+        .then(({ data: targetStore }) => {
+          if (targetStore) {
             void client
               .from('store_content')
               .select('content_key, content_value')
-              .eq('store_id', store.id)
+              .eq('store_id', targetStore.id)
               .then(({ data }) => {
-                if (data) {
+                if (data && data.length > 0) {
                   for (const item of data) {
                     if (
                       item.content_key === 'price_packages' &&
@@ -85,10 +99,11 @@ export function MenuPage() {
     }
 
     return () => window.removeEventListener('storage', handleStorage);
-  }, []);
+  }, [store?.slug]);
 
   const subCategories = [
     '전체',
+    '커피/라떼',
     '아이스티/티',
     '콤부차',
     '라떼/음료',

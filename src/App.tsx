@@ -18,7 +18,6 @@ import { BookRequestsPage } from './features/staff/BookRequestsPage';
 import { StoreIntroductionPage } from './features/customer/StoreIntroductionPage';
 import { PublicInfoPage } from './features/customer/PublicInfoPage';
 import { MenuPage } from './features/customer/MenuPage';
-import { StoreMenuPage } from './features/customer/StoreMenuPage';
 import { StoreContentPage } from './features/staff/StoreContentPage';
 import { EventsPage } from './features/staff/EventsPage';
 import { GamesPage } from './features/staff/GamesPage';
@@ -297,7 +296,7 @@ export default function App() {
           path="/stores/:storeSlug/about"
           element={
             <CustomerRoute>
-              <StoreContentPendingPage />
+              <StoreIntroductionPage />
             </CustomerRoute>
           }
         />
@@ -305,7 +304,7 @@ export default function App() {
           path="/stores/:storeSlug/menu"
           element={
             <CustomerRoute>
-              <StoreMenuPage />
+              <MenuPage />
             </CustomerRoute>
           }
         />
@@ -329,7 +328,7 @@ export default function App() {
           path="/stores/:storeSlug/store"
           element={
             <CustomerRoute>
-              <StoreContentPendingPage />
+              <PublicInfoPage kind="store" />
             </CustomerRoute>
           }
         />
