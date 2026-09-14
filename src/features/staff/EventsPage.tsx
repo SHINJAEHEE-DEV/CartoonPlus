@@ -16,7 +16,9 @@ export function EventsPage() {
   const [tag, setTag] = useState('한정 이벤트');
   const [target, setTarget] = useState('');
   const [detail, setDetail] = useState('');
-  const [bannerType, setBannerType] = useState<'weekday' | 'naver_ramen' | 'snu' | 'custom'>('weekday');
+  const [bannerType, setBannerType] = useState<'weekday' | 'naver_ramen' | 'snu' | 'custom'>(
+    'weekday'
+  );
   const [customBannerUrl, setCustomBannerUrl] = useState('');
   const [isAlwaysOn, setIsAlwaysOn] = useState(true);
   const [startDate, setStartDate] = useState('');
@@ -134,9 +136,7 @@ export function EventsPage() {
 
   // 공개/비공개 토글
   const handleTogglePublic = (id: string) => {
-    const updated = events.map((ev) =>
-      ev.id === id ? { ...ev, isPublic: !ev.isPublic } : ev
-    );
+    const updated = events.map((ev) => (ev.id === id ? { ...ev, isPublic: !ev.isPublic } : ev));
     setEvents(updated);
     saveManagedEvents(updated);
     setMessage('공개 상태가 변경되었습니다.');
@@ -158,14 +158,16 @@ export function EventsPage() {
   // 보관(아카이브) / 복구
   const handleArchiveToggle = (id: string) => {
     const updated = events.map((ev) =>
-      ev.id === id
-        ? { ...ev, archivedAt: ev.archivedAt ? null : new Date().toISOString() }
-        : ev
+      ev.id === id ? { ...ev, archivedAt: ev.archivedAt ? null : new Date().toISOString() } : ev
     );
     setEvents(updated);
     saveManagedEvents(updated);
     const target = events.find((ev) => ev.id === id);
-    setMessage(target?.archivedAt ? `'${target.title}' 이벤트를 공개 목록으로 복구했습니다.` : `'${target?.title}' 이벤트를 보관 처리했습니다.`);
+    setMessage(
+      target?.archivedAt
+        ? `'${target.title}' 이벤트를 공개 목록으로 복구했습니다.`
+        : `'${target?.title}' 이벤트를 보관 처리했습니다.`
+    );
     setTimeout(() => setMessage(''), 3000);
   };
 
@@ -190,14 +192,37 @@ export function EventsPage() {
   };
 
   return (
-    <main style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '28px' }}>
+    <main
+      style={{
+        maxWidth: '1100px',
+        margin: '0 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '28px',
+      }}
+    >
       {/* 헤더 */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
+        }}
+      >
         <div>
-          <span style={{ fontSize: '12px', fontWeight: 900, color: '#8A6A00', letterSpacing: '0.08em' }}>STAFF CONSOLE</span>
-          <h1 style={{ fontSize: '26px', fontWeight: 900, marginTop: '2px' }}>이벤트 & 프로모션 관리</h1>
+          <span
+            style={{ fontSize: '12px', fontWeight: 900, color: '#8A6A00', letterSpacing: '0.08em' }}
+          >
+            STAFF CONSOLE
+          </span>
+          <h1 style={{ fontSize: '26px', fontWeight: 900, marginTop: '2px' }}>
+            이벤트 & 프로모션 관리
+          </h1>
           <p style={{ fontSize: '13px', fontWeight: 600, color: '#6B6354', marginTop: '4px' }}>
-            매장 이벤트 및 제휴 배너를 등록·수정하고, 홈페이지 메인에 띄울 대표 이벤트를 클릭 한 번으로 지정합니다.
+            매장 이벤트 및 제휴 배너를 등록·수정하고, 홈페이지 메인에 띄울 대표 이벤트를 클릭 한
+            번으로 지정합니다.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
@@ -263,7 +288,14 @@ export function EventsPage() {
           boxShadow: '5px 5px 0 #1E1E1E',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '18px',
+          }}
+        >
           <h2 style={{ fontSize: '18px', fontWeight: 900 }}>
             {isEditing ? '이벤트 수정' : '새 이벤트 등록'}
           </h2>
@@ -286,10 +318,21 @@ export function EventsPage() {
           )}
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '14px',
+            }}
+          >
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}>
+              <label
+                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}
+              >
                 이벤트 제목 *
               </label>
               <input
@@ -311,7 +354,9 @@ export function EventsPage() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}>
+              <label
+                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}
+              >
                 구분 뱃지 태그
               </label>
               <input
@@ -332,9 +377,17 @@ export function EventsPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '14px',
+            }}
+          >
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}>
+              <label
+                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}
+              >
                 대상 고객
               </label>
               <input
@@ -355,7 +408,9 @@ export function EventsPage() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}>
+              <label
+                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}
+              >
                 배너 이미지 프리셋 선택
               </label>
               <select
@@ -382,7 +437,9 @@ export function EventsPage() {
 
           {bannerType === 'custom' && (
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}>
+              <label
+                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}
+              >
                 배너 이미지 URL
               </label>
               <input
@@ -403,7 +460,9 @@ export function EventsPage() {
           )}
 
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}>
+            <label
+              style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}
+            >
               상세 내용 및 혜택 * (줄바꿈 또는 '+' 기호로 항목 구분 가능)
             </label>
             <textarea
@@ -426,8 +485,28 @@ export function EventsPage() {
           </div>
 
           {/* 기간 설정 & 공개/Featured 여부 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap', padding: '12px 16px', background: '#F8F6F0', borderRadius: '14px', border: '1.5px solid #E6DFCF' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 800 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '24px',
+              flexWrap: 'wrap',
+              padding: '12px 16px',
+              background: '#F8F6F0',
+              borderRadius: '14px',
+              border: '1.5px solid #E6DFCF',
+            }}
+          >
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: 800,
+              }}
+            >
               <input
                 type="checkbox"
                 checked={isAlwaysOn}
@@ -443,19 +522,38 @@ export function EventsPage() {
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  style={{ padding: '8px 12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '13px' }}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: '10px',
+                    border: '2px solid #1E1E1E',
+                    fontSize: '13px',
+                  }}
                 />
                 <span style={{ fontWeight: 800 }}>~</span>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  style={{ padding: '8px 12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '13px' }}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: '10px',
+                    border: '2px solid #1E1E1E',
+                    fontSize: '13px',
+                  }}
                 />
               </div>
             )}
 
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 800 }}>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: 800,
+              }}
+            >
               <input
                 type="checkbox"
                 checked={isPublic}
@@ -465,7 +563,18 @@ export function EventsPage() {
               고객 화면에 공개
             </label>
 
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 900, color: '#8A6A00', marginLeft: 'auto' }}>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: 900,
+                color: '#8A6A00',
+                marginLeft: 'auto',
+              }}
+            >
               <input
                 type="checkbox"
                 checked={isFeatured}
@@ -498,7 +607,14 @@ export function EventsPage() {
 
       {/* 등록된 이벤트 목록 */}
       <section>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '14px',
+          }}
+        >
           <h2 style={{ fontSize: '18px', fontWeight: 900 }}>
             등록된 이벤트 목록 ({events.length}건)
           </h2>
@@ -516,7 +632,9 @@ export function EventsPage() {
                 display: 'flex',
                 gap: '18px',
                 alignItems: 'center',
-                boxShadow: ev.isFeatured ? '0 0 0 2px #1E1E1E, 4px 4px 0 #1E1E1E' : '3px 3px 0 #1E1E1E',
+                boxShadow: ev.isFeatured
+                  ? '0 0 0 2px #1E1E1E, 4px 4px 0 #1E1E1E'
+                  : '3px 3px 0 #1E1E1E',
                 opacity: ev.isPublic ? 1 : 0.6,
                 position: 'relative',
               }}
@@ -546,7 +664,9 @@ export function EventsPage() {
 
               {/* 내용 정보 */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <div
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}
+                >
                   {ev.isFeatured && (
                     <span
                       style={{
@@ -607,14 +727,36 @@ export function EventsPage() {
                   </span>
                 </div>
 
-                <div style={{ fontSize: '16px', fontWeight: 900, marginTop: '6px', letterSpacing: '-0.02em' }}>
+                <div
+                  style={{
+                    fontSize: '16px',
+                    fontWeight: 900,
+                    marginTop: '6px',
+                    letterSpacing: '-0.02em',
+                  }}
+                >
                   {ev.title}
                 </div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#6B6354', marginTop: '4px', lineHeight: 1.4 }}>
+                <div
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#6B6354',
+                    marginTop: '4px',
+                    lineHeight: 1.4,
+                  }}
+                >
                   {ev.detail}
                 </div>
                 {ev.target && (
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#8A6A00', marginTop: '4px' }}>
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: '#8A6A00',
+                      marginTop: '4px',
+                    }}
+                  >
                     대상: {ev.target}
                   </div>
                 )}

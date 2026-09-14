@@ -20,7 +20,9 @@ describe('customer routes', () => {
 
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: '만화, 게임, 그리고 제대로 쉬는 시간' })).toBeTruthy();
+    expect(
+      screen.getByRole('heading', { name: '만화, 게임, 그리고 제대로 쉬는 시간' })
+    ).toBeTruthy();
   });
 
   it.each(['/books', '/search'])('keeps %s available for Book Search', async (path) => {

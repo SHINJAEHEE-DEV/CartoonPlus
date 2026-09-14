@@ -1,7 +1,13 @@
 import { useSearchParams } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
 import { validateInventoryCsv } from '../../lib/inventoryImport';
-import { isHongdaeInventoryCsv, isJamsilInventoryCsv, parseBaselineInventory, parseHongdaeInventoryCsv, parseJamsilInventoryCsv } from '../../lib/inventoryCsv';
+import {
+  isHongdaeInventoryCsv,
+  isJamsilInventoryCsv,
+  parseBaselineInventory,
+  parseHongdaeInventoryCsv,
+  parseJamsilInventoryCsv,
+} from '../../lib/inventoryCsv';
 import { supabase } from '../../lib/supabase';
 import { Pagination } from '../common/Pagination';
 import { useSelectedStaffStoreId } from './StaffStoreContext';
@@ -77,14 +83,21 @@ export function InventoryPage() {
         ? { storeSlug: 'hongdae', storeName: '홍대점', ...parseHongdaeInventoryCsv(text) }
         : null;
     if (storeImport?.ambiguousTitles.length) {
-      return setMessage(`${storeImport.storeName} CSV에 검토가 필요한 제목이 ${storeImport.ambiguousTitles.length}건 있습니다: ${storeImport.ambiguousTitles.slice(0, 3).join(', ')}`);
+      return setMessage(
+        `${storeImport.storeName} CSV에 검토가 필요한 제목이 ${storeImport.ambiguousTitles.length}건 있습니다: ${storeImport.ambiguousTitles.slice(0, 3).join(', ')}`
+      );
     }
 
     const books = storeImport?.books ?? parseBaselineInventory(text);
     let targetStoreId: string | null = null;
     if (storeImport) {
-      const { data, error } = await supabase.from('stores').select('id').eq('slug', storeImport.storeSlug).single();
-      if (error || !data) return setMessage(error?.message ?? `${storeImport.storeName} 정보를 찾을 수 없습니다.`);
+      const { data, error } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('slug', storeImport.storeSlug)
+        .single();
+      if (error || !data)
+        return setMessage(error?.message ?? `${storeImport.storeName} 정보를 찾을 수 없습니다.`);
       targetStoreId = data.id;
     }
 
@@ -99,12 +112,17 @@ export function InventoryPage() {
         p_shelf_location: book.shelfLocation,
       };
       const { error } = targetStoreId
-        ? await supabase.rpc('upsert_inventory_for_store', { p_store_id: targetStoreId, ...payload })
+        ? await supabase.rpc('upsert_inventory_for_store', {
+            p_store_id: targetStoreId,
+            ...payload,
+          })
         : await supabase.rpc('upsert_inventory', payload);
       if (error) failed++;
       else done++;
     }
-    setMessage(`${done}건의 재고 데이터를 업데이트했습니다.${failed ? ` ${failed}건은 반영하지 못했습니다.` : ''}${storeImport ? ` ${storeImport.storeName} 재고만 반영했습니다.` : ''}`);
+    setMessage(
+      `${done}건의 재고 데이터를 업데이트했습니다.${failed ? ` ${failed}건은 반영하지 못했습니다.` : ''}${storeImport ? ` ${storeImport.storeName} 재고만 반영했습니다.` : ''}`
+    );
     await load();
   };
 
@@ -138,9 +156,21 @@ export function InventoryPage() {
   }, [filteredItems, currentPage, pageSize]);
 
   return (
-    <main style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <main
+      style={{
+        maxWidth: '1100px',
+        margin: '0 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px',
+      }}
+    >
       <div>
-        <span style={{ fontSize: '12px', fontWeight: 900, color: '#8A6A00', letterSpacing: '0.08em' }}>STAFF INVENTORY</span>
+        <span
+          style={{ fontSize: '12px', fontWeight: 900, color: '#8A6A00', letterSpacing: '0.08em' }}
+        >
+          STAFF INVENTORY
+        </span>
         <h1 style={{ fontSize: '26px', fontWeight: 900, marginTop: '2px' }}>도서 재고 관리</h1>
         <p style={{ fontSize: '13px', fontWeight: 600, color: '#6B6354', marginTop: '4px' }}>
           단건 등록 및 Caspio CSV 대량 가져오기를 통해 현재 서가 내 실물 재고를 관리합니다.
@@ -148,7 +178,16 @@ export function InventoryPage() {
       </div>
 
       {message && (
-        <div style={{ padding: '12px 18px', background: '#FFF3C9', border: '2px solid #1E1E1E', borderRadius: '14px', fontSize: '13px', fontWeight: 800 }}>
+        <div
+          style={{
+            padding: '12px 18px',
+            background: '#FFF3C9',
+            border: '2px solid #1E1E1E',
+            borderRadius: '14px',
+            fontSize: '13px',
+            fontWeight: 800,
+          }}
+        >
           {message}
         </div>
       )}
@@ -166,7 +205,15 @@ export function InventoryPage() {
           gap: '16px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}
+        >
           <h2 style={{ fontSize: '18px', fontWeight: 900 }}>➕ 신규 도서 등록 및 CSV 업로드</h2>
           <label
             style={{
@@ -200,13 +247,68 @@ export function InventoryPage() {
             e.preventDefault();
             void save(new FormData(e.currentTarget));
           }}
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '10px',
+          }}
         >
-          <input name="title" defaultValue={defaultTitle} placeholder="도서명 *" required style={{ padding: '10px 12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '13px' }} />
-          <input name="author" defaultValue={defaultAuthor} placeholder="작가명" style={{ padding: '10px 12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '13px' }} />
-          <input name="category" placeholder="장르 (예: 액션/소년)" style={{ padding: '10px 12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '13px' }} />
-          <input name="volume" defaultValue={defaultVolume} placeholder="권수 (예: 1~22권) *" required style={{ padding: '10px 12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '13px' }} />
-          <input name="shelf" placeholder="서가 (예: A-03) *" required style={{ padding: '10px 12px', borderRadius: '10px', border: '2px solid #1E1E1E', fontSize: '13px' }} />
+          <input
+            name="title"
+            defaultValue={defaultTitle}
+            placeholder="도서명 *"
+            required
+            style={{
+              padding: '10px 12px',
+              borderRadius: '10px',
+              border: '2px solid #1E1E1E',
+              fontSize: '13px',
+            }}
+          />
+          <input
+            name="author"
+            defaultValue={defaultAuthor}
+            placeholder="작가명"
+            style={{
+              padding: '10px 12px',
+              borderRadius: '10px',
+              border: '2px solid #1E1E1E',
+              fontSize: '13px',
+            }}
+          />
+          <input
+            name="category"
+            placeholder="장르 (예: 액션/소년)"
+            style={{
+              padding: '10px 12px',
+              borderRadius: '10px',
+              border: '2px solid #1E1E1E',
+              fontSize: '13px',
+            }}
+          />
+          <input
+            name="volume"
+            defaultValue={defaultVolume}
+            placeholder="권수 (예: 1~22권) *"
+            required
+            style={{
+              padding: '10px 12px',
+              borderRadius: '10px',
+              border: '2px solid #1E1E1E',
+              fontSize: '13px',
+            }}
+          />
+          <input
+            name="shelf"
+            placeholder="서가 (예: A-03) *"
+            required
+            style={{
+              padding: '10px 12px',
+              borderRadius: '10px',
+              border: '2px solid #1E1E1E',
+              fontSize: '13px',
+            }}
+          />
           <button
             type="submit"
             style={{
@@ -235,7 +337,16 @@ export function InventoryPage() {
           boxShadow: '5px 5px 0 #1E1E1E',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '12px',
+            marginBottom: '16px',
+          }}
+        >
           <div>
             <h2 style={{ fontSize: '18px', fontWeight: 900 }}>
               📚 등록 도서 목록 ({filteredItems.length}권)
@@ -279,20 +390,43 @@ export function InventoryPage() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <strong style={{ fontSize: '15px' }}>{b?.title || '제목 없음'}</strong>
-                    <span style={{ fontSize: '11px', color: '#6B6354' }}>{b?.author || '작가 미상'}</span>
+                    <span style={{ fontSize: '11px', color: '#6B6354' }}>
+                      {b?.author || '작가 미상'}
+                    </span>
                     {b?.category && (
-                      <span style={{ fontSize: '10px', padding: '1px 6px', background: '#FFFFFF', border: '1px solid #1E1E1E', borderRadius: '4px' }}>
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          padding: '1px 6px',
+                          background: '#FFFFFF',
+                          border: '1px solid #1E1E1E',
+                          borderRadius: '4px',
+                        }}
+                      >
                         {b.category}
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#8A6A00', fontWeight: 700, marginTop: '2px' }}>
+                  <div
+                    style={{
+                      fontSize: '12px',
+                      color: '#8A6A00',
+                      fontWeight: 700,
+                      marginTop: '2px',
+                    }}
+                  >
                     {item.volume_range} · 서가 위치: {item.shelf_location}
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 800, color: item.archived_at ? '#D32F2F' : '#2E7D32' }}>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      color: item.archived_at ? '#D32F2F' : '#2E7D32',
+                    }}
+                  >
                     {item.archived_at ? '보관됨' : '공개 중'}
                   </span>
                   <button

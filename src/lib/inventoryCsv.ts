@@ -59,7 +59,9 @@ export function isJamsilInventoryCsv(csv: string): boolean {
 
 export function isHongdaeInventoryCsv(csv: string): boolean {
   const { columns } = getCsvRows(csv);
-  return columns.length === 3 && columns[0] === 'a_' && columns[1] === 'a_1' && columns[2] === 'a_2';
+  return (
+    columns.length === 3 && columns[0] === 'a_' && columns[1] === 'a_1' && columns[2] === 'a_2'
+  );
 }
 
 function isAmbiguousJamsilTitle(title: string): boolean {
@@ -77,7 +79,10 @@ export function parseJamsilInventoryCsv(csv: string): StoreInventoryImport {
 
   lines.forEach((line, rowIndex) => {
     const [shelfNumber = '', shelfTitles = ''] = parseCsvLine(line) as [string, string];
-    const row: JamsilShelfRow = { shelfNumber: shelfNumber.trim(), shelfTitles: shelfTitles.trim() };
+    const row: JamsilShelfRow = {
+      shelfNumber: shelfNumber.trim(),
+      shelfTitles: shelfTitles.trim(),
+    };
     if (!row.shelfNumber || !row.shelfTitles) return;
 
     row.shelfTitles.split('//').forEach((rawTitle, titleIndex) => {
@@ -111,7 +116,11 @@ export function parseHongdaeInventoryCsv(csv: string): StoreInventoryImport {
   const books: SearchableBook[] = [];
   const ambiguousTitles: string[] = [];
   lines.forEach((line, rowIndex) => {
-    const [titleList = '', shelfNumber = '', category = ''] = parseCsvLine(line) as [string, string, string];
+    const [titleList = '', shelfNumber = '', category = ''] = parseCsvLine(line) as [
+      string,
+      string,
+      string,
+    ];
     if (!titleList.trim() || !shelfNumber.trim()) return;
 
     titleList.split(/\s*\/\/\s*|(?<=\d)\s*\/(?=\s*[^\d\s])/u).forEach((rawTitle, titleIndex) => {
@@ -137,16 +146,20 @@ export function parseBaselineInventory(csv: string): SearchableBook[] {
 
   return lines.flatMap((line, index) => {
     const values = parseCsvLine(line);
-    const row = Object.fromEntries(columns.map((column, columnIndex) => [column, values[columnIndex] ?? ''])) as InventoryCsvRow;
+    const row = Object.fromEntries(
+      columns.map((column, columnIndex) => [column, values[columnIndex] ?? ''])
+    ) as InventoryCsvRow;
     if (!row.title?.trim() || !row.number?.trim()) return [];
     const book = splitTitleAndLastVolume(row.title);
-    return [{
-      id: `baseline-${index}-${book.title}`,
-      title: book.title,
-      author: row.author?.trim() ?? '',
-      category: normalizeBookCategory(row.genre ?? ''),
-      volumeRange: book.volumeRange,
-      shelfLocation: `책장 ${row.number.trim()}번`,
-    }];
+    return [
+      {
+        id: `baseline-${index}-${book.title}`,
+        title: book.title,
+        author: row.author?.trim() ?? '',
+        category: normalizeBookCategory(row.genre ?? ''),
+        volumeRange: book.volumeRange,
+        shelfLocation: `책장 ${row.number.trim()}번`,
+      },
+    ];
   });
 }

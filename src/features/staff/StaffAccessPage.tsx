@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { applyForStaff, getApprovedStaffRole, signInStaff } from './staffAuth';
-import mascotLogo from '../../assets/placeholder.svg';
+import { MASCOT_ASSETS } from '../../lib/brandAssets';
 
 export function StaffAccessPage() {
   const navigate = useNavigate();
@@ -18,7 +18,9 @@ export function StaffAccessPage() {
       if (role) navigate('/staff/dashboard', { replace: true });
       else setIsCheckingSession(false);
     });
-    return () => { isCurrent = false; };
+    return () => {
+      isCurrent = false;
+    };
   }, [navigate]);
 
   if (isCheckingSession) return <p className="state-card">직원 로그인 상태를 확인하는 중입니다.</p>;
@@ -80,7 +82,15 @@ export function StaffAccessPage() {
         }}
       >
         {/* 상단 브랜딩 & 로고 */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '8px' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            gap: '8px',
+          }}
+        >
           <div
             style={{
               width: '54px',
@@ -94,10 +104,21 @@ export function StaffAccessPage() {
               boxShadow: '3px 3px 0 #1E1E1E',
             }}
           >
-            <img src={mascotLogo} alt="카툰플러스" style={{ width: '85%', height: '85%', objectFit: 'contain' }} />
+            <img
+              src={MASCOT_ASSETS.logoCircle}
+              alt="카툰플러스"
+              style={{ width: '85%', height: '85%', objectFit: 'contain' }}
+            />
           </div>
           <div>
-            <div style={{ fontSize: '18px', fontWeight: 900, letterSpacing: '-0.03em', color: '#1E1E1E' }}>
+            <div
+              style={{
+                fontSize: '18px',
+                fontWeight: 900,
+                letterSpacing: '-0.03em',
+                color: '#1E1E1E',
+              }}
+            >
               STAFF CONSOLE
             </div>
             <div style={{ fontSize: '12px', fontWeight: 700, color: '#8A8175' }}>
@@ -164,7 +185,15 @@ export function StaffAccessPage() {
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {mode === 'signup' && (
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#1E1E1E', marginBottom: '6px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  color: '#1E1E1E',
+                  marginBottom: '6px',
+                }}
+              >
                 이름
               </label>
               <input
@@ -187,7 +216,15 @@ export function StaffAccessPage() {
           )}
 
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#1E1E1E', marginBottom: '6px' }}>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '12px',
+                fontWeight: 800,
+                color: '#1E1E1E',
+                marginBottom: '6px',
+              }}
+            >
               로그인 아이디
             </label>
             <input
@@ -210,7 +247,15 @@ export function StaffAccessPage() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#1E1E1E', marginBottom: '6px' }}>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '12px',
+                fontWeight: 800,
+                color: '#1E1E1E',
+                marginBottom: '6px',
+              }}
+            >
               비밀번호
             </label>
             <input
@@ -234,7 +279,15 @@ export function StaffAccessPage() {
 
           {mode === 'signup' && (
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#1E1E1E', marginBottom: '6px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  color: '#1E1E1E',
+                  marginBottom: '6px',
+                }}
+              >
                 전화번호 끝 4자리
               </label>
               <input

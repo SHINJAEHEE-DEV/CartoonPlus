@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import thinkingMascot from '../../assets/placeholder.svg';
+import { MASCOT_ASSETS } from '../../lib/brandAssets';
 import { usePageTitle } from '../../lib/usePageTitle';
 import type { StoreSlug } from '../../lib/storeContext';
 
-export function BookRequestForm({ title = '', storeSlug = 'snu' }: { title?: string; storeSlug?: StoreSlug }) {
+export function BookRequestForm({
+  title = '',
+  storeSlug = 'snu',
+}: {
+  title?: string;
+  storeSlug?: StoreSlug;
+}) {
   usePageTitle('도서 입고 신청');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -13,7 +19,11 @@ export function BookRequestForm({ title = '', storeSlug = 'snu' }: { title?: str
     e.preventDefault();
     setIsSubmitting(true);
     const form = new FormData(e.currentTarget);
-    const { data: store } = await supabase!.from('stores').select('id').eq('slug', storeSlug).single();
+    const { data: store } = await supabase!
+      .from('stores')
+      .select('id')
+      .eq('slug', storeSlug)
+      .single();
     const { error } = await supabase!.from('book_requests').insert({
       store_id: store?.id,
       title: String(form.get('title')),
@@ -22,7 +32,9 @@ export function BookRequestForm({ title = '', storeSlug = 'snu' }: { title?: str
       customer_comment: String(form.get('comment')) || null,
     });
     setIsSubmitting(false);
-    setMessage(error?.message ?? '도서 입고 신청이 정상 접수되었습니다. 직원이 확인 후 검토합니다!');
+    setMessage(
+      error?.message ?? '도서 입고 신청이 정상 접수되었습니다. 직원이 확인 후 검토합니다!'
+    );
   };
 
   return (
@@ -41,9 +53,15 @@ export function BookRequestForm({ title = '', storeSlug = 'snu' }: { title?: str
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src={thinkingMascot} alt="" style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
+          <img
+            src={MASCOT_ASSETS.thinking}
+            alt=""
+            style={{ width: '48px', height: '48px', objectFit: 'contain' }}
+          />
           <div>
-            <div style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em' }}>도서 입고 신청</div>
+            <div style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '-0.03em' }}>
+              도서 입고 신청
+            </div>
             <div style={{ fontSize: '12px', fontWeight: 600, color: '#CFC7B4' }}>
               연락처와 개인정보는 수집하지 않으며, 도서 정보만 안전하게 전달됩니다.
             </div>
@@ -52,7 +70,15 @@ export function BookRequestForm({ title = '', storeSlug = 'snu' }: { title?: str
 
         <form onSubmit={submit} style={{ display: 'grid', gap: '12px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#FED943', marginBottom: '4px' }}>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '12px',
+                fontWeight: 800,
+                color: '#FED943',
+                marginBottom: '4px',
+              }}
+            >
               도서명 (필수)
             </label>
             <input
@@ -74,9 +100,23 @@ export function BookRequestForm({ title = '', storeSlug = 'snu' }: { title?: str
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '12px',
+            }}
+          >
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#FED943', marginBottom: '4px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  color: '#FED943',
+                  marginBottom: '4px',
+                }}
+              >
                 작가 / 출판사 (선택)
               </label>
               <input
@@ -96,7 +136,15 @@ export function BookRequestForm({ title = '', storeSlug = 'snu' }: { title?: str
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#FED943', marginBottom: '4px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  color: '#FED943',
+                  marginBottom: '4px',
+                }}
+              >
                 희망 권수 (선택)
               </label>
               <input
@@ -118,7 +166,15 @@ export function BookRequestForm({ title = '', storeSlug = 'snu' }: { title?: str
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#FED943', marginBottom: '4px' }}>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '12px',
+                fontWeight: 800,
+                color: '#FED943',
+                marginBottom: '4px',
+              }}
+            >
               손님 한마디 (선택)
             </label>
             <textarea
@@ -177,7 +233,15 @@ export function BookRequestForm({ title = '', storeSlug = 'snu' }: { title?: str
       </section>
 
       <div style={{ textAlign: 'center', marginTop: '16px' }}>
-        <a href="/books" style={{ fontSize: '13px', fontWeight: 800, color: '#6B6354', textDecoration: 'underline' }}>
+        <a
+          href="/books"
+          style={{
+            fontSize: '13px',
+            fontWeight: 800,
+            color: '#6B6354',
+            textDecoration: 'underline',
+          }}
+        >
           ← 도서 검색으로 돌아가기
         </a>
       </div>

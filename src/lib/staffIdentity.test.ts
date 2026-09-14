@@ -7,7 +7,16 @@ describe('staff identity', () => {
   });
 
   it('rejects incomplete signup information', () => {
-    expect(validateStaffSignup({ name: '', loginId: 'staff1', password: '12345678', phoneLast4: '1234' })).toBe(false);
-    expect(validateStaffSignup({ name: '직원', loginId: 'staff1', password: '12345678', phoneLast4: '12' })).toBe(false);
+    expect(
+      validateStaffSignup({ name: '', loginId: 'staff1', password: '12345678', phoneLast4: '1234' })
+    ).toBe(false);
+    expect(
+      validateStaffSignup({
+        name: '직원',
+        loginId: 'staff1',
+        password: '12345678',
+        phoneLast4: '12',
+      })
+    ).toBe(false);
   });
 });

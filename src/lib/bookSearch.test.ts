@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { normalizeBookCategory, searchBooks, splitBookCategories, type SearchableBook } from './bookSearch';
+import {
+  normalizeBookCategory,
+  searchBooks,
+  splitBookCategories,
+  type SearchableBook,
+} from './bookSearch';
 
 const books: SearchableBook[] = [
   {

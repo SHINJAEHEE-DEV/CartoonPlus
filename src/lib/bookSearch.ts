@@ -10,8 +10,25 @@ export type SearchableBook = {
 const HANGUL_START = 0xac00;
 const HANGUL_END = 0xd7a3;
 const INITIAL_CONSONANTS = [
-  'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ',
-  'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
+  'ㄱ',
+  'ㄲ',
+  'ㄴ',
+  'ㄷ',
+  'ㄸ',
+  'ㄹ',
+  'ㅁ',
+  'ㅂ',
+  'ㅃ',
+  'ㅅ',
+  'ㅆ',
+  'ㅇ',
+  'ㅈ',
+  'ㅉ',
+  'ㅊ',
+  'ㅋ',
+  'ㅌ',
+  'ㅍ',
+  'ㅎ',
 ];
 const INITIAL_CONSONANT_QUERY = /^[ㄱ-ㅎ]+$/;
 
@@ -20,12 +37,18 @@ export function normalizeSearchText(value: string): string {
 }
 
 export function normalizeBookCategory(value: string): string {
-  const normalized = value.trim().replace(/\s*,\s*/gu, ',').replace(/(^|,)sf(?=,|$)/giu, '$1SF');
+  const normalized = value
+    .trim()
+    .replace(/\s*,\s*/gu, ',')
+    .replace(/(^|,)sf(?=,|$)/giu, '$1SF');
   return normalized === 'SF,판타지' ? '판타지,SF' : normalized;
 }
 
 export function splitBookCategories(value: string): string[] {
-  return normalizeBookCategory(value).split(/[,·/]/u).map((category) => category.trim()).filter(Boolean);
+  return normalizeBookCategory(value)
+    .split(/[,·/]/u)
+    .map((category) => category.trim())
+    .filter(Boolean);
 }
 
 export function toInitialConsonants(value: string): string {
@@ -49,8 +72,10 @@ export function searchBooks(books: SearchableBook[], query: string): SearchableB
     const author = normalizeSearchText(book.author);
 
     if (isInitialConsonantQuery) {
-      return toInitialConsonants(title).includes(normalizedQuery)
-        || toInitialConsonants(author).includes(normalizedQuery);
+      return (
+        toInitialConsonants(title).includes(normalizedQuery) ||
+        toInitialConsonants(author).includes(normalizedQuery)
+      );
     }
 
     return title.includes(normalizedQuery) || author.includes(normalizedQuery);

@@ -20,62 +20,426 @@ const labels: Record<string, string> = {
 
 const INITIAL_GAMES: Game[] = [
   // 1. 닌텐도 스위치 (8종)
-  { id: 'g-nsw-01', title: '슈퍼 마리오 파티 잼버리', item_type: 'NINTENDO', players: '1-4인', genre: '파티/보드', archived_at: null },
-  { id: 'g-nsw-02', title: '오버쿡드! 올유캔잇', item_type: 'NINTENDO', players: '1-4인', genre: '협동 요리', archived_at: null },
-  { id: 'g-nsw-03', title: '폴가이즈 (Fall Guys)', item_type: 'NINTENDO', players: '1-4인', genre: '배틀로얄 파티', archived_at: null },
-  { id: 'g-nsw-04', title: '슈퍼 버니 맨 (Super Bunny Man)', item_type: 'NINTENDO', players: '2인 전용', genre: '협동 액션', archived_at: null },
-  { id: 'g-nsw-05', title: '태고의 달인 쿵딱! 원더풀 페스티벌', item_type: 'NINTENDO', players: '1-2인', genre: '리듬 액션 (북 컨트롤러)', archived_at: null },
-  { id: 'g-nsw-06', title: '슈퍼 커비 헌터즈', item_type: 'NINTENDO', players: '1-4인', genre: '액션 RPG', archived_at: null },
-  { id: 'g-nsw-07', title: '포켓몬 챔피언스', item_type: 'NINTENDO', players: '1-2인', genre: '배틀/어드벤처', archived_at: null },
-  { id: 'g-nsw-08', title: '리듬 세상 더 베스트 플러스', item_type: 'NINTENDO', players: '1-4인', genre: '리듬 게임', archived_at: null },
+  {
+    id: 'g-nsw-01',
+    title: '슈퍼 마리오 파티 잼버리',
+    item_type: 'NINTENDO',
+    players: '1-4인',
+    genre: '파티/보드',
+    archived_at: null,
+  },
+  {
+    id: 'g-nsw-02',
+    title: '오버쿡드! 올유캔잇',
+    item_type: 'NINTENDO',
+    players: '1-4인',
+    genre: '협동 요리',
+    archived_at: null,
+  },
+  {
+    id: 'g-nsw-03',
+    title: '폴가이즈 (Fall Guys)',
+    item_type: 'NINTENDO',
+    players: '1-4인',
+    genre: '배틀로얄 파티',
+    archived_at: null,
+  },
+  {
+    id: 'g-nsw-04',
+    title: '슈퍼 버니 맨 (Super Bunny Man)',
+    item_type: 'NINTENDO',
+    players: '2인 전용',
+    genre: '협동 액션',
+    archived_at: null,
+  },
+  {
+    id: 'g-nsw-05',
+    title: '태고의 달인 쿵딱! 원더풀 페스티벌',
+    item_type: 'NINTENDO',
+    players: '1-2인',
+    genre: '리듬 액션 (북 컨트롤러)',
+    archived_at: null,
+  },
+  {
+    id: 'g-nsw-06',
+    title: '슈퍼 커비 헌터즈',
+    item_type: 'NINTENDO',
+    players: '1-4인',
+    genre: '액션 RPG',
+    archived_at: null,
+  },
+  {
+    id: 'g-nsw-07',
+    title: '포켓몬 챔피언스',
+    item_type: 'NINTENDO',
+    players: '1-2인',
+    genre: '배틀/어드벤처',
+    archived_at: null,
+  },
+  {
+    id: 'g-nsw-08',
+    title: '리듬 세상 더 베스트 플러스',
+    item_type: 'NINTENDO',
+    players: '1-4인',
+    genre: '리듬 게임',
+    archived_at: null,
+  },
 
   // 2. PlayStation 4 / 5 (12종)
-  { id: 'g-ps4-01', title: '잇 테익스 투 (It Takes Two)', item_type: 'PLAYSTATION_4', players: '2인 전용', genre: '협동 어드벤처 (최고인기)', archived_at: null },
-  { id: 'g-ps4-02', title: '휴먼: 폴 플랫 (Human Fall Flat)', item_type: 'PLAYSTATION_4', players: '1-2인', genre: '물리 퍼즐/액션', archived_at: null },
-  { id: 'g-ps4-03', title: '오버쿡드 2 (Overcooked! 2)', item_type: 'PLAYSTATION_4', players: '1-4인', genre: '협동 요리', archived_at: null },
-  { id: 'g-ps4-04', title: '무빙 아웃 (Moving Out)', item_type: 'PLAYSTATION_4', players: '1-4인', genre: '협동 이사 액션', archived_at: null },
-  { id: 'g-ps4-05', title: '리틀 나이트메어 2 (Little Nightmares II)', item_type: 'PLAYSTATION_4', players: '1인', genre: '서스펜스 어드벤처', archived_at: null },
-  { id: 'g-ps4-06', title: '노바디 세이브즈 더 월드', item_type: 'PLAYSTATION_4', players: '1-2인', genre: '액션 RPG', archived_at: null },
-  { id: 'g-ps4-07', title: '태고의 달인 모두 함께 쿵딱쿵!', item_type: 'PLAYSTATION_4', players: '1-2인', genre: '리듬 액션', archived_at: null },
-  { id: 'g-ps4-08', title: '브롤할라 (Brawlhalla)', item_type: 'PLAYSTATION_4', players: '1-4인', genre: '난투 대전 액션', archived_at: null },
-  { id: 'g-ps4-09', title: '드래곤볼 제노버스 2', item_type: 'PLAYSTATION_4', players: '1-2인', genre: '격투 액션', archived_at: null },
-  { id: 'g-ps4-10', title: '로블록스 (Roblox)', item_type: 'PLAYSTATION_4', players: '1-4인', genre: '샌드박스 파티', archived_at: null },
-  { id: 'g-ps4-11', title: '포트나이트 (Fortnite)', item_type: 'PLAYSTATION_4', players: '1-4인', genre: '배틀로얄/슈팅', archived_at: null },
-  { id: 'g-ps4-12', title: '이풋볼 (eFootball™)', item_type: 'PLAYSTATION_4', players: '1-2인', genre: '축구 스포츠', archived_at: null },
+  {
+    id: 'g-ps4-01',
+    title: '잇 테익스 투 (It Takes Two)',
+    item_type: 'PLAYSTATION_4',
+    players: '2인 전용',
+    genre: '협동 어드벤처 (최고인기)',
+    archived_at: null,
+  },
+  {
+    id: 'g-ps4-02',
+    title: '휴먼: 폴 플랫 (Human Fall Flat)',
+    item_type: 'PLAYSTATION_4',
+    players: '1-2인',
+    genre: '물리 퍼즐/액션',
+    archived_at: null,
+  },
+  {
+    id: 'g-ps4-03',
+    title: '오버쿡드 2 (Overcooked! 2)',
+    item_type: 'PLAYSTATION_4',
+    players: '1-4인',
+    genre: '협동 요리',
+    archived_at: null,
+  },
+  {
+    id: 'g-ps4-04',
+    title: '무빙 아웃 (Moving Out)',
+    item_type: 'PLAYSTATION_4',
+    players: '1-4인',
+    genre: '협동 이사 액션',
+    archived_at: null,
+  },
+  {
+    id: 'g-ps4-05',
+    title: '리틀 나이트메어 2 (Little Nightmares II)',
+    item_type: 'PLAYSTATION_4',
+    players: '1인',
+    genre: '서스펜스 어드벤처',
+    archived_at: null,
+  },
+  {
+    id: 'g-ps4-06',
+    title: '노바디 세이브즈 더 월드',
+    item_type: 'PLAYSTATION_4',
+    players: '1-2인',
+    genre: '액션 RPG',
+    archived_at: null,
+  },
+  {
+    id: 'g-ps4-07',
+    title: '태고의 달인 모두 함께 쿵딱쿵!',
+    item_type: 'PLAYSTATION_4',
+    players: '1-2인',
+    genre: '리듬 액션',
+    archived_at: null,
+  },
+  {
+    id: 'g-ps4-08',
+    title: '브롤할라 (Brawlhalla)',
+    item_type: 'PLAYSTATION_4',
+    players: '1-4인',
+    genre: '난투 대전 액션',
+    archived_at: null,
+  },
+  {
+    id: 'g-ps4-09',
+    title: '드래곤볼 제노버스 2',
+    item_type: 'PLAYSTATION_4',
+    players: '1-2인',
+    genre: '격투 액션',
+    archived_at: null,
+  },
+  {
+    id: 'g-ps4-10',
+    title: '로블록스 (Roblox)',
+    item_type: 'PLAYSTATION_4',
+    players: '1-4인',
+    genre: '샌드박스 파티',
+    archived_at: null,
+  },
+  {
+    id: 'g-ps4-11',
+    title: '포트나이트 (Fortnite)',
+    item_type: 'PLAYSTATION_4',
+    players: '1-4인',
+    genre: '배틀로얄/슈팅',
+    archived_at: null,
+  },
+  {
+    id: 'g-ps4-12',
+    title: '이풋볼 (eFootball™)',
+    item_type: 'PLAYSTATION_4',
+    players: '1-2인',
+    genre: '축구 스포츠',
+    archived_at: null,
+  },
 
   // 3. 실물 보드게임 (40여종)
-  { id: 'g-bg-01', title: '다빈치코드 (Da Vinci Code)', item_type: 'BOARD_GAME', players: '2-4인', genre: '숫자 추리 (3세트 보유)', archived_at: null },
-  { id: 'g-bg-02', title: '루미큐브 클래식 (Rummikub)', item_type: 'BOARD_GAME', players: '2-4인', genre: '숫자 조합 전략 (스테디셀러)', archived_at: null },
-  { id: 'g-bg-03', title: '스플렌더 (Splendor)', item_type: 'BOARD_GAME', players: '2-4인', genre: '보석 자원 엔진빌딩 (2세트 보유)', archived_at: null },
-  { id: 'g-bg-04', title: '스플렌더 확장: 찬란한 도시', item_type: 'BOARD_GAME', players: '2-4인', genre: '스플렌더 공식 확장판', archived_at: null },
-  { id: 'g-bg-05', title: '시타델 (Citadels)', item_type: 'BOARD_GAME', players: '2-8인', genre: '직업 블러핑/도시 건설 (2세트)', archived_at: null },
-  { id: 'g-bg-06', title: '라스베가스 (Las Vegas)', item_type: 'BOARD_GAME', players: '2-5인', genre: '카지노 주사위 베팅', archived_at: null },
-  { id: 'g-bg-07', title: '카탄 (Catan)', item_type: 'BOARD_GAME', players: '3-4인', genre: '자원 채취 & 무역 영토확장', archived_at: null },
-  { id: 'g-bg-08', title: '뱅! (BANG!)', item_type: 'BOARD_GAME', players: '4-7인', genre: '서부 총잡이 마피아 게임', archived_at: null },
-  { id: 'g-bg-09', title: '로스트 시티 (Lost Cities)', item_type: 'BOARD_GAME', players: '2인 전용', genre: '2인 카드 탐험 (2세트)', archived_at: null },
-  { id: 'g-bg-10', title: '텔레스트레이션 (Telestrations)', item_type: 'BOARD_GAME', players: '4-8인', genre: '릴레이 스케치 파티 게임', archived_at: null },
-  { id: 'g-bg-11', title: '루핑루이 (Loopin Louie)', item_type: 'BOARD_GAME', players: '2-4인', genre: '순발력 비행기 튕기기', archived_at: null },
-  { id: 'g-bg-12', title: '우봉고 (Ubongo)', item_type: 'BOARD_GAME', players: '1-4인', genre: '스피드 도형 퍼즐 맞추기', archived_at: null },
-  { id: 'g-bg-13', title: '젬블로 (Gemblo)', item_type: 'BOARD_GAME', players: '1-6인', genre: '육각형 보석 영역 확장', archived_at: null },
-  { id: 'g-bg-14', title: '콰르토 (Quarto)', item_type: 'BOARD_GAME', players: '2인 전용', genre: '멘사 추천 4목 추상 전략', archived_at: null },
-  { id: 'g-bg-15', title: '라비린스 (Labyrinth)', item_type: 'BOARD_GAME', players: '2-4인', genre: '움직이는 미로 보물찾기', archived_at: null },
-  { id: 'g-bg-16', title: '오델로 클래식 (Othello)', item_type: 'BOARD_GAME', players: '2인 전용', genre: '정통 흑백 뒤집기 리버시', archived_at: null },
-  { id: 'g-bg-17', title: '체스 & 체커 (Chess & Checkers)', item_type: 'BOARD_GAME', players: '2인 전용', genre: '정통 전략 보드게임 세트', archived_at: null },
-  { id: 'g-bg-18', title: '뒤죽박죽 서커스', item_type: 'BOARD_GAME', players: '2-4인', genre: '서커스 캐릭터 균형 쌓기', archived_at: null },
-  { id: 'g-bg-19', title: '루빅스 레이스 (Rubik\'s Race)', item_type: 'BOARD_GAME', players: '2인 전용', genre: '스피드 슬라이딩 큐브 대결', archived_at: null },
-  { id: 'g-bg-20', title: '요트 다이스 (Yacht Dice)', item_type: 'BOARD_GAME', players: '1-4인', genre: '주사위 조합 족보 게임', archived_at: null },
-  { id: 'g-bg-21', title: '반지의 제왕 보드게임', item_type: 'BOARD_GAME', players: '2-5인', genre: '판타지 테마 협동 모험', archived_at: null },
-  { id: 'g-bg-22', title: 'ACUITY (어큐어티)', item_type: 'BOARD_GAME', players: '2-6인', genre: '시각 패턴 인지 퍼즐', archived_at: null },
-  { id: 'g-bg-23', title: '할리갈리 디럭스 (Halli Galli)', item_type: 'BOARD_GAME', players: '2-6인', genre: '과일 5개 종치기 순발력', archived_at: null },
-  { id: 'g-bg-24', title: '할리갈리 컵스', item_type: 'BOARD_GAME', players: '2-4인', genre: '색상 컵 쌓기 대결', archived_at: null },
-  { id: 'g-bg-25', title: '클루 (Clue)', item_type: 'BOARD_GAME', players: '2-6인', genre: '살인 사건 정통 추리', archived_at: null },
-  { id: 'g-bg-26', title: '치킨 차차차 (Zicke Zacke)', item_type: 'BOARD_GAME', players: '2-4인', genre: '기억력 닭 꼬리잡기', archived_at: null },
-  { id: 'g-bg-27', title: '모노폴리 클래식', item_type: 'BOARD_GAME', players: '2-6인', genre: '세계 부동산 투자 거래', archived_at: null },
-  { id: 'g-bg-28', title: '모노폴리 K-부동산 (서울)', item_type: 'BOARD_GAME', players: '2-6인', genre: '국내 부동산 투자 보드게임', archived_at: null },
-  { id: 'g-bg-29', title: '인생게임 (The Game of Life)', item_type: 'BOARD_GAME', players: '2-6인', genre: '직업/결혼/은퇴 인생 시뮬레이션', archived_at: null },
-  { id: 'g-bg-30', title: '젠가 클래식 (Jenga)', item_type: 'BOARD_GAME', players: '1-8인', genre: '원목 블록 빼기 파티', archived_at: null },
-  { id: 'g-bg-31', title: '상어 아일랜드 (Shark Island)', item_type: 'BOARD_GAME', players: '2-4인', genre: '상어 피해 달아나기 레이스', archived_at: null },
-  { id: 'g-bg-32', title: '도블 (Dobble)', item_type: 'BOARD_GAME', players: '2-8인', genre: '같은 그림 찾기 스피드', archived_at: null },
+  {
+    id: 'g-bg-01',
+    title: '다빈치코드 (Da Vinci Code)',
+    item_type: 'BOARD_GAME',
+    players: '2-4인',
+    genre: '숫자 추리 (3세트 보유)',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-02',
+    title: '루미큐브 클래식 (Rummikub)',
+    item_type: 'BOARD_GAME',
+    players: '2-4인',
+    genre: '숫자 조합 전략 (스테디셀러)',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-03',
+    title: '스플렌더 (Splendor)',
+    item_type: 'BOARD_GAME',
+    players: '2-4인',
+    genre: '보석 자원 엔진빌딩 (2세트 보유)',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-04',
+    title: '스플렌더 확장: 찬란한 도시',
+    item_type: 'BOARD_GAME',
+    players: '2-4인',
+    genre: '스플렌더 공식 확장판',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-05',
+    title: '시타델 (Citadels)',
+    item_type: 'BOARD_GAME',
+    players: '2-8인',
+    genre: '직업 블러핑/도시 건설 (2세트)',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-06',
+    title: '라스베가스 (Las Vegas)',
+    item_type: 'BOARD_GAME',
+    players: '2-5인',
+    genre: '카지노 주사위 베팅',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-07',
+    title: '카탄 (Catan)',
+    item_type: 'BOARD_GAME',
+    players: '3-4인',
+    genre: '자원 채취 & 무역 영토확장',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-08',
+    title: '뱅! (BANG!)',
+    item_type: 'BOARD_GAME',
+    players: '4-7인',
+    genre: '서부 총잡이 마피아 게임',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-09',
+    title: '로스트 시티 (Lost Cities)',
+    item_type: 'BOARD_GAME',
+    players: '2인 전용',
+    genre: '2인 카드 탐험 (2세트)',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-10',
+    title: '텔레스트레이션 (Telestrations)',
+    item_type: 'BOARD_GAME',
+    players: '4-8인',
+    genre: '릴레이 스케치 파티 게임',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-11',
+    title: '루핑루이 (Loopin Louie)',
+    item_type: 'BOARD_GAME',
+    players: '2-4인',
+    genre: '순발력 비행기 튕기기',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-12',
+    title: '우봉고 (Ubongo)',
+    item_type: 'BOARD_GAME',
+    players: '1-4인',
+    genre: '스피드 도형 퍼즐 맞추기',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-13',
+    title: '젬블로 (Gemblo)',
+    item_type: 'BOARD_GAME',
+    players: '1-6인',
+    genre: '육각형 보석 영역 확장',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-14',
+    title: '콰르토 (Quarto)',
+    item_type: 'BOARD_GAME',
+    players: '2인 전용',
+    genre: '멘사 추천 4목 추상 전략',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-15',
+    title: '라비린스 (Labyrinth)',
+    item_type: 'BOARD_GAME',
+    players: '2-4인',
+    genre: '움직이는 미로 보물찾기',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-16',
+    title: '오델로 클래식 (Othello)',
+    item_type: 'BOARD_GAME',
+    players: '2인 전용',
+    genre: '정통 흑백 뒤집기 리버시',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-17',
+    title: '체스 & 체커 (Chess & Checkers)',
+    item_type: 'BOARD_GAME',
+    players: '2인 전용',
+    genre: '정통 전략 보드게임 세트',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-18',
+    title: '뒤죽박죽 서커스',
+    item_type: 'BOARD_GAME',
+    players: '2-4인',
+    genre: '서커스 캐릭터 균형 쌓기',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-19',
+    title: "루빅스 레이스 (Rubik's Race)",
+    item_type: 'BOARD_GAME',
+    players: '2인 전용',
+    genre: '스피드 슬라이딩 큐브 대결',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-20',
+    title: '요트 다이스 (Yacht Dice)',
+    item_type: 'BOARD_GAME',
+    players: '1-4인',
+    genre: '주사위 조합 족보 게임',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-21',
+    title: '반지의 제왕 보드게임',
+    item_type: 'BOARD_GAME',
+    players: '2-5인',
+    genre: '판타지 테마 협동 모험',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-22',
+    title: 'ACUITY (어큐어티)',
+    item_type: 'BOARD_GAME',
+    players: '2-6인',
+    genre: '시각 패턴 인지 퍼즐',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-23',
+    title: '할리갈리 디럭스 (Halli Galli)',
+    item_type: 'BOARD_GAME',
+    players: '2-6인',
+    genre: '과일 5개 종치기 순발력',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-24',
+    title: '할리갈리 컵스',
+    item_type: 'BOARD_GAME',
+    players: '2-4인',
+    genre: '색상 컵 쌓기 대결',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-25',
+    title: '클루 (Clue)',
+    item_type: 'BOARD_GAME',
+    players: '2-6인',
+    genre: '살인 사건 정통 추리',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-26',
+    title: '치킨 차차차 (Zicke Zacke)',
+    item_type: 'BOARD_GAME',
+    players: '2-4인',
+    genre: '기억력 닭 꼬리잡기',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-27',
+    title: '모노폴리 클래식',
+    item_type: 'BOARD_GAME',
+    players: '2-6인',
+    genre: '세계 부동산 투자 거래',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-28',
+    title: '모노폴리 K-부동산 (서울)',
+    item_type: 'BOARD_GAME',
+    players: '2-6인',
+    genre: '국내 부동산 투자 보드게임',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-29',
+    title: '인생게임 (The Game of Life)',
+    item_type: 'BOARD_GAME',
+    players: '2-6인',
+    genre: '직업/결혼/은퇴 인생 시뮬레이션',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-30',
+    title: '젠가 클래식 (Jenga)',
+    item_type: 'BOARD_GAME',
+    players: '1-8인',
+    genre: '원목 블록 빼기 파티',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-31',
+    title: '상어 아일랜드 (Shark Island)',
+    item_type: 'BOARD_GAME',
+    players: '2-4인',
+    genre: '상어 피해 달아나기 레이스',
+    archived_at: null,
+  },
+  {
+    id: 'g-bg-32',
+    title: '도블 (Dobble)',
+    item_type: 'BOARD_GAME',
+    players: '2-8인',
+    genre: '같은 그림 찾기 스피드',
+    archived_at: null,
+  },
 ];
 
 export function GamesPage() {
@@ -152,7 +516,11 @@ export function GamesPage() {
     setItems((prev) =>
       prev.map((i) => (i.id === item.id ? { ...i, archived_at: nextArchivedAt } : i))
     );
-    setMessage(item.archived_at ? `'${item.title}' 게임을 공개로 복구했습니다.` : `'${item.title}' 게임을 보관 처리했습니다.`);
+    setMessage(
+      item.archived_at
+        ? `'${item.title}' 게임을 공개로 복구했습니다.`
+        : `'${item.title}' 게임을 보관 처리했습니다.`
+    );
   };
 
   const activeCount = items.filter((x) => !x.archived_at).length;
@@ -172,12 +540,21 @@ export function GamesPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '26px' }}>
       {/* 헤더 및 통계 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          flexWrap: 'wrap',
+          gap: '16px',
+        }}
+      >
         <div>
           <div className="section-kicker">GAME VERIFICATION & INVENTORY</div>
           <h1 className="section-title">게임 실물 검증 및 비치 현황</h1>
           <p style={{ margin: '6px 0 0 0', fontSize: '14px', color: '#6B6354', fontWeight: 600 }}>
-            서울대입구역점 실물 비치 닌텐도 스위치 8종, PS4 12종, 보드게임 40여종의 수량 및 공개 상태를 관리합니다.
+            서울대입구역점 실물 비치 닌텐도 스위치 8종, PS4 12종, 보드게임 40여종의 수량 및 공개
+            상태를 관리합니다.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
@@ -228,7 +605,13 @@ export function GamesPage() {
           <span>{message}</span>
           <button
             onClick={() => setMessage('')}
-            style={{ background: 'none', border: 'none', fontSize: '16px', fontWeight: 900, cursor: 'pointer' }}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '16px',
+              fontWeight: 900,
+              cursor: 'pointer',
+            }}
           >
             ✕
           </button>
@@ -249,9 +632,21 @@ export function GamesPage() {
         }}
       >
         <div style={{ fontSize: '18px', fontWeight: 900 }}>+ 신규 실물 게임/보드게임 추가</div>
-        <form onSubmit={save} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', alignItems: 'end' }}>
+        <form
+          onSubmit={save}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '12px',
+            alignItems: 'end',
+          }}
+        >
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>플랫폼</label>
+            <label
+              style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+            >
+              플랫폼
+            </label>
             <select
               name="type"
               defaultValue="NINTENDO"
@@ -273,7 +668,11 @@ export function GamesPage() {
           </div>
 
           <div style={{ gridColumn: 'span 2' }}>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>게임 제목</label>
+            <label
+              style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+            >
+              게임 제목
+            </label>
             <input
               name="title"
               placeholder="예: 슈퍼 마리오 오디세이 / 스플렌더"
@@ -291,7 +690,11 @@ export function GamesPage() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>플레이 인원</label>
+            <label
+              style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+            >
+              플레이 인원
+            </label>
             <input
               name="players"
               placeholder="예: 1-4인 / 2-8인"
@@ -309,7 +712,11 @@ export function GamesPage() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>장르 / 특징</label>
+            <label
+              style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+            >
+              장르 / 특징
+            </label>
             <input
               name="genre"
               placeholder="예: 파티 / 액션 / 전략"
@@ -361,9 +768,19 @@ export function GamesPage() {
           gap: '18px',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ fontSize: '18px', fontWeight: 900 }}>비치된 게임 목록 ({filteredItems.length}종)</div>
-          
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}
+        >
+          <div style={{ fontSize: '18px', fontWeight: 900 }}>
+            비치된 게임 목록 ({filteredItems.length}종)
+          </div>
+
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
             <input
               value={searchQuery}
@@ -387,7 +804,8 @@ export function GamesPage() {
                 ['BOARD_GAME', '보드게임'],
                 ['XBOX', 'Xbox'],
               ].map(([key, label]) => {
-                const count = key === 'ALL' ? items.length : items.filter((i) => i.item_type === key).length;
+                const count =
+                  key === 'ALL' ? items.length : items.filter((i) => i.item_type === key).length;
                 const active = currentTab === key;
                 return (
                   <button
@@ -426,7 +844,13 @@ export function GamesPage() {
             검색 또는 선택된 카테고리에 해당하는 게임이 없습니다.
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '14px',
+            }}
+          >
             {filteredItems.map((item) => {
               const isArchived = Boolean(item.archived_at);
               return (
@@ -445,7 +869,14 @@ export function GamesPage() {
                   }}
                 >
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '8px',
+                      }}
+                    >
                       <span
                         style={{
                           padding: '3px 8px',
@@ -472,12 +903,21 @@ export function GamesPage() {
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '15px', fontWeight: 900, color: '#1E1E1E', lineHeight: 1.3 }}>
+                    <div
+                      style={{
+                        fontSize: '15px',
+                        fontWeight: 900,
+                        color: '#1E1E1E',
+                        lineHeight: 1.3,
+                      }}
+                    >
                       {item.title}
                     </div>
 
                     {(item.players || item.genre) && (
-                      <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
+                      <div
+                        style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}
+                      >
                         {item.players && (
                           <span
                             style={{
@@ -510,7 +950,14 @@ export function GamesPage() {
                     )}
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '8px', borderTop: '1px dashed #D3CEC4' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      paddingTop: '8px',
+                      borderTop: '1px dashed #D3CEC4',
+                    }}
+                  >
                     <button
                       onClick={() => void archive(item)}
                       style={{
@@ -535,4 +982,3 @@ export function GamesPage() {
     </div>
   );
 }
-

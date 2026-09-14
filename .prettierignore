@@ -1,0 +1,10 @@
+dist
+node_modules
+.husky
+.scratch
+.agents
+docs/internal
+docs/assets
+coverage
+supabase/.temp
+

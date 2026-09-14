@@ -11,7 +11,13 @@ export type PublicStore = {
 };
 
 const publicStores: Record<StoreSlug, PublicStore> = {
-  snu: { slug: 'snu', name: '서울대입구역점', phone: '02-888-0852', address: '서울특별시 관악구 관악로 155, 3층 (봉천동 대우디오슈페리움 1단지)', hours: '매일 10:00 – 23:00 · 연중무휴 정상 영업' },
+  snu: {
+    slug: 'snu',
+    name: '서울대입구역점',
+    phone: '02-888-0852',
+    address: '서울특별시 관악구 관악로 155, 3층 (봉천동 대우디오슈페리움 1단지)',
+    hours: '매일 10:00 – 23:00 · 연중무휴 정상 영업',
+  },
   jamsil: { slug: 'jamsil', name: '잠실점' },
   hongdae: { slug: 'hongdae', name: '홍대점' },
 };
@@ -33,7 +39,10 @@ export type CustomerStoreContext = {
   scoped: boolean;
 };
 
-export const StoreContext = createContext<CustomerStoreContext>({ store: defaultPublicStore, scoped: false });
+export const StoreContext = createContext<CustomerStoreContext>({
+  store: defaultPublicStore,
+  scoped: false,
+});
 
 export function usePublicStore(): CustomerStoreContext {
   return useContext(StoreContext);

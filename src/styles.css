@@ -1,22 +1,24 @@
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css');
 
 :root {
-  --color-yellow: #FED943;
-  --color-yellow-light: #FFF3C9;
-  --color-bg-cream: #F3EFE5;
-  --color-panel-cream: #FFF9EC;
-  --color-dark: #1E1E1E;
-  --color-dark-subtle: #2A2A2A;
-  --color-border: #1E1E1E;
-  --color-text-main: #1E1E1E;
-  --color-text-muted: #6B6354;
-  --color-text-subtle: #8A8175;
-  --color-gold: #8A6A00;
-  --color-green: #2FA14B;
-  --font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  --shadow-brutal-sm: 3px 3px 0 #1E1E1E;
-  --shadow-brutal: 5px 5px 0 #1E1E1E;
-  --shadow-brutal-lg: 7px 7px 0 #1E1E1E;
+  --color-yellow: #fed943;
+  --color-yellow-light: #fff3c9;
+  --color-bg-cream: #f3efe5;
+  --color-panel-cream: #fff9ec;
+  --color-dark: #1e1e1e;
+  --color-dark-subtle: #2a2a2a;
+  --color-border: #1e1e1e;
+  --color-text-main: #1e1e1e;
+  --color-text-muted: #6b6354;
+  --color-text-subtle: #8a8175;
+  --color-gold: #8a6a00;
+  --color-green: #2fa14b;
+  --font-family:
+    'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto,
+    sans-serif;
+  --shadow-brutal-sm: 3px 3px 0 #1e1e1e;
+  --shadow-brutal: 5px 5px 0 #1e1e1e;
+  --shadow-brutal-lg: 7px 7px 0 #1e1e1e;
   --radius-card: 22px;
   --radius-card-sm: 16px;
   --radius-pill: 999px;
@@ -43,7 +45,10 @@ a {
   text-decoration: none;
 }
 
-button, input, textarea, select {
+button,
+input,
+textarea,
+select {
   font-family: inherit;
   font-size: inherit;
   color: inherit;
@@ -62,7 +67,7 @@ button {
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #CFC7B4;
+  background: #cfc7b4;
   border-radius: 8px;
 }
 ::-webkit-scrollbar-track {
@@ -131,7 +136,7 @@ button {
 .brand-sub {
   font-size: 11px;
   font-weight: 700;
-  color: #5C5344;
+  color: #5c5344;
 }
 
 .primary-nav {
@@ -160,7 +165,7 @@ button {
   background-color: rgba(30, 30, 30, 0.08);
 }
 
-.primary-nav a[aria-current="page"] {
+.primary-nav a[aria-current='page'] {
   background-color: var(--color-dark);
   color: var(--color-yellow);
   border-color: var(--color-dark);
@@ -196,9 +201,18 @@ button {
 }
 
 @keyframes pulse-dot {
-  0% { transform: scale(0.95); opacity: 0.8; }
-  50% { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(0.95); opacity: 0.8; }
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
 }
 
 .phone-btn {
@@ -217,7 +231,7 @@ button {
 .staff-link {
   font-size: 12px;
   font-weight: 800;
-  color: #5C5344;
+  color: #5c5344;
   text-decoration: underline;
   margin-left: 4px;
 }
@@ -244,7 +258,7 @@ button {
   background: var(--color-dark);
   border: 3px solid var(--color-border);
   border-radius: 28px;
-  color: #FFF9EC;
+  color: #fff9ec;
   box-shadow: var(--shadow-brutal);
 }
 
@@ -271,13 +285,13 @@ button {
   font-weight: 900;
   line-height: 1.18;
   letter-spacing: -0.04em;
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .hero-desc {
   font-size: 15px;
   font-weight: 600;
-  color: #CFC7B4;
+  color: #cfc7b4;
   line-height: 1.6;
   max-width: 500px;
 }
@@ -300,22 +314,24 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 3px 3px 0 rgba(0,0,0,0.3);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.3);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 .primary-btn:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0 rgba(0,0,0,0.4);
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.4);
 }
 
 .secondary-btn {
   padding: 13px 22px;
   border-radius: var(--radius-pill);
   background: transparent;
-  color: #FFF9EC;
+  color: #fff9ec;
   font-size: 14px;
   font-weight: 900;
-  border: 2.5px solid #FFF9EC;
+  border: 2.5px solid #fff9ec;
   display: inline-flex;
   align-items: center;
 }
@@ -340,7 +356,7 @@ button {
 .hero-stat-lbl {
   font-size: 12px;
   font-weight: 600;
-  color: #A79E8B;
+  color: #a79e8b;
 }
 
 .hero-art {
@@ -350,7 +366,7 @@ button {
   border-radius: 50%;
   background: var(--color-yellow);
   border: 3.5px solid var(--color-dark);
-  box-shadow: 8px 8px 0 #FFF9EC;
+  box-shadow: 8px 8px 0 #fff9ec;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -428,7 +444,9 @@ button {
   border: 3px solid var(--color-border);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-brutal);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .feature-card:hover {
@@ -543,7 +561,7 @@ button {
   font-weight: 800;
   margin-top: 4px;
   padding-top: 8px;
-  border-top: 1px solid #E6DFCF;
+  border-top: 1px solid #e6dfcf;
 }
 
 .new-book-shelf {
@@ -578,7 +596,7 @@ button {
   background: var(--color-dark);
   border: 3px solid var(--color-border);
   border-radius: var(--radius-card);
-  color: #FFF9EC;
+  color: #fff9ec;
   box-shadow: var(--shadow-brutal);
 }
 
@@ -608,7 +626,7 @@ button {
 .partnership-bullet {
   font-size: 12.5px;
   font-weight: 600;
-  color: #E6DFCF;
+  color: #e6dfcf;
   line-height: 1.45;
 }
 
@@ -633,7 +651,7 @@ button {
   border-radius: 16px;
   overflow: hidden;
   border: 2px solid rgba(255, 255, 255, 0.15);
-  background: #2A2A2A;
+  background: #2a2a2a;
   padding: 6px;
 }
 
@@ -684,7 +702,7 @@ button {
 .partnership-bullet {
   font-size: 13px;
   font-weight: 600;
-  color: #E6DFCF;
+  color: #e6dfcf;
   line-height: 1.5;
 }
 
@@ -785,7 +803,8 @@ button {
   transition: all 0.15s ease;
 }
 
-.chip.active, .chip:hover {
+.chip.active,
+.chip:hover {
   background: var(--color-dark);
   color: var(--color-yellow);
 }
@@ -861,7 +880,7 @@ button {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 12px;
-  border-bottom: 2px solid #E6DFCF;
+  border-bottom: 2px solid #e6dfcf;
 }
 
 .genre-modal-title {
@@ -875,7 +894,7 @@ button {
   height: 32px;
   border-radius: 50%;
   border: 2px solid var(--color-border);
-  background: #FFF9EC;
+  background: #fff9ec;
   font-size: 16px;
   font-weight: 900;
   display: flex;
@@ -896,7 +915,7 @@ button {
   padding: 12px 8px;
   border-radius: 12px;
   border: 2px solid var(--color-border);
-  background: #FFF9EC;
+  background: #fff9ec;
   color: var(--color-dark);
   font-size: 13px;
   font-weight: 800;
@@ -916,13 +935,21 @@ button {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 720px) {
@@ -1038,7 +1065,7 @@ button {
   background: var(--color-dark);
   border: 3px solid var(--color-border);
   border-radius: var(--radius-card);
-  color: #FFF9EC;
+  color: #fff9ec;
   box-shadow: var(--shadow-brutal);
 }
 
@@ -1205,10 +1232,16 @@ button {
   .feature-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .new-arrivals-grid, .search-results-grid, .game-grid, .photo-grid {
+  .new-arrivals-grid,
+  .search-results-grid,
+  .game-grid,
+  .photo-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .home-split, .event-poster-row, .facility-grid, .price-grid {
+  .home-split,
+  .event-poster-row,
+  .facility-grid,
+  .price-grid {
     grid-template-columns: 1fr;
   }
   .hero {
@@ -1241,14 +1274,15 @@ button {
     border-radius: 10px;
     font-size: 10.5px;
     font-weight: 800;
-    color: #6B6354;
+    color: #6b6354;
     text-align: center;
     transition: all 0.15s ease;
   }
   .mobile-tab-btn svg {
     flex-shrink: 0;
   }
-  .mobile-tab-btn[aria-current="page"], .mobile-tab-btn.active {
+  .mobile-tab-btn[aria-current='page'],
+  .mobile-tab-btn.active {
     background: var(--color-dark);
     color: var(--color-yellow);
     box-shadow: 2px 2px 0 var(--color-yellow);
@@ -1260,7 +1294,12 @@ button {
   .header-actions {
     display: none;
   }
-  .feature-grid, .new-arrivals-grid, .search-results-grid, .game-grid, .photo-grid, .event-grid {
+  .feature-grid,
+  .new-arrivals-grid,
+  .search-results-grid,
+  .game-grid,
+  .photo-grid,
+  .event-grid {
     grid-template-columns: 1fr;
   }
   .page-content {
@@ -1278,7 +1317,7 @@ button {
 
 .staff-sidebar {
   background: var(--color-dark);
-  color: #FFF9EC;
+  color: #fff9ec;
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
@@ -1294,11 +1333,11 @@ button {
 
 .staff-sidebar .primary-nav a {
   border-radius: 12px;
-  color: #CFC7B4;
+  color: #cfc7b4;
   font-size: 13px;
 }
 
-.staff-sidebar .primary-nav a[aria-current="page"],
+.staff-sidebar .primary-nav a[aria-current='page'],
 .staff-sidebar .primary-nav a:hover {
   background: var(--color-yellow);
   color: var(--color-dark);

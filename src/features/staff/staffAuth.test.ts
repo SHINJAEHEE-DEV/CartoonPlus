@@ -11,19 +11,22 @@ const fixture = vi.hoisted(() => ({
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     auth: fixture,
-    from: () => ({ select: () => {
-      let ownAccount = false;
-      const query = {
-        eq: (column: string, value: string) => {
-          ownAccount = column === 'id' && value === 'current-user';
-          return query;
-        },
-        single: async () => ownAccount || fixture.role === 'staff'
-          ? { data: { role: fixture.role, status: fixture.status }, error: null }
-          : { data: null, error: { code: 'PGRST116', message: 'Multiple rows returned' } },
-      };
-      return query;
-    } }),
+    from: () => ({
+      select: () => {
+        let ownAccount = false;
+        const query = {
+          eq: (column: string, value: string) => {
+            ownAccount = column === 'id' && value === 'current-user';
+            return query;
+          },
+          single: async () =>
+            ownAccount || fixture.role === 'staff'
+              ? { data: { role: fixture.role, status: fixture.status }, error: null }
+              : { data: null, error: { code: 'PGRST116', message: 'Multiple rows returned' } },
+        };
+        return query;
+      },
+    }),
   },
 }));
 
@@ -35,7 +38,10 @@ describe('staff login account selection', () => {
     fixture.role = 'admin';
     fixture.status = 'approved';
     fixture.getUser.mockResolvedValue({ data: { user: { id: 'current-user' } } });
-    fixture.signInWithPassword.mockResolvedValue({ data: { user: { id: 'current-user' } }, error: null });
+    fixture.signInWithPassword.mockResolvedValue({
+      data: { user: { id: 'current-user' } },
+      error: null,
+    });
   });
 
   it('allows an approved admin who can read multiple staff accounts', async () => {
@@ -51,7 +57,9 @@ describe('staff login account selection', () => {
   it.each(['pending', 'deactivated'])('blocks a %s account', async (status) => {
     fixture.role = 'staff';
     fixture.status = status;
-    await expect(signInStaff('staff', 'test-password')).rejects.toThrow('관리자 승인 후 이용할 수 있습니다.');
+    await expect(signInStaff('staff', 'test-password')).rejects.toThrow(
+      '관리자 승인 후 이용할 수 있습니다.'
+    );
     expect(fixture.signOut).toHaveBeenCalledOnce();
   });
 

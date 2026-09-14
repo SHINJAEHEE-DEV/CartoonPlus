@@ -43,9 +43,7 @@ describe('Pagination Component', () => {
     const prevBtn = screen.getByRole('button', { name: '이전 페이지' });
     expect(prevBtn).toHaveProperty('disabled', true);
 
-    rerender(
-      <Pagination currentPage={3} totalItems={30} pageSize={10} onPageChange={() => {}} />
-    );
+    rerender(<Pagination currentPage={3} totalItems={30} pageSize={10} onPageChange={() => {}} />);
 
     const nextBtn = screen.getByRole('button', { name: '다음 페이지' });
     expect(nextBtn).toHaveProperty('disabled', true);

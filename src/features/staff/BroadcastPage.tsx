@@ -21,7 +21,13 @@ const timedPresets = [
 
 type StoredSchedule = ScheduledBroadcast & { id: string; message_text: string };
 type FailedRun = { id: string; message_text: string; triggered_at: string };
-type ScheduleForm = { message: string; type: ScheduledBroadcast['scheduleType']; time: string; date: string; weekdays: string[] };
+type ScheduleForm = {
+  message: string;
+  type: ScheduledBroadcast['scheduleType'];
+  time: string;
+  date: string;
+  weekdays: string[];
+};
 
 const emptySchedule: ScheduleForm = {
   message: '',
@@ -54,7 +60,11 @@ export function BroadcastPage() {
     if (!supabase) return;
     const { data } = await supabase
       .from('broadcast_runs')
-      .insert({ scheduled_broadcast_id: scheduledId ?? null, message_text: message, status: 'pending' })
+      .insert({
+        scheduled_broadcast_id: scheduledId ?? null,
+        message_text: message,
+        status: 'pending',
+      })
       .select('id')
       .single();
     return data?.id as string | undefined;
@@ -64,7 +74,11 @@ export function BroadcastPage() {
     if (id && supabase) {
       await supabase
         .from('broadcast_runs')
-        .update(success ? { status: 'success' } : { status: 'failure', error_message: '브라우저 음성 재생 실패' })
+        .update(
+          success
+            ? { status: 'success' }
+            : { status: 'failure', error_message: '브라우저 음성 재생 실패' }
+        )
         .eq('id', id);
     }
   };
@@ -153,11 +167,18 @@ export function BroadcastPage() {
       if (!supabase) return;
       const { data: store } = await supabase.from('stores').select('id').eq('slug', 'snu').single();
       const { data: existing } = await supabase.from('scheduled_broadcasts').select('message_text');
-      const missing = timedPresets.filter((p) => !(existing ?? []).some((item) => item.message_text === p.message_text));
+      const missing = timedPresets.filter(
+        (p) => !(existing ?? []).some((item) => item.message_text === p.message_text)
+      );
       if (store && missing.length) {
-        await supabase
-          .from('scheduled_broadcasts')
-          .insert(missing.map((item) => ({ ...item, store_id: store.id, schedule_type: 'daily', is_enabled: true })));
+        await supabase.from('scheduled_broadcasts').insert(
+          missing.map((item) => ({
+            ...item,
+            store_id: store.id,
+            schedule_type: 'daily',
+            is_enabled: true,
+          }))
+        );
         notifyScheduleUpdated();
       }
       await loadSchedules();
@@ -173,7 +194,11 @@ export function BroadcastPage() {
       return;
     }
     setScheduleStatus('저장 중...');
-    const { data: store, error: storeError } = await supabase.from('stores').select('id').eq('slug', 'snu').single();
+    const { data: store, error: storeError } = await supabase
+      .from('stores')
+      .select('id')
+      .eq('slug', 'snu')
+      .single();
     if (storeError || !store) {
       setScheduleStatus('서울대입구역점 정보를 찾을 수 없습니다.');
       return;
@@ -199,7 +224,10 @@ export function BroadcastPage() {
 
   const toggleSchedule = async (item: StoredSchedule) => {
     if (!supabase) return;
-    const { error } = await supabase.from('scheduled_broadcasts').update({ is_enabled: !item.isEnabled }).eq('id', item.id);
+    const { error } = await supabase
+      .from('scheduled_broadcasts')
+      .update({ is_enabled: !item.isEnabled })
+      .eq('id', item.id);
     if (error) {
       setScheduleStatus(`변경하지 못했습니다: ${error.message}`);
       return;
@@ -210,8 +238,13 @@ export function BroadcastPage() {
 
   const changeTime = async (item: StoredSchedule, targetTime: string) => {
     if (!supabase) return;
-    const { error } = await supabase.from('scheduled_broadcasts').update({ target_time: targetTime }).eq('id', item.id);
-    setScheduleStatus(error ? `시간을 변경하지 못했습니다: ${error.message}` : '예약 시간을 변경했습니다.');
+    const { error } = await supabase
+      .from('scheduled_broadcasts')
+      .update({ target_time: targetTime })
+      .eq('id', item.id);
+    setScheduleStatus(
+      error ? `시간을 변경하지 못했습니다: ${error.message}` : '예약 시간을 변경했습니다.'
+    );
     if (!error) {
       await loadSchedules();
       notifyScheduleUpdated();
@@ -221,7 +254,9 @@ export function BroadcastPage() {
   const archiveSchedule = async (item: StoredSchedule) => {
     if (!supabase) return;
     const { error } = await supabase.from('scheduled_broadcasts').delete().eq('id', item.id);
-    setScheduleStatus(error ? `예약을 삭제하지 못했습니다: ${error.message}` : '예약을 삭제했습니다.');
+    setScheduleStatus(
+      error ? `예약을 삭제하지 못했습니다: ${error.message}` : '예약을 삭제했습니다.'
+    );
     if (!error) {
       await loadSchedules();
       notifyScheduleUpdated();
@@ -229,14 +264,34 @@ export function BroadcastPage() {
   };
 
   const statusBg =
-    status === '재생 중' ? '#FED943' : status === '성공' ? '#D6F5E3' : status === '실패' ? '#FFD4D4' : '#FFF9EC';
+    status === '재생 중'
+      ? '#FED943'
+      : status === '성공'
+        ? '#D6F5E3'
+        : status === '실패'
+          ? '#FFD4D4'
+          : '#FFF9EC';
   const statusColor =
-    status === '재생 중' ? '#1E1E1E' : status === '성공' ? '#1A7A3E' : status === '실패' ? '#C92A2A' : '#6B6354';
+    status === '재생 중'
+      ? '#1E1E1E'
+      : status === '성공'
+        ? '#1A7A3E'
+        : status === '실패'
+          ? '#C92A2A'
+          : '#6B6354';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
       {/* 헤더 및 실시간 상태 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          flexWrap: 'wrap',
+          gap: '16px',
+        }}
+      >
         <div>
           <div className="section-kicker">STORE BROADCAST CONSOLE</div>
           <h1 className="section-title">매장 안내 방송</h1>
@@ -268,7 +323,9 @@ export function BroadcastPage() {
                 display: 'inline-block',
               }}
             />
-            {status === '재생 중' ? `송출 중: ${currentPlaying ?? '음성'}` : `방송 시스템 상태: ${status}`}
+            {status === '재생 중'
+              ? `송출 중: ${currentPlaying ?? '음성'}`
+              : `방송 시스템 상태: ${status}`}
           </div>
         </div>
       </div>
@@ -287,12 +344,19 @@ export function BroadcastPage() {
         }}
       >
         <div style={{ fontSize: '13px', fontWeight: 700, color: '#3D3528', lineHeight: 1.5 }}>
-          <strong>운영 가이드:</strong> 카운터 PC에서 브라우저 볼륨을 매장 앰프에 맞추고 탭을 유지해 주세요. 백그라운드 탭에서도 15초 주기로 스케줄을 감지하여 자동 송출합니다.
+          <strong>운영 가이드:</strong> 카운터 PC에서 브라우저 볼륨을 매장 앰프에 맞추고 탭을 유지해
+          주세요. 백그라운드 탭에서도 15초 주기로 스케줄을 감지하여 자동 송출합니다.
         </div>
       </div>
 
       {/* 2열 그리드: 자주 쓰는 녹음 방송 & 직접 TTS 송출 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+          gap: '20px',
+        }}
+      >
         {/* 1. 자주 쓰는 원클릭 녹음 방송 */}
         <div
           style={{
@@ -308,10 +372,18 @@ export function BroadcastPage() {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: '18px', fontWeight: 900 }}>📻 원클릭 정규 안내 방송</div>
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#8A8175' }}>6종 오디오 프리셋</span>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#8A8175' }}>
+              6종 오디오 프리셋
+            </span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: '12px',
+            }}
+          >
             {presets.map(([title, src, desc]) => (
               <button
                 key={src}
@@ -333,11 +405,24 @@ export function BroadcastPage() {
                   opacity: status === '재생 중' ? 0.6 : 1,
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                  <span style={{ fontSize: '15px', fontWeight: 900, color: '#1E1E1E' }}>{title}</span>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    alignItems: 'center',
+                  }}
+                >
+                  <span style={{ fontSize: '15px', fontWeight: 900, color: '#1E1E1E' }}>
+                    {title}
+                  </span>
                   <span style={{ fontSize: '14px' }}>🔊</span>
                 </div>
-                <span style={{ fontSize: '11px', color: '#8A8175', fontWeight: 600, lineHeight: 1.3 }}>{desc}</span>
+                <span
+                  style={{ fontSize: '11px', color: '#8A8175', fontWeight: 600, lineHeight: 1.3 }}
+                >
+                  {desc}
+                </span>
               </button>
             ))}
           </div>
@@ -358,7 +443,9 @@ export function BroadcastPage() {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: '18px', fontWeight: 900 }}>실시간 커스텀 TTS 방송</div>
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#8A8175' }}>한국어 음성 합성</span>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#8A8175' }}>
+              한국어 음성 합성
+            </span>
           </div>
 
           <textarea
@@ -381,7 +468,9 @@ export function BroadcastPage() {
           />
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#8A8175' }}>{text.length}자 입력됨</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#8A8175' }}>
+              {text.length}자 입력됨
+            </span>
             <button
               onClick={() => void play(text)}
               disabled={!text.trim() || status === '재생 중'}
@@ -416,7 +505,15 @@ export function BroadcastPage() {
           gap: '20px',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '8px',
+          }}
+        >
           <div>
             <div style={{ fontSize: '18px', fontWeight: 900 }}>⏰ 자동 예약 방송 스케줄러</div>
             <div style={{ fontSize: '13px', color: '#6B6354', fontWeight: 600, marginTop: '2px' }}>
@@ -452,14 +549,28 @@ export function BroadcastPage() {
             gap: '14px',
           }}
         >
-          <div style={{ fontSize: '14px', fontWeight: 900, color: '#1E1E1E' }}>+ 새 스케줄 등록</div>
+          <div style={{ fontSize: '14px', fontWeight: 900, color: '#1E1E1E' }}>
+            + 새 스케줄 등록
+          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '12px',
+            }}
+          >
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>반복 방식</label>
+              <label
+                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+              >
+                반복 방식
+              </label>
               <select
                 value={schedule.type}
-                onChange={(event) => setSchedule({ ...schedule, type: event.target.value as typeof schedule.type })}
+                onChange={(event) =>
+                  setSchedule({ ...schedule, type: event.target.value as typeof schedule.type })
+                }
                 style={{
                   width: '100%',
                   padding: '10px 12px',
@@ -476,7 +587,11 @@ export function BroadcastPage() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>송출 시간</label>
+              <label
+                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+              >
+                송출 시간
+              </label>
               <input
                 required
                 type="time"
@@ -496,7 +611,16 @@ export function BroadcastPage() {
 
             {schedule.type === 'once' && (
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>지정 일자</label>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    marginBottom: '4px',
+                  }}
+                >
+                  지정 일자
+                </label>
                 <input
                   required
                   type="date"
@@ -518,7 +642,11 @@ export function BroadcastPage() {
 
           {schedule.type === 'weekdays' && (
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}>반복 요일 선택</label>
+              <label
+                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}
+              >
+                반복 요일 선택
+              </label>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((day) => {
                   const checked = schedule.weekdays.includes(day);
@@ -529,7 +657,9 @@ export function BroadcastPage() {
                       onClick={() =>
                         setSchedule({
                           ...schedule,
-                          weekdays: checked ? schedule.weekdays.filter((v) => v !== day) : [...schedule.weekdays, day],
+                          weekdays: checked
+                            ? schedule.weekdays.filter((v) => v !== day)
+                            : [...schedule.weekdays, day],
                         })
                       }
                       style={{
@@ -551,7 +681,9 @@ export function BroadcastPage() {
           )}
 
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>
+            <label
+              style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+            >
               방송 문구 (프리셋 이름 또는 TTS 전문)
             </label>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -628,7 +760,9 @@ export function BroadcastPage() {
                     opacity: item.isEnabled ? 1 : 0.65,
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}
+                  >
                     <div
                       style={{
                         padding: '4px 10px',
@@ -670,11 +804,13 @@ export function BroadcastPage() {
                       {item.scheduleType === 'daily'
                         ? '매일'
                         : item.scheduleType === 'weekdays'
-                        ? item.targetDays?.map((d) => dayLabels[d]).join(', ')
-                        : item.targetDate}
+                          ? item.targetDays?.map((d) => dayLabels[d]).join(', ')
+                          : item.targetDate}
                     </span>
 
-                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#1E1E1E' }}>{item.message_text}</span>
+                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#1E1E1E' }}>
+                      {item.message_text}
+                    </span>
                   </div>
 
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -767,7 +903,16 @@ export function BroadcastPage() {
                 }}
               >
                 <div>
-                  <span style={{ fontSize: '11px', color: '#C92A2A', fontWeight: 800, marginRight: '8px' }}>[실패]</span>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      color: '#C92A2A',
+                      fontWeight: 800,
+                      marginRight: '8px',
+                    }}
+                  >
+                    [실패]
+                  </span>
                   <strong style={{ fontSize: '13px', color: '#1E1E1E' }}>{run.message_text}</strong>
                   <span style={{ fontSize: '11px', color: '#8A8175', marginLeft: '10px' }}>
                     {new Date(run.triggered_at).toLocaleTimeString('ko-KR')}
@@ -795,4 +940,3 @@ export function BroadcastPage() {
     </div>
   );
 }
-

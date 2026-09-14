@@ -51,7 +51,10 @@ export async function fetchActiveSchedules(): Promise<StoredSchedule[]> {
   }
 }
 
-async function recordBroadcastRun(message: string, scheduledId?: string): Promise<string | undefined> {
+async function recordBroadcastRun(
+  message: string,
+  scheduledId?: string
+): Promise<string | undefined> {
   if (!supabase) return undefined;
   try {
     const { data } = await supabase
@@ -74,7 +77,11 @@ async function finishBroadcastRun(id: string | undefined, success: boolean): Pro
   try {
     await supabase
       .from('broadcast_runs')
-      .update(success ? { status: 'success' } : { status: 'failure', error_message: '브라우저 음성 재생 실패' })
+      .update(
+        success
+          ? { status: 'success' }
+          : { status: 'failure', error_message: '브라우저 음성 재생 실패' }
+      )
       .eq('id', id);
   } catch {
     // ignore

@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import gamingMascot from '../../assets/placeholder.svg';
-import coffeeMascot from '../../assets/placeholder.svg';
-import storePhoto1 from '../../assets/placeholder.svg';
-import storePhoto2 from '../../assets/placeholder.svg';
-import storePhoto3 from '../../assets/placeholder.svg';
+import { MASCOT_ASSETS, STORE_PHOTOS } from '../../lib/brandAssets';
 import { usePublicStore } from '../../lib/storeContext';
 
 type Item = {
@@ -18,11 +14,6 @@ type Item = {
   is_always_on?: boolean;
 };
 
-
-
-
-
-
 const GUIDE_STEPS = [
   { n: '1', title: '키오스크에서 입실', desc: '이용 시간과 음료를 선택한 뒤 결제해 주세요.' },
   { n: '2', title: '배정받은 락카에 신발 넣기', desc: '신발은 배정된 락카에 보관해 주세요.' },
@@ -31,13 +22,38 @@ const GUIDE_STEPS = [
 ];
 
 const FACILITIES = [
-  { zone: 'Book Zone · 도서/서가', description: '수만 권 규모의 인기 웹툰 단행본, 순정·소년·액션 만화, 그래픽 노블. 매주 신간 업데이트와 도서 검색 전용 PC 비치.' },
-  { zone: 'Media Zone · OTT 룸', description: '넷플릭스, 왓챠, 티빙, 디즈니+, 유튜브 프리미엄 시청이 가능한 대형 스크린과 아늑한 암막 굴방.' },
-  { zone: 'Gaming Zone · 콘솔 룸', description: '닌텐도 스위치 및 PS4 멀티플레이 타이틀을 2~4인이 동시에 즐길 수 있는 콘솔 전용 좌석.' },
-  { zone: 'Board Game Zone', description: '다빈치코드, 스플렌더, 카탄 등 프리미엄 보드게임 자유 이용.' },
-  { zone: 'Healing Zone · 안마의자', description: '매장 이용 고객 누구나 100% 무료로 이용 가능한 고급 바디프랜드 안마의자 비치.' },
-  { zone: 'Private Rooms · 좌석', description: '1~2인 복층 굴방, 리클라이너 소파석, 카페형 테이블석. 전 좌석 콘센트와 극세사 담요 제공.' },
-  { zone: 'K-Ramen & F&B Bar', description: '즉석 라면 조리기계 완비. 계란·파·숙주·떡사리 무제한 무료 토핑 바 운영.' },
+  {
+    zone: 'Book Zone · 도서/서가',
+    description:
+      '수만 권 규모의 인기 웹툰 단행본, 순정·소년·액션 만화, 그래픽 노블. 매주 신간 업데이트와 도서 검색 전용 PC 비치.',
+  },
+  {
+    zone: 'Media Zone · OTT 룸',
+    description:
+      '넷플릭스, 왓챠, 티빙, 디즈니+, 유튜브 프리미엄 시청이 가능한 대형 스크린과 아늑한 암막 굴방.',
+  },
+  {
+    zone: 'Gaming Zone · 콘솔 룸',
+    description:
+      '닌텐도 스위치 및 PS4 멀티플레이 타이틀을 2~4인이 동시에 즐길 수 있는 콘솔 전용 좌석.',
+  },
+  {
+    zone: 'Board Game Zone',
+    description: '다빈치코드, 스플렌더, 카탄 등 프리미엄 보드게임 자유 이용.',
+  },
+  {
+    zone: 'Healing Zone · 안마의자',
+    description: '매장 이용 고객 누구나 100% 무료로 이용 가능한 고급 바디프랜드 안마의자 비치.',
+  },
+  {
+    zone: 'Private Rooms · 좌석',
+    description:
+      '1~2인 복층 굴방, 리클라이너 소파석, 카페형 테이블석. 전 좌석 콘센트와 극세사 담요 제공.',
+  },
+  {
+    zone: 'K-Ramen & F&B Bar',
+    description: '즉석 라면 조리기계 완비. 계란·파·숙주·떡사리 무제한 무료 토핑 바 운영.',
+  },
 ];
 
 const AMENITIES = [
@@ -55,7 +71,13 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
   const titles = { games: '즐길거리', events: '진행 중인 이벤트', store: '매장 안내' };
   usePageTitle(titles[kind]);
   const [items, setItems] = useState<Item[] | null>(null);
-  const [storeInfo, setStoreInfo] = useState<{ hours?: string; address?: string; phone?: string; parking?: string; directions?: string } | null>(null);
+  const [storeInfo, setStoreInfo] = useState<{
+    hours?: string;
+    address?: string;
+    phone?: string;
+    parking?: string;
+    directions?: string;
+  } | null>(null);
   const [gameTab, setGameTab] = useState<'switch' | 'ps4' | 'board'>('switch');
 
   useEffect(() => {
@@ -66,25 +88,60 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
     const client = supabase;
     const today = new Date().toISOString().slice(0, 10);
     if (kind === 'store') {
-      void client.from('stores').select('id').eq('slug', selectedStore.slug).single().then(({ data: store }) => {
-        if (store) {
-          void client.from('store_content').select('content_value').eq('store_id', store.id).eq('content_key', 'store_info').single().then(({ data }) => {
-            if (data?.content_value) setStoreInfo(data.content_value);
-          });
-        }
-      });
+      void client
+        .from('stores')
+        .select('id')
+        .eq('slug', selectedStore.slug)
+        .single()
+        .then(({ data: store }) => {
+          if (store) {
+            void client
+              .from('store_content')
+              .select('content_value')
+              .eq('store_id', store.id)
+              .eq('content_key', 'store_info')
+              .single()
+              .then(({ data }) => {
+                if (data?.content_value) setStoreInfo(data.content_value);
+              });
+          }
+        });
       return;
     }
 
-    void client.from('stores').select('id').eq('slug', selectedStore.slug).single().then(({ data: store }) => {
-      if (!store) return setItems([]);
-      const query = kind === 'games'
-        ? client.from('entertainment_items').select('id,title,players,genre,item_type,quantity').eq('store_id', store.id).eq('is_verified', true).eq('is_available', true).is('archived_at', null)
-        : kind === 'events'
-          ? client.from('store_events').select('id,title,content,is_always_on').eq('store_id', store.id).eq('is_public', true).is('archived_at', null).or('is_always_on.eq.true,and(start_date.lte.' + today + ',end_date.gte.' + today + ')')
-          : null;
-      if (query) void query.then(({ data }) => setItems((data ?? []) as Item[]));
-    });
+    void client
+      .from('stores')
+      .select('id')
+      .eq('slug', selectedStore.slug)
+      .single()
+      .then(({ data: store }) => {
+        if (!store) return setItems([]);
+        const query =
+          kind === 'games'
+            ? client
+                .from('entertainment_items')
+                .select('id,title,players,genre,item_type,quantity')
+                .eq('store_id', store.id)
+                .eq('is_verified', true)
+                .eq('is_available', true)
+                .is('archived_at', null)
+            : kind === 'events'
+              ? client
+                  .from('store_events')
+                  .select('id,title,content,is_always_on')
+                  .eq('store_id', store.id)
+                  .eq('is_public', true)
+                  .is('archived_at', null)
+                  .or(
+                    'is_always_on.eq.true,and(start_date.lte.' +
+                      today +
+                      ',end_date.gte.' +
+                      today +
+                      ')'
+                  )
+              : null;
+        if (query) void query.then(({ data }) => setItems((data ?? []) as Item[]));
+      });
   }, [kind, selectedStore.slug]);
 
   // 1. 즐길거리 (Games) 화면
@@ -92,12 +149,13 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
     const isReady = items !== null;
     const isMaintenance = isReady && items.length === 0;
 
-    const remoteType = gameTab === 'switch' ? 'NINTENDO' : gameTab === 'ps4' ? 'PLAYSTATION_4' : 'BOARD_GAME';
+    const remoteType =
+      gameTab === 'switch' ? 'NINTENDO' : gameTab === 'ps4' ? 'PLAYSTATION_4' : 'BOARD_GAME';
     const remoteGames = (items ?? []).filter((item) => item.item_type === remoteType);
 
-    const switchCount = (items ?? []).filter(i => i.item_type === 'NINTENDO').length;
-    const ps4Count = (items ?? []).filter(i => i.item_type === 'PLAYSTATION_4').length;
-    const boardCount = (items ?? []).filter(i => i.item_type === 'BOARD_GAME').length;
+    const switchCount = (items ?? []).filter((i) => i.item_type === 'NINTENDO').length;
+    const ps4Count = (items ?? []).filter((i) => i.item_type === 'PLAYSTATION_4').length;
+    const boardCount = (items ?? []).filter((i) => i.item_type === 'BOARD_GAME').length;
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -110,11 +168,23 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
         </div>
 
         {isMaintenance ? (
-          <div style={{ background: '#FFF9EC', border: '3px solid #1E1E1E', borderRadius: '24px', padding: '40px 24px', textAlign: 'center', boxShadow: '5px 5px 0 #1E1E1E' }}>
+          <div
+            style={{
+              background: '#FFF9EC',
+              border: '3px solid #1E1E1E',
+              borderRadius: '24px',
+              padding: '40px 24px',
+              textAlign: 'center',
+              boxShadow: '5px 5px 0 #1E1E1E',
+            }}
+          >
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚧</div>
-            <h2 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '8px' }}>게임 목록 점검 중</h2>
+            <h2 style={{ fontSize: '20px', fontWeight: 900, marginBottom: '8px' }}>
+              게임 목록 점검 중
+            </h2>
             <p style={{ fontSize: '15px', fontWeight: 600, color: '#6B6354' }}>
-              현재 매장에 보유 중인 게임 데이터를 최신 상태로 점검하고 있습니다.<br />
+              현재 매장에 보유 중인 게임 데이터를 최신 상태로 점검하고 있습니다.
+              <br />
               이용 가능한 게임은 매장 카운터에 문의해 주세요.
             </p>
           </div>
@@ -150,17 +220,31 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
               {remoteGames.length > 0 ? (
                 remoteGames.map((g) => (
                   <div key={g.id} className="game-card">
-                    <div className="game-tag-box">{gameTab === 'board' ? 'BOARD' : gameTab === 'switch' ? 'NSW' : 'PS4'}</div>
+                    <div className="game-tag-box">
+                      {gameTab === 'board' ? 'BOARD' : gameTab === 'switch' ? 'NSW' : 'PS4'}
+                    </div>
                     <div style={{ minWidth: 0 }}>
                       <div className="game-title-kr">{g.title}</div>
-                      <div className="game-title-en" style={{ fontSize: '12px', marginTop: '2px', color: '#6B6354' }}>
-                        {[g.genre, g.players].filter(Boolean).join(' · ')} {g.quantity && g.quantity > 1 ? `(${g.quantity}개)` : ''}
+                      <div
+                        className="game-title-en"
+                        style={{ fontSize: '12px', marginTop: '2px', color: '#6B6354' }}
+                      >
+                        {[g.genre, g.players].filter(Boolean).join(' · ')}{' '}
+                        {g.quantity && g.quantity > 1 ? `(${g.quantity}개)` : ''}
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '32px', color: '#8A8175', fontWeight: 700 }}>
+                <div
+                  style={{
+                    gridColumn: '1 / -1',
+                    textAlign: 'center',
+                    padding: '32px',
+                    color: '#8A8175',
+                    fontWeight: 700,
+                  }}
+                >
                   해당 기기의 등록된 게임이 없습니다.
                 </div>
               )}
@@ -170,13 +254,18 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
 
         {/* 하단 보드게임 배너 */}
         <div className="banner-card-yellow">
-          <img src={gamingMascot} alt="게임 마스코트" style={{ width: '64px', height: '64px', objectFit: 'contain', flexShrink: 0 }} />
+          <img
+            src={MASCOT_ASSETS.gaming}
+            alt="게임 마스코트"
+            style={{ width: '64px', height: '64px', objectFit: 'contain', flexShrink: 0 }}
+          />
           <div>
             <div style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '-0.02em' }}>
               인기 보드게임 상시 구비 & 자유 이용
             </div>
             <div style={{ fontSize: '13px', fontWeight: 700, color: '#5C5344', marginTop: '4px' }}>
-              다빈치코드 · 스플렌더 · 카탄 · 루미큐브 클래식 등 20여 종 완비! 이용 후 다음 고객님을 위해 정리 정돈 부탁드립니다.
+              다빈치코드 · 스플렌더 · 카탄 · 루미큐브 클래식 등 20여 종 완비! 이용 후 다음 고객님을
+              위해 정리 정돈 부탁드립니다.
             </div>
           </div>
         </div>
@@ -212,12 +301,15 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
 
         {publicEvents.length > 0 ? (
           publicEvents.map((ev) => {
-            const bullets = ev.detail.split(/[+\n·]/).map((s) => s.trim()).filter(Boolean);
+            const bullets = ev.detail
+              .split(/[+\n·]/)
+              .map((s) => s.trim())
+              .filter(Boolean);
             return (
               <div key={ev.id} className="event-poster-row">
                 <div className="poster-box" style={{ background: '#2A2A2A', padding: '10px' }}>
                   <img
-                    src={gamingMascot}
+                    src={MASCOT_ASSETS.gaming}
                     alt={ev.title}
                     style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                   />
@@ -250,10 +342,24 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
                     >
                       {ev.tag}
                     </span>
-                    <div style={{ fontSize: '19px', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.3 }}>
+                    <div
+                      style={{
+                        fontSize: '19px',
+                        fontWeight: 900,
+                        letterSpacing: '-0.03em',
+                        lineHeight: 1.3,
+                      }}
+                    >
                       {ev.title}
                     </div>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#5C5344', marginTop: '4px' }}>
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: '#5C5344',
+                        marginTop: '4px',
+                      }}
+                    >
                       {ev.isAlwaysOn ? '상시 혜택 제공' : `${ev.startDate} ~ ${ev.endDate}`}
                       {ev.target ? ` · ${ev.target}` : ''}
                     </div>
@@ -323,15 +429,35 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
           {[
             { k: '영업시간', v: storeInfo?.hours || '매일 10:00 – 23:00' },
             { k: '주소', v: storeInfo?.address || '서울특별시 관악구 관악로 155, 3층' },
-            { k: '오시는 길', v: storeInfo?.directions || '지하철 2호선 서울대입구역 3번 출구에서 도보 1~2분' },
+            {
+              k: '오시는 길',
+              v: storeInfo?.directions || '지하철 2호선 서울대입구역 3번 출구에서 도보 1~2분',
+            },
             { k: '주차', v: storeInfo?.parking || '건물 지하 주차장 이용 가능' },
             { k: '문의', v: storeInfo?.phone || '02-888-0852' },
           ].map((r) => (
             <div key={r.k} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-              <div style={{ width: '74px', flexShrink: 0, fontSize: '13px', fontWeight: 800, color: '#8A8175', paddingTop: '2px' }}>
+              <div
+                style={{
+                  width: '74px',
+                  flexShrink: 0,
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  color: '#8A8175',
+                  paddingTop: '2px',
+                }}
+              >
                 {r.k}
               </div>
-              <div style={{ fontSize: '14px', fontWeight: 700, lineHeight: 1.55, minWidth: 0, whiteSpace: 'pre-line' }}>
+              <div
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  lineHeight: 1.55,
+                  minWidth: 0,
+                  whiteSpace: 'pre-line',
+                }}
+              >
                 {r.v}
               </div>
             </div>
@@ -371,8 +497,18 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
             <div key={s.n} className="guide-step-card">
               <div className="step-num">{s.n}</div>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: '15px', fontWeight: 900, letterSpacing: '-0.02em' }}>{s.title}</div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#6B6354', lineHeight: 1.5, marginTop: '2px' }}>
+                <div style={{ fontSize: '15px', fontWeight: 900, letterSpacing: '-0.02em' }}>
+                  {s.title}
+                </div>
+                <div
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#6B6354',
+                    lineHeight: 1.5,
+                    marginTop: '2px',
+                  }}
+                >
                   {s.desc}
                 </div>
               </div>
@@ -398,8 +534,12 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
         <div className="facility-grid">
           {FACILITIES.map((f) => (
             <div key={f.zone} className="facility-card">
-              <div style={{ fontSize: '14px', fontWeight: 900, letterSpacing: '-0.02em' }}>{f.zone}</div>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: '#6B6354', lineHeight: 1.55 }}>
+              <div style={{ fontSize: '14px', fontWeight: 900, letterSpacing: '-0.02em' }}>
+                {f.zone}
+              </div>
+              <div
+                style={{ fontSize: '12px', fontWeight: 600, color: '#6B6354', lineHeight: 1.55 }}
+              >
                 {f.description}
               </div>
             </div>
@@ -443,13 +583,13 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
       {/* 매장 실물 사진 갤러리 (3장 그리드) */}
       <div className="photo-grid">
         <div className="photo-card">
-          <img src={storePhoto1} alt="카툰플러스 입구 및 서가" />
+          <img src={STORE_PHOTOS.photo1} alt="카툰플러스 입구 및 서가" />
         </div>
         <div className="photo-card">
-          <img src={storePhoto2} alt="카툰플러스 복층 룸" />
+          <img src={STORE_PHOTOS.photo2} alt="카툰플러스 복층 룸" />
         </div>
         <div className="photo-card">
-          <img src={storePhoto3} alt="카툰플러스 은은한 독서 공간" />
+          <img src={STORE_PHOTOS.photo3} alt="카툰플러스 은은한 독서 공간" />
         </div>
       </div>
     </div>

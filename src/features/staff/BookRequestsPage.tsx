@@ -72,17 +72,41 @@ export function BookRequestsPage() {
   }, [items, currentPage]);
 
   return (
-    <main style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <main
+      style={{
+        maxWidth: '1100px',
+        margin: '0 auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px',
+      }}
+    >
       <div>
-        <span style={{ fontSize: '12px', fontWeight: 900, color: '#8A6A00', letterSpacing: '0.08em' }}>STAFF REQUESTS</span>
-        <h1 style={{ fontSize: '26px', fontWeight: 900, marginTop: '2px' }}>고객 도서 입고 신청 관리</h1>
+        <span
+          style={{ fontSize: '12px', fontWeight: 900, color: '#8A6A00', letterSpacing: '0.08em' }}
+        >
+          STAFF REQUESTS
+        </span>
+        <h1 style={{ fontSize: '26px', fontWeight: 900, marginTop: '2px' }}>
+          고객 도서 입고 신청 관리
+        </h1>
         <p style={{ fontSize: '13px', fontWeight: 600, color: '#6B6354', marginTop: '4px' }}>
-          고객이 검색 결과 미보유 상태에서 신청한 희망 도서 목록을 검토하고 처리 상태를 업데이트합니다.
+          고객이 검색 결과 미보유 상태에서 신청한 희망 도서 목록을 검토하고 처리 상태를
+          업데이트합니다.
         </p>
       </div>
 
       {message && (
-        <div style={{ padding: '12px 18px', background: '#FFF3C9', border: '2px solid #1E1E1E', borderRadius: '14px', fontSize: '13px', fontWeight: 800 }}>
+        <div
+          style={{
+            padding: '12px 18px',
+            background: '#FFF3C9',
+            border: '2px solid #1E1E1E',
+            borderRadius: '14px',
+            fontSize: '13px',
+            fontWeight: 800,
+          }}
+        >
           {message}
         </div>
       )}
@@ -149,16 +173,18 @@ export function BookRequestsPage() {
         }}
       >
         <div style={{ marginBottom: '16px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 900 }}>
-            신청 내역 ({items.length}건)
-          </h2>
+          <h2 style={{ fontSize: '18px', fontWeight: 900 }}>신청 내역 ({items.length}건)</h2>
         </div>
 
         {items.length > 0 ? (
           <>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {paginatedItems.map((item) => {
-                const badge = STATUS_LABELS[item.status] || { label: item.status, bg: '#ECEFF1', text: '#546E7A' };
+                const badge = STATUS_LABELS[item.status] || {
+                  label: item.status,
+                  bg: '#ECEFF1',
+                  text: '#546E7A',
+                };
                 return (
                   <div
                     key={item.id}
@@ -190,10 +216,21 @@ export function BookRequestsPage() {
                           {badge.label}
                         </span>
                         <strong style={{ fontSize: '16px' }}>{item.title}</strong>
-                        {item.author && <span style={{ fontSize: '12px', color: '#6B6354' }}>({item.author})</span>}
+                        {item.author && (
+                          <span style={{ fontSize: '12px', color: '#6B6354' }}>
+                            ({item.author})
+                          </span>
+                        )}
                       </div>
                       {item.desired_volume && (
-                        <div style={{ fontSize: '12px', color: '#8A6A00', fontWeight: 700, marginTop: '4px' }}>
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: '#8A6A00',
+                            fontWeight: 700,
+                            marginTop: '4px',
+                          }}
+                        >
                           희망 권수: {item.desired_volume}
                         </div>
                       )}
@@ -255,7 +292,9 @@ export function BookRequestsPage() {
             />
           </>
         ) : (
-          <div style={{ textAlign: 'center', padding: '36px 0', color: '#6B6354', fontWeight: 700 }}>
+          <div
+            style={{ textAlign: 'center', padding: '36px 0', color: '#6B6354', fontWeight: 700 }}
+          >
             해당 상태의 도서 신청 내역이 없습니다.
           </div>
         )}

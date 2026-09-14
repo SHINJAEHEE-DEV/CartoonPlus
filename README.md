@@ -33,6 +33,9 @@ npm run build:cloudflare
 
 - [제품 요구사항](docs/PRD.md)
 - [요구사항 명세](docs/REQUIREMENTS.md)
+- [시스템 아키텍처 및 인프라](docs/ARCHITECTURE.md)
+- [디렉터리 구조 및 파일별 역할](docs/CODEBASE_STRUCTURE.md)
+- [주요 기능 실행 흐름 및 시나리오](docs/FLOWS_AND_SCENARIOS.md)
 - [데이터 모델](docs/DATA_MODEL.md)
 - [기술 의사결정](docs/TECHNOLOGY_DECISIONS.md)
 - [도메인 용어](CONTEXT.md)

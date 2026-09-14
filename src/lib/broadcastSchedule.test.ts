@@ -9,21 +9,48 @@ describe('isDue', () => {
   });
 
   it('runs only on a selected weekday', () => {
-    expect(isDue({ scheduleType: 'weekdays', targetTime: '14:00', targetDays: ['TUE'], isEnabled: true }, now)).toBe(true);
-    expect(isDue({ scheduleType: 'weekdays', targetTime: '14:00', targetDays: ['MON'], isEnabled: true }, now)).toBe(false);
+    expect(
+      isDue(
+        { scheduleType: 'weekdays', targetTime: '14:00', targetDays: ['TUE'], isEnabled: true },
+        now
+      )
+    ).toBe(true);
+    expect(
+      isDue(
+        { scheduleType: 'weekdays', targetTime: '14:00', targetDays: ['MON'], isEnabled: true },
+        now
+      )
+    ).toBe(false);
   });
 
   it('runs a one-time schedule only on its date', () => {
-    expect(isDue({ scheduleType: 'once', targetTime: '14:00', targetDate: '2026-09-08', isEnabled: true }, now)).toBe(true);
-    expect(isDue({ scheduleType: 'once', targetTime: '14:00', targetDate: '2026-09-09', isEnabled: true }, now)).toBe(false);
+    expect(
+      isDue(
+        { scheduleType: 'once', targetTime: '14:00', targetDate: '2026-09-08', isEnabled: true },
+        now
+      )
+    ).toBe(true);
+    expect(
+      isDue(
+        { scheduleType: 'once', targetTime: '14:00', targetDate: '2026-09-09', isEnabled: true },
+        now
+      )
+    ).toBe(false);
   });
 
   it('uses the local calendar date for one-time schedules', () => {
     const beforeMidnightUtc = new Date('2026-09-08T00:30:00+09:00');
-    expect(isDue({ scheduleType: 'once', targetTime: '00:30', targetDate: '2026-09-08', isEnabled: true }, beforeMidnightUtc)).toBe(true);
+    expect(
+      isDue(
+        { scheduleType: 'once', targetTime: '00:30', targetDate: '2026-09-08', isEnabled: true },
+        beforeMidnightUtc
+      )
+    ).toBe(true);
   });
 
   it('does not run a disabled schedule', () => {
-    expect(isDue({ scheduleType: 'daily', targetTime: '14:00', isEnabled: false }, now)).toBe(false);
+    expect(isDue({ scheduleType: 'daily', targetTime: '14:00', isEnabled: false }, now)).toBe(
+      false
+    );
   });
 });

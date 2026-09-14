@@ -1,12 +1,5 @@
 import { useEffect, useState } from 'react';
-import relaxingMascot from '../../assets/placeholder.svg';
-import readingMascot from '../../assets/placeholder.svg';
-import ottMascot from '../../assets/placeholder.svg';
-import gamingMascot from '../../assets/placeholder.svg';
-import massageMascot from '../../assets/placeholder.svg';
-import storePhoto1 from '../../assets/placeholder.svg';
-import storePhoto2 from '../../assets/placeholder.svg';
-import storePhoto3 from '../../assets/placeholder.svg';
+import { MASCOT_ASSETS, STORE_PHOTOS } from '../../lib/brandAssets';
 import { loadNewArrivals } from '../book-search/catalogueRepository';
 import type { SearchableBook } from '../../lib/bookSearch';
 import { getFeaturedEvent, getBannerImageUrl, type ManagedEvent } from '../../lib/eventRepository';
@@ -14,28 +7,28 @@ import { getFeaturedEvent, getBannerImageUrl, type ManagedEvent } from '../../li
 // 도서검색과 게임만 링크 이동, OTT룸과 안마의자는 정보 제공
 const ENJOY_POINTS = [
   {
-    icon: readingMascot,
+    icon: MASCOT_ASSETS.reading,
     title: '만화 · 웹툰',
     desc: '수만 권 규모 서가와 매주 들어오는 신간을 검색으로 바로 찾기',
     cta: '도서 검색 →',
     href: '/books',
   },
   {
-    icon: ottMascot,
+    icon: MASCOT_ASSETS.ott,
     title: 'OTT 룸',
-    desc: '넷플릭스·티빙·디즈니+를 대형 스크린 암막 굴방에서 편안하게 시청',
+    desc: '넷플릭스·티빙·디즈어+를 대형 스크린 암막 굴방에서 편안하게 시청',
     cta: '상시 무료 이용',
     href: null,
   },
   {
-    icon: gamingMascot,
+    icon: MASCOT_ASSETS.gaming,
     title: '게임 · 보드게임',
     desc: '실물 확인된 스위치·PS4 타이틀과 보드게임 자유 이용',
     cta: '즐길거리 →',
     href: '/games',
   },
   {
-    icon: massageMascot,
+    icon: MASCOT_ASSETS.massage,
     title: '무료 안마의자',
     desc: '매장 이용 고객 누구나 100% 무료로 언제든 쓰는 바디프랜드 힐링 존',
     cta: '100% 무료 힐링',
@@ -73,7 +66,11 @@ export function StoreIntroductionPage() {
       <section className="hero">
         <div className="hero-left">
           <span className="hero-badge">서울대입구역 3번 출구 도보 1분</span>
-          <h1>만화, 게임, 그리고<br />제대로 쉬는 시간</h1>
+          <h1>
+            만화, 게임, 그리고
+            <br />
+            제대로 쉬는 시간
+          </h1>
           <p className="hero-desc">
             수만 권의 만화와 OTT 룸, 닌텐도 스위치, 보드게임, 무료 안마의자, 즉석 라면 셀프바까지.
             하루를 통째로 쉬어 갈 수 있는 복합 힐링 공간입니다.
@@ -98,7 +95,7 @@ export function StoreIntroductionPage() {
           </div>
         </div>
         <div className="hero-art">
-          <img src={relaxingMascot} alt="쉬고 있는 카툰플러스 마스코트" />
+          <img src={MASCOT_ASSETS.relaxing} alt="쉬고 있는 카툰플러스 마스코트" />
         </div>
       </section>
 
@@ -181,7 +178,9 @@ export function StoreIntroductionPage() {
           </div>
         ) : (
           <div className="empty-search-box">
-            <p style={{ fontWeight: 700, color: '#6B6354' }}>새로 입고된 도서를 준비하고 있습니다.</p>
+            <p style={{ fontWeight: 700, color: '#6B6354' }}>
+              새로 입고된 도서를 준비하고 있습니다.
+            </p>
           </div>
         )}
       </section>
@@ -190,14 +189,18 @@ export function StoreIntroductionPage() {
       <section className="home-split">
         {/* 요금 안내 */}
         <div className="panel-price">
-          <div className="section-kicker" style={{ color: '#1E1E1E' }}>PRICE</div>
+          <div className="section-kicker" style={{ color: '#1E1E1E' }}>
+            PRICE
+          </div>
           <h3 className="section-title-sm">가장 많이 고르는 요금제</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {POPULAR_PRICES.map((p) => (
               <div key={p.name} className="price-item-row">
                 <div>
                   <div className="price-item-name">{p.name}</div>
-                  <div style={{ fontSize: '11px', color: '#6B6354', marginTop: '2px' }}>{p.note}</div>
+                  <div style={{ fontSize: '11px', color: '#6B6354', marginTop: '2px' }}>
+                    {p.note}
+                  </div>
                 </div>
                 <div className="price-item-val">{p.price}</div>
               </div>
@@ -224,20 +227,23 @@ export function StoreIntroductionPage() {
         <div className="panel-partnership">
           <div className="partnership-left">
             <div>
-              <div className="section-kicker" style={{ color: '#FED943' }}>{featured.tag || 'FEATURED EVENT'}</div>
-              <h3 className="partnership-title">
-                {featured.title}
-              </h3>
+              <div className="section-kicker" style={{ color: '#FED943' }}>
+                {featured.tag || 'FEATURED EVENT'}
+              </div>
+              <h3 className="partnership-title">{featured.title}</h3>
               <div className="partnership-bullets">
-                {featured.detail.split(/[+\n·]/).map((s) => s.trim()).filter(Boolean).map((bullet, idx) => (
-                  <div key={idx} className="partnership-bullet">· {bullet}</div>
-                ))}
+                {featured.detail
+                  .split(/[+\n·]/)
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+                  .map((bullet, idx) => (
+                    <div key={idx} className="partnership-bullet">
+                      · {bullet}
+                    </div>
+                  ))}
               </div>
             </div>
-            <a
-              href="/#events"
-              className="partnership-btn"
-            >
+            <a href="/#events" className="partnership-btn">
               이벤트 혜택 자세히 →
             </a>
           </div>
@@ -263,13 +269,13 @@ export function StoreIntroductionPage() {
         </div>
         <div className="photo-grid">
           <div className="photo-card">
-            <img src={storePhoto1} alt="카툰플러스 서울대입구역점 내부 서가 전경" />
+            <img src={STORE_PHOTOS.photo1} alt="카툰플러스 내부 서가 전경" />
           </div>
           <div className="photo-card">
-            <img src={storePhoto2} alt="복층 아늑한 토굴방 및 힐링 좌석" />
+            <img src={STORE_PHOTOS.photo2} alt="복층 아늑한 토굴방 및 힐링 좌석" />
           </div>
           <div className="photo-card">
-            <img src={storePhoto3} alt="은은한 조명의 편안한 독서 공간" />
+            <img src={STORE_PHOTOS.photo3} alt="은은한 조명의 편안한 독서 공간" />
           </div>
         </div>
       </section>

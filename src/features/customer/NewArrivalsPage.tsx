@@ -69,7 +69,9 @@ export function NewArrivalsPage() {
         </>
       ) : (
         <div className="empty-search-box">
-          <p style={{ fontWeight: 700, color: '#6B6354' }}>현재 등록된 신규 입고 도서가 없습니다.</p>
+          <p style={{ fontWeight: 700, color: '#6B6354' }}>
+            현재 등록된 신규 입고 도서가 없습니다.
+          </p>
           <a href={scoped ? storePath(store, '/books') : '/books'} className="primary-btn">
             전체 도서 검색하기
           </a>

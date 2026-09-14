@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import coffeeMascot from '../../assets/placeholder.svg';
-import relaxingMascot from '../../assets/placeholder.svg';
+import { MASCOT_ASSETS } from '../../lib/brandAssets';
 import {
   PRICE_PACKAGES as INITIAL_PRICE_PACKAGES,
   BEVERAGE_ITEMS as INITIAL_BEVERAGE_ITEMS,
@@ -48,29 +47,55 @@ export function MenuPage() {
 
     if (supabase) {
       const client = supabase;
-      void client.from('stores').select('id').eq('slug', 'snu').single().then(({ data: store }) => {
-        if (store) {
-          void client.from('store_content').select('content_key, content_value').eq('store_id', store.id).then(({ data }) => {
-            if (data) {
-              for (const item of data) {
-                if (item.content_key === 'price_packages' && Array.isArray(item.content_value?.packages)) {
-                  setPackages(item.content_value.packages);
-                } else if (item.content_key === 'beverage_items' && Array.isArray(item.content_value?.beverages)) {
-                  setBeverages(item.content_value.beverages);
-                } else if (item.content_key === 'food_items' && Array.isArray(item.content_value?.foods)) {
-                  setFoods(item.content_value.foods);
+      void client
+        .from('stores')
+        .select('id')
+        .eq('slug', 'snu')
+        .single()
+        .then(({ data: store }) => {
+          if (store) {
+            void client
+              .from('store_content')
+              .select('content_key, content_value')
+              .eq('store_id', store.id)
+              .then(({ data }) => {
+                if (data) {
+                  for (const item of data) {
+                    if (
+                      item.content_key === 'price_packages' &&
+                      Array.isArray(item.content_value?.packages)
+                    ) {
+                      setPackages(item.content_value.packages);
+                    } else if (
+                      item.content_key === 'beverage_items' &&
+                      Array.isArray(item.content_value?.beverages)
+                    ) {
+                      setBeverages(item.content_value.beverages);
+                    } else if (
+                      item.content_key === 'food_items' &&
+                      Array.isArray(item.content_value?.foods)
+                    ) {
+                      setFoods(item.content_value.foods);
+                    }
+                  }
                 }
-              }
-            }
-          });
-        }
-      });
+              });
+          }
+        });
     }
 
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
-  const subCategories = ['전체', '아이스티/티', '콤부차', '라떼/음료', '에이드', '스무디/생과일', '쉐이크'];
+  const subCategories = [
+    '전체',
+    '아이스티/티',
+    '콤부차',
+    '라떼/음료',
+    '에이드',
+    '스무디/생과일',
+    '쉐이크',
+  ];
 
   const filteredBeverages = beverages.filter((b) => {
     if (beverageSubFilter === '전체') return true;
@@ -87,19 +112,46 @@ export function MenuPage() {
       <div>
         <div className="section-kicker">PRICE & MENU</div>
         <h1 className="section-title">요금제 및 메뉴 안내</h1>
-        <p style={{ fontSize: '14px', fontWeight: 600, color: '#6B6354', marginTop: '6px', lineHeight: 1.6 }}>
-          매장 내 키오스크에서 현장 결제로 이용하실 수 있습니다. 패키지 요금제 이용 시 기본 음료가 제공되며, 차액 결제로 모든 프리미엄 음료로 업그레이드 가능합니다.
+        <p
+          style={{
+            fontSize: '14px',
+            fontWeight: 600,
+            color: '#6B6354',
+            marginTop: '6px',
+            lineHeight: 1.6,
+          }}
+        >
+          매장 내 키오스크에서 현장 결제로 이용하실 수 있습니다. 패키지 요금제 이용 시 기본 음료가
+          제공되며, 차액 결제로 모든 프리미엄 음료로 업그레이드 가능합니다.
         </p>
       </div>
 
       {/* 1. 요금제 안내 카드 그리드 */}
       <section>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '14px',
+          }}
+        >
           <div>
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#8A6A00', letterSpacing: '0.05em' }}>PACKAGE & TICKET</span>
+            <span
+              style={{
+                fontSize: '12px',
+                fontWeight: 800,
+                color: '#8A6A00',
+                letterSpacing: '0.05em',
+              }}
+            >
+              PACKAGE & TICKET
+            </span>
             <h2 style={{ fontSize: '20px', fontWeight: 900, marginTop: '2px' }}>이용 요금제</h2>
           </div>
-          <span style={{ fontSize: '12px', fontWeight: 700, color: '#6B6354' }}>초과 10분당 600원</span>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: '#6B6354' }}>
+            초과 10분당 600원
+          </span>
         </div>
 
         <div className="price-grid">
@@ -132,12 +184,23 @@ export function MenuPage() {
                 </span>
               )}
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '-0.02em' }}>{p.name}</div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#6B6354', marginTop: '4px' }}>
+                <div style={{ fontSize: '16px', fontWeight: 900, letterSpacing: '-0.02em' }}>
+                  {p.name}
+                </div>
+                <div
+                  style={{ fontSize: '12px', fontWeight: 600, color: '#6B6354', marginTop: '4px' }}
+                >
                   {p.note}
                 </div>
               </div>
-              <div style={{ fontSize: '20px', fontWeight: 900, whiteSpace: 'nowrap', color: '#1E1E1E' }}>
+              <div
+                style={{
+                  fontSize: '20px',
+                  fontWeight: 900,
+                  whiteSpace: 'nowrap',
+                  color: '#1E1E1E',
+                }}
+              >
                 {p.price}
               </div>
             </div>
@@ -150,19 +213,42 @@ export function MenuPage() {
         {/* 라면 무제한 토핑 바 배너 */}
         <div className="banner-card-dark">
           <img
-            src={coffeeMascot}
+            src={MASCOT_ASSETS.coffee}
             alt="라면 마스코트"
             style={{ width: '68px', height: '68px', objectFit: 'contain', flexShrink: 0 }}
           />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.1em', color: '#FED943' }}>
+            <div
+              style={{
+                fontSize: '12px',
+                fontWeight: 800,
+                letterSpacing: '0.1em',
+                color: '#FED943',
+              }}
+            >
               ALWAYS ON · FREE TOPPING
             </div>
-            <div style={{ fontSize: '17px', fontWeight: 900, letterSpacing: '-0.02em', marginTop: '4px' }}>
-              즉석 라면 무제한 무료 토핑 바
+            <div
+              style={{
+                fontSize: '17px',
+                fontWeight: 900,
+                letterSpacing: '-0.02em',
+                marginTop: '4px',
+              }}
+            >
+              라면 주문 시 4종 토핑 무제한 무료
             </div>
-            <div style={{ fontSize: '12px', fontWeight: 600, color: '#CFC7B4', marginTop: '6px', lineHeight: 1.5 }}>
-              라면(4,000원) 주문 시 <strong>대파, 숙주나물, 떡사리, 계란</strong>을 무제한 무료로 제공합니다.
+            <div
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#CFC7B4',
+                marginTop: '6px',
+                lineHeight: 1.5,
+              }}
+            >
+              신라면·짜파게티·너구리 등 한강 라면 조리기 완비!{' '}
+              <strong>계란 · 대파 · 숙주 · 떡사리</strong>를 원하는 만큼 무료로 넣어 드세요.
             </div>
           </div>
         </div>
@@ -180,19 +266,42 @@ export function MenuPage() {
           }}
         >
           <img
-            src={relaxingMascot}
+            src={MASCOT_ASSETS.relaxing}
             alt="음료 마스코트"
             style={{ width: '68px', height: '68px', objectFit: 'contain', flexShrink: 0 }}
           />
           <div>
-            <div style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.05em', color: '#8A6A00' }}>
+            <div
+              style={{
+                fontSize: '12px',
+                fontWeight: 800,
+                letterSpacing: '0.05em',
+                color: '#8A6A00',
+              }}
+            >
               BEVERAGE SYSTEM
             </div>
-            <div style={{ fontSize: '17px', fontWeight: 900, letterSpacing: '-0.02em', marginTop: '4px' }}>
+            <div
+              style={{
+                fontSize: '17px',
+                fontWeight: 900,
+                letterSpacing: '-0.02em',
+                marginTop: '4px',
+              }}
+            >
               음료 단품 4,000원 · 패키지 차액 업그레이드
             </div>
-            <div style={{ fontSize: '12px', fontWeight: 600, color: '#6B6354', marginTop: '6px', lineHeight: 1.5 }}>
-              패키지 기본 음료는 무료 제공되며, <strong>+200원 ~ +2,000원</strong> 차액으로 에이드·스무디·쉐이크까지 즐기실 수 있습니다.
+            <div
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#6B6354',
+                marginTop: '6px',
+                lineHeight: 1.5,
+              }}
+            >
+              패키지 기본 음료는 무료 제공되며, <strong>+200원 ~ +2,000원</strong> 차액으로
+              에이드·스무디·쉐이크까지 즐기실 수 있습니다.
             </div>
           </div>
         </div>
@@ -200,7 +309,15 @@ export function MenuPage() {
 
       {/* 3. 메뉴 카테고리 탭 네비게이션 */}
       <section>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', borderBottom: '2px solid #E5E0D5', paddingBottom: '14px' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '8px',
+            flexWrap: 'wrap',
+            borderBottom: '2px solid #E5E0D5',
+            paddingBottom: '14px',
+          }}
+        >
           {[
             { key: 'all', label: '전체 메뉴 보기' },
             { key: 'beverage', label: `음료 & 카페 (${beverages.length})` },
@@ -232,9 +349,20 @@ export function MenuPage() {
         {/* --- [A. 음료 섹션] --- */}
         {(activeTab === 'all' || activeTab === 'beverage') && (
           <div style={{ marginTop: '28px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '14px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+                marginBottom: '14px',
+              }}
+            >
               <div>
-                <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A6A00' }}>BEVERAGES & CAFE</div>
+                <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A6A00' }}>
+                  BEVERAGES & CAFE
+                </div>
                 <h3 style={{ fontSize: '20px', fontWeight: 900, marginTop: '2px' }}>음료 라인업</h3>
               </div>
 
@@ -248,7 +376,8 @@ export function MenuPage() {
                     style={{
                       padding: '6px 12px',
                       borderRadius: '999px',
-                      border: beverageSubFilter === sub ? '1.5px solid #1E1E1E' : '1px solid #D1C9BC',
+                      border:
+                        beverageSubFilter === sub ? '1.5px solid #1E1E1E' : '1px solid #D1C9BC',
                       background: beverageSubFilter === sub ? '#FED943' : '#FFFFFF',
                       color: '#1E1E1E',
                       fontSize: '12px',
@@ -262,7 +391,13 @@ export function MenuPage() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gap: '12px',
+              }}
+            >
               {filteredBeverages.map((bev) => (
                 <BeverageCard key={bev.id} item={bev} />
               ))}
@@ -274,10 +409,18 @@ export function MenuPage() {
         {(activeTab === 'all' || activeTab === 'meal') && (
           <div style={{ marginTop: '36px' }}>
             <div style={{ marginBottom: '14px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A6A00' }}>FOOD & MEALS</div>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A6A00' }}>
+                FOOD & MEALS
+              </div>
               <h3 style={{ fontSize: '20px', fontWeight: 900, marginTop: '2px' }}>라면 & 식사류</h3>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: '12px',
+              }}
+            >
               {mealItems.map((meal) => (
                 <FoodCard key={meal.id} item={meal} />
               ))}
@@ -289,10 +432,20 @@ export function MenuPage() {
         {(activeTab === 'all' || activeTab === 'dessert') && (
           <div style={{ marginTop: '36px' }}>
             <div style={{ marginBottom: '14px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A6A00' }}>DESSERT & ICE CREAM</div>
-              <h3 style={{ fontSize: '20px', fontWeight: 900, marginTop: '2px' }}>젤라또 & 디저트</h3>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A6A00' }}>
+                DESSERT & ICE CREAM
+              </div>
+              <h3 style={{ fontSize: '20px', fontWeight: 900, marginTop: '2px' }}>
+                젤라또 & 디저트
+              </h3>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: '12px',
+              }}
+            >
               {dessertItems.map((item) => (
                 <FoodCard key={item.id} item={item} />
               ))}
@@ -304,10 +457,18 @@ export function MenuPage() {
         {(activeTab === 'all' || activeTab === 'snack') && (
           <div style={{ marginTop: '36px' }}>
             <div style={{ marginBottom: '14px' }}>
-              <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A6A00' }}>SNACK & DRINK</div>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A6A00' }}>
+                SNACK & DRINK
+              </div>
               <h3 style={{ fontSize: '20px', fontWeight: 900, marginTop: '2px' }}>과자 & 캔음료</h3>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                gap: '12px',
+              }}
+            >
               {snackItems.map((item) => (
                 <FoodCard key={item.id} item={item} />
               ))}
@@ -322,7 +483,8 @@ export function MenuPage() {
 function BeverageCard({ item }: { item: BeverageItem }) {
   const getDiffBadgeColor = (diff: number) => {
     if (diff === 0) return { bg: '#E8F5E9', text: '#2E7D32', label: '패키지 기본 (+0원)' };
-    if (diff <= 500) return { bg: '#FFF8E1', text: '#F57F17', label: `패키지 +${diff.toLocaleString()}원` };
+    if (diff <= 500)
+      return { bg: '#FFF8E1', text: '#F57F17', label: `패키지 +${diff.toLocaleString()}원` };
     return { bg: '#EDE7F6', text: '#512DA8', label: `패키지 +${diff.toLocaleString()}원` };
   };
 
@@ -342,7 +504,14 @@ function BeverageCard({ item }: { item: BeverageItem }) {
       }}
     >
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+          }}
+        >
           <span
             style={{
               fontSize: '11px',
@@ -366,7 +535,9 @@ function BeverageCard({ item }: { item: BeverageItem }) {
           </span>
         </div>
 
-        <div style={{ fontSize: '15px', fontWeight: 900, marginTop: '8px', letterSpacing: '-0.02em' }}>
+        <div
+          style={{ fontSize: '15px', fontWeight: 900, marginTop: '8px', letterSpacing: '-0.02em' }}
+        >
           {item.nameKo}
         </div>
         {item.nameEn && (
@@ -376,7 +547,15 @@ function BeverageCard({ item }: { item: BeverageItem }) {
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', borderTop: '1px dashed #E5E0D5', paddingTop: '8px' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          borderTop: '1px dashed #E5E0D5',
+          paddingTop: '8px',
+        }}
+      >
         <span style={{ fontSize: '12px', fontWeight: 600, color: '#6B6354' }}>단품 구매 시</span>
         <span style={{ fontSize: '16px', fontWeight: 900, color: '#1E1E1E' }}>
           {item.singlePrice.toLocaleString()}원
@@ -418,7 +597,9 @@ function FoodCard({ item }: { item: MenuItem }) {
         </span>
       )}
       <div>
-        <div style={{ fontSize: '15px', fontWeight: 900, letterSpacing: '-0.02em' }}>{item.name}</div>
+        <div style={{ fontSize: '15px', fontWeight: 900, letterSpacing: '-0.02em' }}>
+          {item.name}
+        </div>
         {item.note && (
           <div style={{ fontSize: '11px', fontWeight: 700, color: '#E65100', marginTop: '3px' }}>
             {item.note}

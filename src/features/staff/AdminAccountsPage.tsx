@@ -28,20 +28,28 @@ export function AdminAccountsPage() {
 
   const update = async (id: string, status: string) => {
     if (!supabase) return;
-    const { error } = await supabase.rpc('set_staff_account_status', { p_account_id: id, p_status: status });
+    const { error } = await supabase.rpc('set_staff_account_status', {
+      p_account_id: id,
+      p_status: status,
+    });
     setMessage(error?.message ?? '계정 상태를 성공적으로 변경했습니다.');
     void load();
   };
 
   const reset = async (id: string, name: string) => {
     if (!supabase) return;
-    const password = window.prompt(`[${name}] 직원의 새로운 임시 비밀번호를 입력하세요 (8자 이상).`);
+    const password = window.prompt(
+      `[${name}] 직원의 새로운 임시 비밀번호를 입력하세요 (8자 이상).`
+    );
     if (!password) return;
     if (password.length < 8) {
       setMessage('임시 비밀번호는 최소 8자 이상이어야 합니다.');
       return;
     }
-    const { error } = await supabase.rpc('issue_temporary_password', { p_account_id: id, p_password: password });
+    const { error } = await supabase.rpc('issue_temporary_password', {
+      p_account_id: id,
+      p_password: password,
+    });
     setMessage(error?.message ?? `[${name}] 직원에게 임시 비밀번호를 발급했습니다.`);
   };
 
@@ -57,12 +65,21 @@ export function AdminAccountsPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '26px' }}>
       {/* 헤더 타이틀 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+          flexWrap: 'wrap',
+          gap: '16px',
+        }}
+      >
         <div>
           <div className="section-kicker">ADMINISTRATION</div>
           <h1 className="section-title">직원 계정 관리</h1>
           <p style={{ margin: '6px 0 0 0', fontSize: '14px', color: '#6B6354', fontWeight: 600 }}>
-            서울대입구역점 카운터 및 매니저 계정의 가입 승인, 권한 설정, 비밀번호 재발급을 관리합니다.
+            서울대입구역점 카운터 및 매니저 계정의 가입 승인, 권한 설정, 비밀번호 재발급을
+            관리합니다.
           </p>
         </div>
         <button
@@ -100,7 +117,13 @@ export function AdminAccountsPage() {
           <span>{message}</span>
           <button
             onClick={() => setMessage('')}
-            style={{ background: 'none', border: 'none', fontSize: '16px', fontWeight: 900, cursor: 'pointer' }}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '16px',
+              fontWeight: 900,
+              cursor: 'pointer',
+            }}
           >
             ✕
           </button>
@@ -108,7 +131,10 @@ export function AdminAccountsPage() {
       )}
 
       {/* KPI 3종 상태 요약 */}
-      <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+      <div
+        className="dashboard-grid"
+        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}
+      >
         <div className="kpi-card">
           <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A8175' }}>총 등록 계정</div>
           <div className="kpi-val">{accounts.length}명</div>
@@ -116,13 +142,19 @@ export function AdminAccountsPage() {
         </div>
 
         <div className="kpi-card">
-          <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A8175' }}>승인 및 활성 계정</div>
-          <div className="kpi-val" style={{ color: '#1A7A3E' }}>{approvedCount}명</div>
+          <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A8175' }}>
+            승인 및 활성 계정
+          </div>
+          <div className="kpi-val" style={{ color: '#1A7A3E' }}>
+            {approvedCount}명
+          </div>
           <div className="kpi-note">콘솔 접속 허용</div>
         </div>
 
         <div className="kpi-card">
-          <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A8175' }}>승인 대기 / 비활성</div>
+          <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A8175' }}>
+            승인 대기 / 비활성
+          </div>
           <div className="kpi-val" style={{ color: pendingCount > 0 ? '#E65100' : '#8A8175' }}>
             {pendingCount}명 / {deactivatedCount}명
           </div>
@@ -143,7 +175,15 @@ export function AdminAccountsPage() {
           gap: '18px',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}
+        >
           <div style={{ fontSize: '18px', fontWeight: 900 }}>직원 명부 및 권한 관리</div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
@@ -229,7 +269,9 @@ export function AdminAccountsPage() {
                     transition: 'all 0.15s ease',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}
+                  >
                     <div
                       style={{
                         width: '42px',
@@ -278,13 +320,26 @@ export function AdminAccountsPage() {
                           {isApproved ? '● 정상 승인' : isPending ? '⏳ 승인 대기' : '✖ 비활성'}
                         </span>
                       </div>
-                      <div style={{ fontSize: '13px', color: '#6B6354', fontWeight: 600, marginTop: '3px' }}>
-                        아이디: <span style={{ fontFamily: 'monospace', fontWeight: 800 }}>{a.login_id}</span> · 전화번호 뒷자리: {a.phone_last4 || '미등록'}
+                      <div
+                        style={{
+                          fontSize: '13px',
+                          color: '#6B6354',
+                          fontWeight: 600,
+                          marginTop: '3px',
+                        }}
+                      >
+                        아이디:{' '}
+                        <span style={{ fontFamily: 'monospace', fontWeight: 800 }}>
+                          {a.login_id}
+                        </span>{' '}
+                        · 전화번호 뒷자리: {a.phone_last4 || '미등록'}
                       </div>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div
+                    style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}
+                  >
                     {!isApproved && (
                       <button
                         onClick={() => void update(a.id, 'approved')}
@@ -346,4 +401,3 @@ export function AdminAccountsPage() {
     </div>
   );
 }
-

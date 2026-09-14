@@ -10,12 +10,14 @@ const routes = [
   {
     path: '/about',
     title: '매장 소개 | 카툰플러스 서울대입구역점',
-    description: '카툰플러스 서울대입구역점의 만화, OTT 룸, 게임, 안마의자와 매장 이용 경험을 소개합니다.',
+    description:
+      '카툰플러스 서울대입구역점의 만화, OTT 룸, 게임, 안마의자와 매장 이용 경험을 소개합니다.',
   },
   {
     path: '/books',
     title: '도서 검색 | 카툰플러스 서울대입구역점',
-    description: '카툰플러스 서울대입구역점의 실시간 도서 재고와 서가 위치를 검색하세요. 초성 검색 지원.',
+    description:
+      '카툰플러스 서울대입구역점의 실시간 도서 재고와 서가 위치를 검색하세요. 초성 검색 지원.',
   },
   {
     path: '/menu',
@@ -30,7 +32,8 @@ const routes = [
   {
     path: '/games',
     title: '보드게임 & 닌텐도 | 카툰플러스 서울대입구역점',
-    description: '카툰플러스 서울대입구역점에 구비된 닌텐도 스위치, PS4 게임과 다양한 보드게임 목록입니다.',
+    description:
+      '카툰플러스 서울대입구역점에 구비된 닌텐도 스위치, PS4 게임과 다양한 보드게임 목록입니다.',
   },
   {
     path: '/store',
@@ -41,7 +44,7 @@ const routes = [
     path: '/new-arrivals',
     title: '신규 입고 도서 | 카툰플러스 서울대입구역점',
     description: '최근 30일 내에 카툰플러스 서울대입구역점에 새롭게 입고된 도서들을 확인하세요.',
-  }
+  },
 ];
 
 async function generateSSG() {
@@ -59,10 +62,7 @@ async function generateSSG() {
     await fs.mkdir(routeDir, { recursive: true });
 
     // Replace Title
-    let routeHtml = baseHtml.replace(
-      /<title>.*?<\/title>/s,
-      `<title>${route.title}</title>`
-    );
+    let routeHtml = baseHtml.replace(/<title>.*?<\/title>/s, `<title>${route.title}</title>`);
 
     // Replace Descriptions
     routeHtml = routeHtml.replace(
@@ -98,7 +98,7 @@ async function generateSSG() {
   const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>${domain}/</loc></url>
-${routes.map(r => `  <url><loc>${domain}${r.path}</loc></url>`).join('\n')}
+${routes.map((r) => `  <url><loc>${domain}${r.path}</loc></url>`).join('\n')}
 </urlset>`;
   await fs.writeFile(path.join(DIST_DIR, 'sitemap.xml'), sitemapContent, 'utf-8');
   console.log('Generated sitemap.xml');
@@ -114,12 +114,16 @@ Sitemap: ${domain}/sitemap.xml`;
   // Generate _routes.json for Cloudflare Pages SPA fallback
   const routesJson = {
     version: 1,
-    include: ["/*"],
-    exclude: ["/assets/*", "/audio/*", "/favicon.ico", "/favicon.svg", "/og-image.png"]
+    include: ['/*'],
+    exclude: ['/assets/*', '/audio/*', '/favicon.ico', '/favicon.svg', '/og-image.png'],
   };
-  await fs.writeFile(path.join(DIST_DIR, '_routes.json'), JSON.stringify(routesJson, null, 2), 'utf-8');
+  await fs.writeFile(
+    path.join(DIST_DIR, '_routes.json'),
+    JSON.stringify(routesJson, null, 2),
+    'utf-8'
+  );
   console.log('Generated _routes.json');
-  
+
   console.log('SSG Generation complete.');
 }
 

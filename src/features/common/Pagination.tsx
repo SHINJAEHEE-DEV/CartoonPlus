@@ -17,7 +17,7 @@ export function Pagination({
 }: PaginationProps) {
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
-  if (totalItems <= 0 || totalPages <= 1 && !pageSizeOptions) {
+  if (totalItems <= 0 || (totalPages <= 1 && !pageSizeOptions)) {
     return null;
   }
 

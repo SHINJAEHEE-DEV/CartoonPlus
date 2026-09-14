@@ -1,6 +1,4 @@
-import weekdayPassBanner from '../assets/event_weekday_pass.svg';
-import naverRamenBanner from '../assets/event_naver_ramen_coupon.svg';
-import snuBanner from '../assets/placeholder.svg';
+import { EVENT_BANNERS } from './brandAssets';
 
 export interface ManagedEvent {
   id: string;
@@ -65,10 +63,10 @@ export const INITIAL_EVENTS: ManagedEvent[] = [
 ];
 
 export function getBannerImageUrl(type: ManagedEvent['bannerType'], customUrl?: string): string {
-  if (type === 'weekday') return weekdayPassBanner;
-  if (type === 'naver_ramen') return naverRamenBanner;
-  if (type === 'snu') return snuBanner;
-  return customUrl || weekdayPassBanner;
+  if (type === 'weekday') return EVENT_BANNERS.weekday;
+  if (type === 'naver_ramen') return EVENT_BANNERS.naverRamen;
+  if (type === 'snu') return EVENT_BANNERS.snu;
+  return customUrl || EVENT_BANNERS.weekday;
 }
 
 export function loadManagedEvents(): ManagedEvent[] {

@@ -53,7 +53,7 @@ describe('BookSearchPage', () => {
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: '없는 책' } });
 
     expect(screen.getByRole('link', { name: '없는 책 입고 신청하기' }).getAttribute('href')).toBe(
-      '/book-request?title=%EC%97%86%EB%8A%94%20%EC%B1%85',
+      '/book-request?title=%EC%97%86%EB%8A%94%20%EC%B1%85'
     );
   });
 });

@@ -18,29 +18,39 @@ function createCartoonPlusFeedbackForm() {
   const form = FormApp.create('[카툰플러스] 매장 직원 1차 피드백 & 데이터 점검 (Day 1)');
   form.setDescription(
     '카툰플러스 서비스 도입 초기 현장 데이터 정합성 점검 및 기능/디자인 개선 의견을 수집하는 설문입니다.\n' +
-    '⏱️ 소요 시간: 약 3~5분 | 모바일에서 간편하게 작성하실 수 있습니다.'
+      '⏱️ 소요 시간: 약 3~5분 | 모바일에서 간편하게 작성하실 수 있습니다.'
   );
   form.setAllowResponseEdits(true);
   form.setCollectEmail(false); // 이메일 수집 없이 익명/간편 작성
 
   // 1. 기본 정보 섹션
   form.addSectionHeaderItem().setTitle('🧑‍💼 1. 기본 정보');
-  form.addTextItem().setTitle('이름 또는 닉네임 (직책)').setHelpText('예: 홍길동 (주말 오전)').setRequired(true);
-  
-  form.addMultipleChoiceItem()
+  form
+    .addTextItem()
+    .setTitle('이름 또는 닉네임 (직책)')
+    .setHelpText('예: 홍길동 (주말 오전)')
+    .setRequired(true);
+
+  form
+    .addMultipleChoiceItem()
     .setTitle('근무 파트 (시간대)')
     .setChoiceValues(['오픈 (오전)', '미들 (오후)', '마감 (야간)'])
     .setRequired(true);
 
-  form.addCheckboxItem()
+  form
+    .addCheckboxItem()
     .setTitle('주로 사용하는 기기 (중복 선택 가능)')
     .setChoiceValues(['카운터 포스/PC', '개인 스마트폰', '매장 태블릿'])
     .setRequired(true);
 
   // 2. 데이터 정합성 점검 (오류 체크)
-  form.addPageBreakItem().setTitle('🔍 2. 매장 데이터 점검 (잘못된 정보 체크)').setHelpText('실제 매장과 화면에 등록된 정보가 다른 부분을 체크해 주세요.');
-  
-  form.addCheckboxItem()
+  form
+    .addPageBreakItem()
+    .setTitle('🔍 2. 매장 데이터 점검 (잘못된 정보 체크)')
+    .setHelpText('실제 매장과 화면에 등록된 정보가 다른 부분을 체크해 주세요.');
+
+  form
+    .addCheckboxItem()
     .setTitle('잘못된 정보가 발견된 영역을 선택해 주세요.')
     .setChoiceValues([
       '도서 권수 불일치 (실제 보유 권수와 화면 표시가 다름)',
@@ -49,15 +59,23 @@ function createCartoonPlusFeedbackForm() {
       '식음료 메뉴판 오류 (가격 다름 / 품절 메뉴 노출 등)',
       '즐길거리(게임) 오류 (없는 게임 노출 / 인원수 표기 오류)',
       '매장 이벤트 및 이용안내 오류 (종료된 행사 / 영업시간 등 오기재)',
-      '이상 없음 (데이터가 모두 정확함)'
+      '이상 없음 (데이터가 모두 정확함)',
     ]);
 
-  form.addParagraphTextItem()
+  form
+    .addParagraphTextItem()
     .setTitle('발견된 잘못된 정보의 상세 내용을 적어주세요.')
-    .setHelpText('예: 체인소맨 12권 위치가 A-03이 아니라 B-02에 있음 / 신라면 가격이 4,500원으로 잘못 나옴');
+    .setHelpText(
+      '예: 체인소맨 12권 위치가 A-03이 아니라 B-02에 있음 / 신라면 가격이 4,500원으로 잘못 나옴'
+    );
 
   // 3. 기능 만족도 평가
-  form.addPageBreakItem().setTitle('⚡ 3. 주요 기능 사용 만족도').setHelpText('기존 방식(파파고/Caspio/수기) 대비 얼마나 편리해졌는지 평가해 주세요. (1점: 매우 불편 ~ 5점: 매우 편리)');
+  form
+    .addPageBreakItem()
+    .setTitle('⚡ 3. 주요 기능 사용 만족도')
+    .setHelpText(
+      '기존 방식(파파고/Caspio/수기) 대비 얼마나 편리해졌는지 평가해 주세요. (1점: 매우 불편 ~ 5점: 매우 편리)'
+    );
 
   const features = [
     '직원 간편 로그인 / 계정 접속',
@@ -66,33 +84,39 @@ function createCartoonPlusFeedbackForm() {
     '도서 입고 신청 확인 및 처리',
     'Web Speech 원클릭 매장 안내 방송 (TTS)',
     '예약 방송 스케줄러 (시간 지정 자동 방송)',
-    '모바일 / 포스기 화면 터치 및 사용 편의성'
+    '모바일 / 포스기 화면 터치 및 사용 편의성',
   ];
 
-  features.forEach(function(feature) {
-    form.addScaleItem()
-      .setTitle(feature)
-      .setBounds(1, 5)
-      .setLabels('매우 불편', '매우 편리');
+  features.forEach(function (feature) {
+    form.addScaleItem().setTitle(feature).setBounds(1, 5).setLabels('매우 불편', '매우 편리');
   });
 
   // 4. 디자인 및 신규 기능 아이디어
   form.addPageBreakItem().setTitle('🎨 4. 디자인 개선 & 신규 기능 제안');
 
-  form.addParagraphTextItem()
+  form
+    .addParagraphTextItem()
     .setTitle('🎨 디자인 / 화면(UI) 변경 요청')
-    .setHelpText('글자 크기, 버튼 위치, 색상, 터치 편의성 등 화면에서 바뀌었으면 하는 점을 자유롭게 적어주세요.');
+    .setHelpText(
+      '글자 크기, 버튼 위치, 색상, 터치 편의성 등 화면에서 바뀌었으면 하는 점을 자유롭게 적어주세요.'
+    );
 
-  form.addParagraphTextItem()
+  form
+    .addParagraphTextItem()
     .setTitle('💡 "이런 기능이나 화면이 추가되면 좋겠다!" (신규 아이디어)')
-    .setHelpText('손님 응대나 매장 관리 시 업무를 더 편하게 만들어줄 새로운 아이디어를 제안해 주세요.');
+    .setHelpText(
+      '손님 응대나 매장 관리 시 업무를 더 편하게 만들어줄 새로운 아이디어를 제안해 주세요.'
+    );
 
   // 5. 오류 및 버그 리포트
   form.addPageBreakItem().setTitle('⚠️ 5. 오류 / 버그 리포트');
 
-  form.addParagraphTextItem()
+  form
+    .addParagraphTextItem()
     .setTitle('작동하지 않거나 에러 메시지가 뜬 현상이 있다면 적어주세요.')
-    .setHelpText('발생 시각, 화면, 어떤 동작을 했을 때 이상이 생겼는지 알려주시면 신속히 수정하겠습니다.');
+    .setHelpText(
+      '발생 시각, 화면, 어떤 동작을 했을 때 이상이 생겼는지 알려주시면 신속히 수정하겠습니다.'
+    );
 
   Logger.log('✅ 설문지 생성 완료!');
   Logger.log('🔗 설문 편집 URL: ' + form.getEditUrl());
@@ -116,17 +140,17 @@ graph TD
 
 ### 📋 섹션별 세부 문항 요약
 
-| 섹션 | 문항명 | 유형 | 필수 여부 |
-| :--- | :--- | :---: | :---: |
-| **1. 기본 정보** | 1. 이름 또는 닉네임 (직책) | 단답형 | 필수 |
-| | 2. 근무 파트 (오픈/미들/마감) | 객관식 (1개 선택) | 필수 |
-| | 3. 주로 사용하는 기기 (포스/폰/태블릿) | 체크박스 (중복 선택) | 필수 |
-| **2. 데이터 점검** | 4. 잘못된 정보 발견 영역 체크 | 체크박스 | 선택 |
-| | 5. 데이터 오류 상세 내용 (도서/메뉴/위치 등) | 장문형 | 선택 |
-| **3. 기능 만족도** | 6~12. 7대 주요 기능별 편의성 (1~5점) | 선형 배율 (1~5점) | 선택 |
-| **4. 디자인 & 제안** | 13. 디자인/UI 변경 희망 사항 | 장문형 | 선택 |
-| | 14. 신규 기능 및 화면 아이디어 제안 | 장문형 | 선택 |
-| **5. 버그 리포트** | 15. 에러/오작동 리포트 | 장문형 | 선택 |
+| 섹션                 | 문항명                                       |         유형         | 필수 여부 |
+| :------------------- | :------------------------------------------- | :------------------: | :-------: |
+| **1. 기본 정보**     | 1. 이름 또는 닉네임 (직책)                   |        단답형        |   필수    |
+|                      | 2. 근무 파트 (오픈/미들/마감)                |  객관식 (1개 선택)   |   필수    |
+|                      | 3. 주로 사용하는 기기 (포스/폰/태블릿)       | 체크박스 (중복 선택) |   필수    |
+| **2. 데이터 점검**   | 4. 잘못된 정보 발견 영역 체크                |       체크박스       |   선택    |
+|                      | 5. 데이터 오류 상세 내용 (도서/메뉴/위치 등) |        장문형        |   선택    |
+| **3. 기능 만족도**   | 6~~12. 7대 주요 기능별 편의성 (1~~5점)       |  선형 배율 (1~5점)   |   선택    |
+| **4. 디자인 & 제안** | 13. 디자인/UI 변경 희망 사항                 |        장문형        |   선택    |
+|                      | 14. 신규 기능 및 화면 아이디어 제안          |        장문형        |   선택    |
+| **5. 버그 리포트**   | 15. 에러/오작동 리포트                       |        장문형        |   선택    |
 
 ---
 

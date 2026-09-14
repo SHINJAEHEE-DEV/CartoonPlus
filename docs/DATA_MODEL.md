@@ -24,20 +24,20 @@ erDiagram
 
 ## 테이블
 
-| 테이블 | 목적 | 핵심 식별·제약 |
-| --- | --- | --- |
-| `stores` | 지점 마스터 | UUID `id`, 고유 `slug`, `name` |
-| `books` | 지점과 독립적인 도서 메타데이터 | `(title, author)` 고유, 검색용 정규화·초성 컬럼, `archived_at` |
-| `book_inventories` | 지점별 도서 보유 권수·서가 | `(store_id, book_id)` 고유, `volume_range`, `shelf_location`, `first_registered_at`, `archived_at` |
-| `staff_accounts` | Supabase Auth 사용자와 연결된 직원 프로필 | `id`는 `auth.users(id)` FK, `login_id` 고유, 역할 `staff/admin`, 상태 `pending/approved/deactivated` |
-| `book_requests` | 고객 희망 도서 신청 | `status`: `received/ordered/completed/unavailable`; 연락처는 저장하지 않음 |
-| `store_content` | 지점별 공개 콘텐츠 | `(store_id, content_key)` 고유, 값은 `jsonb` |
-| `entertainment_items` | 게임·보드게임 | 지점/종류/제목 고유, 실물 확인·이용 가능·보관 상태 |
-| `store_events` | 지점별 이벤트 | 공개 여부, 상시 여부, 기간, 보관 상태 |
-| `menu_items` | 메뉴·요금 | 지점, 카테고리, 가격, 품절·정렬 정보 |
-| `broadcast_presets` | 안내 방송 문구 | 지점 전용 또는 공통(`store_id` NULL) |
-| `scheduled_broadcasts` | 예약 방송 | 매일·요일·일회성, 활성화·보관 상태 |
-| `broadcast_runs` | 방송 실행 감사 기록 | 예약 참조(선택), `pending/success/failure`, 오류 메시지 |
+| 테이블                 | 목적                                      | 핵심 식별·제약                                                                                       |
+| ---------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `stores`               | 지점 마스터                               | UUID `id`, 고유 `slug`, `name`                                                                       |
+| `books`                | 지점과 독립적인 도서 메타데이터           | `(title, author)` 고유, 검색용 정규화·초성 컬럼, `archived_at`                                       |
+| `book_inventories`     | 지점별 도서 보유 권수·서가                | `(store_id, book_id)` 고유, `volume_range`, `shelf_location`, `first_registered_at`, `archived_at`   |
+| `staff_accounts`       | Supabase Auth 사용자와 연결된 직원 프로필 | `id`는 `auth.users(id)` FK, `login_id` 고유, 역할 `staff/admin`, 상태 `pending/approved/deactivated` |
+| `book_requests`        | 고객 희망 도서 신청                       | `status`: `received/ordered/completed/unavailable`; 연락처는 저장하지 않음                           |
+| `store_content`        | 지점별 공개 콘텐츠                        | `(store_id, content_key)` 고유, 값은 `jsonb`                                                         |
+| `entertainment_items`  | 게임·보드게임                             | 지점/종류/제목 고유, 실물 확인·이용 가능·보관 상태                                                   |
+| `store_events`         | 지점별 이벤트                             | 공개 여부, 상시 여부, 기간, 보관 상태                                                                |
+| `menu_items`           | 메뉴·요금                                 | 지점, 카테고리, 가격, 품절·정렬 정보                                                                 |
+| `broadcast_presets`    | 안내 방송 문구                            | 지점 전용 또는 공통(`store_id` NULL)                                                                 |
+| `scheduled_broadcasts` | 예약 방송                                 | 매일·요일·일회성, 활성화·보관 상태                                                                   |
+| `broadcast_runs`       | 방송 실행 감사 기록                       | 예약 참조(선택), `pending/success/failure`, 오류 메시지                                              |
 
 ## 접근 제어
 

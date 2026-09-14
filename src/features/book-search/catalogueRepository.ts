@@ -46,5 +46,7 @@ export async function loadNewArrivals(storeSlug: StoreSlug = 'snu'): Promise<Sea
     .eq('store_slug', storeSlug)
     .order('first_registered_at', { ascending: false });
   if (error || !data) return [];
-  return data.filter((row) => row.first_registered_at && isNewArrival(row.first_registered_at)).map(toSearchableBook);
+  return data
+    .filter((row) => row.first_registered_at && isNewArrival(row.first_registered_at))
+    .map(toSearchableBook);
 }
