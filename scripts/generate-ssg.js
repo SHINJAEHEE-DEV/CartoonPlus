@@ -43,6 +43,72 @@ const routes = [
     title: '신규 입고 도서 | 카툰플러스',
     description: '최근 30일 내에 카툰플러스에 새롭게 입고된 도서들을 확인하세요.',
   },
+  // Store Scoped Routes
+  {
+    path: '/stores/snu',
+    title: '서울대입구역점 도서 검색 | 카툰플러스',
+    description: '카툰플러스 서울대입구역점 실시간 도서 재고와 서가 위치 검색.',
+  },
+  {
+    path: '/stores/jamsil',
+    title: '잠실점 도서 검색 | 카툰플러스',
+    description: '카툰플러스 잠실점 실시간 도서 재고와 서가 위치 검색.',
+  },
+  {
+    path: '/stores/hongdae',
+    title: '홍대점 도서 검색 | 카툰플러스',
+    description: '카툰플러스 홍대점 실시간 도서 재고와 서가 위치 검색.',
+  },
+  {
+    path: '/stores/jamsil/about',
+    title: '잠실점 매장 소개 | 카툰플러스',
+    description: '카툰플러스 잠실점의 만화, OTT 룸, 콘솔 게임 및 매장 안내.',
+  },
+  {
+    path: '/stores/hongdae/about',
+    title: '홍대점 매장 소개 | 카툰플러스',
+    description: '카툰플러스 홍대점의 만화, OTT 룸, 콘솔 게임 및 매장 안내.',
+  },
+  {
+    path: '/stores/jamsil/menu',
+    title: '잠실점 메뉴 & 요금 | 카툰플러스',
+    description: '카툰플러스 잠실점 이용 요금제 및 식음료 메뉴 안내.',
+  },
+  {
+    path: '/stores/hongdae/menu',
+    title: '홍대점 메뉴 & 요금 | 카툰플러스',
+    description: '카툰플러스 홍대점 이용 요금제 및 식음료 메뉴 안내.',
+  },
+  {
+    path: '/stores/jamsil/events',
+    title: '잠실점 이벤트 | 카툰플러스',
+    description: '카툰플러스 잠실점 진행 중인 혜택과 이벤트 안내.',
+  },
+  {
+    path: '/stores/hongdae/events',
+    title: '홍대점 이벤트 | 카툰플러스',
+    description: '카툰플러스 홍대점 진행 중인 혜택과 이벤트 안내.',
+  },
+  {
+    path: '/stores/jamsil/games',
+    title: '잠실점 게임 목록 | 카툰플러스',
+    description: '카툰플러스 잠실점 구비 닌텐도 스위치 및 PS4 게임 목록.',
+  },
+  {
+    path: '/stores/hongdae/games',
+    title: '홍대점 게임 목록 | 카툰플러스',
+    description: '카툰플러스 홍대점 구비 닌텐도 스위치 및 PS4 게임 목록.',
+  },
+  {
+    path: '/stores/jamsil/store',
+    title: '잠실점 안내 | 카툰플러스',
+    description: '카툰플러스 잠실점 위치, 영업시간 및 연락처 안내.',
+  },
+  {
+    path: '/stores/hongdae/store',
+    title: '홍대점 안내 | 카툰플러스',
+    description: '카툰플러스 홍대점 위치, 영업시간 및 연락처 안내.',
+  },
 ];
 
 async function generateSSG() {

@@ -38,6 +38,16 @@ import {
 
 function InternalLinkInterceptor() {
   const navigate = useNavigate();
+
+  // Clean legacy hash URLs (e.g., /#/stores/jamsil -> /stores/jamsil)
+  useEffect(() => {
+    if (window.location.hash && window.location.hash.startsWith('#/')) {
+      const cleanPath = window.location.hash.slice(1);
+      window.history.replaceState(null, '', cleanPath);
+      navigate(cleanPath, { replace: true });
+    }
+  }, [navigate]);
+
   useEffect(() => {
     const followInternalLink = (event: MouseEvent) => {
       const target = (event.target as Element | null)?.closest<HTMLAnchorElement>('a[href]');

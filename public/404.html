@@ -5,15 +5,22 @@
     <meta name="robots" content="noindex" />
     <script>
       (function () {
-        // Keep the existing GitHub Pages URL working during the migration.
-        var base = window.location.hostname.endsWith('.github.io') ? '/CartoonPlus/' : '/';
         var path = window.location.pathname;
-        if (path.indexOf(base) === 0) {
-          var route = path.slice(base.length);
-          window.location.replace(base + '#/' + route + window.location.search);
-        } else {
-          window.location.replace(base);
+        var search = window.location.search;
+        var hash = window.location.hash;
+        // GitHub Pages repository subpath compatibility
+        if (window.location.hostname.endsWith('.github.io')) {
+          var base = '/CartoonPlus/';
+          if (path.indexOf(base) === 0) {
+            var route = path.slice(base.length);
+            window.location.replace(base + '#/' + route + search);
+            return;
+          }
         }
+        // Cloudflare Pages / Vercel / Netlify SPA fallback: load index.html preserving URL
+        window.location.replace(
+          '/' + (path.startsWith('/') ? path.slice(1) : path) + search + hash
+        );
       })();
     </script>
   </head>
