@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import thinkingMascot from '../../assets/placeholder.svg';
 import { usePageTitle } from '../../lib/usePageTitle';
+import type { StoreSlug } from '../../lib/storeContext';
 
-export function BookRequestForm({ title = '' }: { title?: string }) {
+export function BookRequestForm({ title = '', storeSlug = 'snu' }: { title?: string; storeSlug?: StoreSlug }) {
   usePageTitle('도서 입고 신청');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -12,7 +13,7 @@ export function BookRequestForm({ title = '' }: { title?: string }) {
     e.preventDefault();
     setIsSubmitting(true);
     const form = new FormData(e.currentTarget);
-    const { data: store } = await supabase!.from('stores').select('id').eq('slug', 'snu').single();
+    const { data: store } = await supabase!.from('stores').select('id').eq('slug', storeSlug).single();
     const { error } = await supabase!.from('book_requests').insert({
       store_id: store?.id,
       title: String(form.get('title')),

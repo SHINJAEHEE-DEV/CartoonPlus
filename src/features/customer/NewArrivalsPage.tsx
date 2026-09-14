@@ -3,17 +3,19 @@ import { loadNewArrivals } from '../book-search/catalogueRepository';
 import type { SearchableBook } from '../../lib/bookSearch';
 import { Pagination } from '../common/Pagination';
 import { usePageTitle } from '../../lib/usePageTitle';
+import { storePath, usePublicStore } from '../../lib/storeContext';
 
 const PAGE_SIZE = 12;
 
 export function NewArrivalsPage() {
+  const { store, scoped } = usePublicStore();
   usePageTitle('신규 입고 도서');
   const [books, setBooks] = useState<SearchableBook[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    void loadNewArrivals().then(setBooks);
-  }, []);
+    void loadNewArrivals(store.slug).then(setBooks);
+  }, [store.slug]);
 
   const paginatedBooks = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
@@ -30,7 +32,7 @@ export function NewArrivalsPage() {
             새로 입고된 인기 만화와 신간 단행본 목록입니다. (총 {books.length}권)
           </p>
         </div>
-        <a href="/books" className="view-all-btn">
+        <a href={scoped ? storePath(store, '/books') : '/books'} className="view-all-btn">
           ← 도서 검색으로
         </a>
       </div>
@@ -68,7 +70,7 @@ export function NewArrivalsPage() {
       ) : (
         <div className="empty-search-box">
           <p style={{ fontWeight: 700, color: '#6B6354' }}>현재 등록된 신규 입고 도서가 없습니다.</p>
-          <a href="/books" className="primary-btn">
+          <a href={scoped ? storePath(store, '/books') : '/books'} className="primary-btn">
             전체 도서 검색하기
           </a>
         </div>

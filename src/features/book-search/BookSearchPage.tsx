@@ -3,6 +3,7 @@ import thinkingMascot from '../../assets/placeholder.svg';
 import { normalizeBookCategory, searchBooks, splitBookCategories, type SearchableBook } from '../../lib/bookSearch';
 import { Pagination } from '../common/Pagination';
 import { usePageTitle } from '../../lib/usePageTitle';
+import { storePath, usePublicStore } from '../../lib/storeContext';
 
 type BookSearchPageProps = {
   books: SearchableBook[];
@@ -12,6 +13,7 @@ type BookSearchPageProps = {
 const PAGE_SIZE = 18;
 
 export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps) {
+  const { store, scoped } = usePublicStore();
   usePageTitle('도서 검색');
   const [query, setQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('전체');
@@ -305,7 +307,7 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
           </p>
           <a
             className="primary-btn"
-            href={hasSearch ? `/book-request?title=${encodeURIComponent(query)}` : '/book-request'}
+            href={hasSearch ? `${scoped ? storePath(store, '/book-request') : '/book-request'}?title=${encodeURIComponent(query)}` : (scoped ? storePath(store, '/book-request') : '/book-request')}
             style={{ marginTop: '8px' }}
           >
             {hasSearch ? `${query} 입고 신청하기` : '도서 입고 신청하기'}

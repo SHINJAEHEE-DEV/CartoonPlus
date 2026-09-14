@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { BookSearchPage } from './features/book-search/BookSearchPage';
 import { loadPublicCatalogue } from './features/book-search/catalogueRepository';
 import { BookRequestForm } from './features/book-request/BookRequestForm';
@@ -20,6 +20,7 @@ import { CustomerShell, StaffShell } from './features/layout/AppShell';
 import type { SearchableBook } from './lib/bookSearch';
 import { getApprovedStaffRole, signOutStaff } from './features/staff/staffAuth';
 import { useGlobalBroadcastScheduler } from './lib/broadcastRunner';
+import { defaultPublicStore, getPublicStore, StoreContext, usePublicStore } from './lib/storeContext';
 
 function InternalLinkInterceptor() {
   const navigate = useNavigate();
@@ -59,27 +60,46 @@ function ProtectedStaffRoute({ children, requiredRole }: { children: React.React
 }
 
 function BooksRoute() {
+  const { store } = usePublicStore();
   const [books, setBooks] = useState<SearchableBook[]>([]); 
   const [error, setError] = useState(false);
-  useEffect(() => { loadPublicCatalogue().then(setBooks).catch(() => setError(true)); }, []);
+  useEffect(() => {
+    let active = true;
+    setBooks([]);
+    setError(false);
+    void loadPublicCatalogue(store.slug).then((loadedBooks) => {
+      if (active) setBooks(loadedBooks);
+    }).catch(() => {
+      if (active) setError(true);
+    });
+    return () => { active = false; };
+  }, [store.slug]);
   if (error) return <p className="state-card">도서 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>;
   return <BookSearchPage books={books} isLoading={books.length === 0} />;
 }
 
 function BookRequestRoute() {
+  const { store } = usePublicStore();
   const location = useLocation();
   const requestedTitle = new URLSearchParams(location.search).get('title') ?? '';
-  return <BookRequestForm title={requestedTitle} />;
+  return <BookRequestForm title={requestedTitle} storeSlug={store.slug} />;
 }
 
 function CustomerRoute({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  return <CustomerShell currentPath={location.pathname}>{children}</CustomerShell>;
+  const { storeSlug } = useParams();
+  const store = storeSlug ? getPublicStore(storeSlug) : defaultPublicStore;
+  if (!store) return <p className="state-card">페이지를 찾을 수 없습니다.</p>;
+  return <StoreContext value={{ store, scoped: Boolean(storeSlug) }}><CustomerShell currentPath={location.pathname} store={store} scoped={Boolean(storeSlug)}>{children}</CustomerShell></StoreContext>;
 }
 
 function GlobalBroadcastService() {
   useGlobalBroadcastScheduler();
   return null;
+}
+
+function StoreContentPendingPage() {
+  return <p className="state-card">이 지점의 콘텐츠는 점검 중입니다.</p>;
 }
 
 export default function App() {
@@ -103,6 +123,15 @@ export default function App() {
         <Route path="/events" element={<CustomerRoute><PublicInfoPage kind="events" /></CustomerRoute>} />
         <Route path="/store" element={<CustomerRoute><PublicInfoPage kind="store" /></CustomerRoute>} />
         <Route path="/book-request" element={<CustomerRoute><BookRequestRoute /></CustomerRoute>} />
+        <Route path="/stores/:storeSlug" element={<CustomerRoute><BooksRoute /></CustomerRoute>} />
+        <Route path="/stores/:storeSlug/books" element={<CustomerRoute><BooksRoute /></CustomerRoute>} />
+        <Route path="/stores/:storeSlug/new-arrivals" element={<CustomerRoute><NewArrivalsPage /></CustomerRoute>} />
+        <Route path="/stores/:storeSlug/book-request" element={<CustomerRoute><BookRequestRoute /></CustomerRoute>} />
+        <Route path="/stores/:storeSlug/about" element={<CustomerRoute><StoreContentPendingPage /></CustomerRoute>} />
+        <Route path="/stores/:storeSlug/menu" element={<CustomerRoute><StoreContentPendingPage /></CustomerRoute>} />
+        <Route path="/stores/:storeSlug/games" element={<CustomerRoute><StoreContentPendingPage /></CustomerRoute>} />
+        <Route path="/stores/:storeSlug/events" element={<CustomerRoute><StoreContentPendingPage /></CustomerRoute>} />
+        <Route path="/stores/:storeSlug/store" element={<CustomerRoute><StoreContentPendingPage /></CustomerRoute>} />
 
         {/* Staff Routes */}
         <Route path="/staff" element={<div className="staff-access-shell"><StaffAccessPage /></div>} />

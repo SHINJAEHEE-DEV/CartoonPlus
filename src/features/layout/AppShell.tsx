@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import type { ReactNode } from 'react';
 import mascotLogo from '../../assets/placeholder.svg';
+import { defaultPublicStore, publicStoreList, storePath, type PublicStore } from '../../lib/storeContext';
 
 const customerLinks = [
   ['도서 검색', '/'],
@@ -23,7 +24,7 @@ const staffLinks = [
 
 const STAFF_ENTRY_HOLD_MS = 3000;
 
-function Brand({ allowStaffEntry = false, onStaffEntry }: { allowStaffEntry?: boolean; onStaffEntry?: () => void }) {
+function Brand({ allowStaffEntry = false, onStaffEntry, store = defaultPublicStore, scoped = false }: { allowStaffEntry?: boolean; onStaffEntry?: () => void; store?: PublicStore; scoped?: boolean }) {
   const entryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearStaffEntryTimer = () => {
@@ -49,7 +50,7 @@ function Brand({ allowStaffEntry = false, onStaffEntry }: { allowStaffEntry?: bo
   return (
     <a
       className="brand"
-      href="/"
+      href={scoped ? storePath(store) : '/'}
       aria-label="카툰플러스 홈"
       onPointerDown={startStaffEntryTimer}
       onPointerUp={clearStaffEntryTimer}
@@ -64,7 +65,7 @@ function Brand({ allowStaffEntry = false, onStaffEntry }: { allowStaffEntry?: bo
       </div>
       <div>
         <div className="brand-title">CARTOON PLUS</div>
-        <div className="brand-sub">서울대입구역점</div>
+        <div className="brand-sub">{store.name}</div>
       </div>
     </a>
   );
@@ -150,7 +151,7 @@ const mobileNavItems = [
   { label: '매장 안내', href: '/store', icon: StoreIcon },
 ] as const;
 
-export function CustomerShell({ children, currentPath, onStaffEntry }: { children: ReactNode; currentPath: string; onStaffEntry?: () => void }) {
+export function CustomerShell({ children, currentPath, onStaffEntry, store = defaultPublicStore, scoped = false }: { children: ReactNode; currentPath: string; onStaffEntry?: () => void; store?: PublicStore; scoped?: boolean }) {
   const currentHour = new Date().getHours();
   const isOpen = currentHour >= 10 && currentHour < 23;
 
@@ -158,16 +159,20 @@ export function CustomerShell({ children, currentPath, onStaffEntry }: { childre
     <div className="site-shell customer-shell">
       <header className="site-header">
         <div className="header-inner">
-          <Brand allowStaffEntry onStaffEntry={onStaffEntry} />
-          <Nav links={customerLinks} currentPath={currentPath} />
+          <Brand allowStaffEntry onStaffEntry={onStaffEntry} store={store} scoped={scoped} />
+          <Nav links={customerLinks.map(([label, href]) => [label, scoped ? storePath(store, href === '/' ? '' : href) : href] as const)} currentPath={currentPath} />
           <div className="header-actions">
+            <label>
+              <span className="sr-only">지점 변경</span>
+              <select aria-label="지점 변경" value={store.slug} onChange={(event) => { window.location.assign(storePath(publicStoreList.find((candidate) => candidate.slug === event.target.value) ?? defaultPublicStore)); }}>
+                {publicStoreList.map((candidate) => <option key={candidate.slug} value={candidate.slug}>{candidate.name}</option>)}
+              </select>
+            </label>
             <div className="store-status">
               <span className="status-dot" style={{ backgroundColor: isOpen ? '#2FA14B' : '#E03E3E' }} />
-              <span>{isOpen ? '10:00–23:00 영업 중' : '영업 준비 중 (10시 오픈)'}</span>
+              <span>{store.hours ? (isOpen ? '영업 중' : '영업 준비 중') : '매장 정보 점검 중'}</span>
             </div>
-            <a className="phone-btn" href="tel:0288880852" aria-label="매장 전화 걸기">
-              02-888-0852
-            </a>
+            {store.phone && <a className="phone-btn" href={`tel:${store.phone.replace(/[^0-9]/g, '')}`} aria-label="매장 전화 걸기">{store.phone}</a>}
           </div>
         </div>
       </header>
@@ -177,11 +182,12 @@ export function CustomerShell({ children, currentPath, onStaffEntry }: { childre
       {/* 모바일 하단 고정 언더바 (Bottom Navigation Bar) */}
       <nav className="mobile-bottom-nav" aria-label="모바일 하단 주요 탐색">
         {mobileNavItems.map(({ label, href, icon: Icon }) => {
-          const isActive = currentPath === href || (href !== '/' && currentPath.startsWith(href));
+          const storeHref = scoped ? storePath(store, href === '/' ? '' : href) : href;
+          const isActive = currentPath === storeHref || (href !== '/' && currentPath.startsWith(storeHref));
           return (
             <a
-              key={href}
-              href={href}
+              key={storeHref}
+              href={storeHref}
               className={`mobile-tab-btn ${isActive ? 'active' : ''}`}
               aria-current={isActive ? 'page' : undefined}
             >
@@ -198,8 +204,8 @@ export function CustomerShell({ children, currentPath, onStaffEntry }: { childre
             <div style={{ fontWeight: 900, color: '#1E1E1E', fontSize: '14px', marginBottom: '4px' }}>
               카툰플러스 서울대입구역점
             </div>
-            <div>서울특별시 관악구 관악로 155, 3층 (봉천동 대우디오슈페리움 1단지) · 02-888-0852</div>
-            <div>매일 10:00 – 23:00 · 연중무휴 정상 영업</div>
+            <div>{store.address ?? '매장 안내 점검 중'}</div>
+            <div>{store.hours ?? '영업시간 점검 중'}</div>
           </div>
           <div style={{ color: '#8A8175', fontSize: '13px', fontWeight: 700, alignSelf: 'center' }}>
             만화 · 보드게임 · OTT · 안마의자 복합 힐링 라운지
