@@ -1,6 +1,6 @@
 import weekdayPassBanner from '../assets/event_weekday_pass.svg';
 import naverRamenBanner from '../assets/event_naver_ramen_coupon.svg';
-import snuBanner from '../assets/snu_partnership_banner.png';
+import snuBanner from '../assets/placeholder.svg';
 
 export interface ManagedEvent {
   id: string;

@@ -1,4 +1,4 @@
-import thinkingMascot from '../../assets/mascot_thinking.png';
+import thinkingMascot from '../../assets/placeholder.svg';
 
 type BookRequestStartPageProps = { title: string };
 

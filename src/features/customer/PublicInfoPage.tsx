@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import gamingMascot from '../../assets/mascot_gaming.png';
-import coffeeMascot from '../../assets/mascot_coffee.png';
-import storePhoto1 from '../../assets/store_photo_043.jpg';
-import storePhoto2 from '../../assets/store_photo_049.jpg';
-import storePhoto3 from '../../assets/store_photo_03.jpg';
+import gamingMascot from '../../assets/placeholder.svg';
+import coffeeMascot from '../../assets/placeholder.svg';
+import storePhoto1 from '../../assets/placeholder.svg';
+import storePhoto2 from '../../assets/placeholder.svg';
+import storePhoto3 from '../../assets/placeholder.svg';
 import { loadManagedEvents, getBannerImageUrl, type ManagedEvent } from '../../lib/eventRepository';
 
 type Item = {

@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import type { ReactNode } from 'react';
-import mascotLogo from '../../assets/mascot_logo_circle.png';
+import mascotLogo from '../../assets/placeholder.svg';
 
 const customerLinks = [
   ['도서 검색', '/'],

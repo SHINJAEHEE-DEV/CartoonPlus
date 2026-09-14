@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import coffeeMascot from '../../assets/mascot_coffee.png';
-import relaxingMascot from '../../assets/mascot_relaxing.png';
+import coffeeMascot from '../../assets/placeholder.svg';
+import relaxingMascot from '../../assets/placeholder.svg';
 import {
   PRICE_PACKAGES as INITIAL_PRICE_PACKAGES,
   BEVERAGE_ITEMS as INITIAL_BEVERAGE_ITEMS,

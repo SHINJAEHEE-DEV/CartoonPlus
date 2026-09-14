@@ -33,3 +33,26 @@ docs/assets/store_photos/
 
 # Supabase CLI temp
 supabase/.temp/
+
+# Private operational materials and source assets
+.scratch/
+docs/internal/
+docs/assets/
+public/data/
+public/audio/
+src/assets/*.png
+src/assets/*.jpg
+learning-records/
+MISSION.md
+NOTES.md
+RESOURCES.md
+lessons/
+reference/
+/assets/
+check_books.ts
+run_parser.ts
+run_test.ts
+generate_report.py
+coverage/
+.cache/
+supabase/.branches/

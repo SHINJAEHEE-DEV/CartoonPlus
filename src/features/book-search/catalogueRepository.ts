@@ -1,6 +1,5 @@
 import type { SearchableBook } from '../../lib/bookSearch';
 import { supabase } from '../../lib/supabase';
-import { parseBaselineInventory } from '../../lib/inventoryCsv';
 import { isNewArrival } from '../../lib/newArrival';
 
 type CatalogueRow = {
@@ -24,12 +23,6 @@ function toSearchableBook(row: CatalogueRow): SearchableBook {
   };
 }
 
-async function loadBaselineCsv(): Promise<SearchableBook[]> {
-  const response = await fetch(`${import.meta.env.BASE_URL}data/initial-inventory.csv`);
-  if (!response.ok) throw new Error('initial inventory unavailable');
-  return parseBaselineInventory(await response.text());
-}
-
 export async function loadPublicCatalogue(): Promise<SearchableBook[]> {
   if (supabase) {
     const { data, error } = await supabase
@@ -41,7 +34,7 @@ export async function loadPublicCatalogue(): Promise<SearchableBook[]> {
     if (!error && data && data.length > 0) return data.map(toSearchableBook);
   }
 
-  return loadBaselineCsv();
+  return [];
 }
 
 export async function loadNewArrivals(): Promise<SearchableBook[]> {

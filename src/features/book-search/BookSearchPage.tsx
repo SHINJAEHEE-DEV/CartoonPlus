@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import thinkingMascot from '../../assets/mascot_thinking.png';
+import thinkingMascot from '../../assets/placeholder.svg';
 import { normalizeBookCategory, searchBooks, splitBookCategories, type SearchableBook } from '../../lib/bookSearch';
 import { Pagination } from '../common/Pagination';
 import { usePageTitle } from '../../lib/usePageTitle';

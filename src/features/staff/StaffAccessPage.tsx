@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { applyForStaff, getApprovedStaffRole, signInStaff } from './staffAuth';
-import mascotLogo from '../../assets/mascot_logo_circle.png';
+import mascotLogo from '../../assets/placeholder.svg';
 
 export function StaffAccessPage() {
   const navigate = useNavigate();
