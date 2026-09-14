@@ -8,6 +8,11 @@ const DIST_DIR = path.resolve(__dirname, '../dist');
 
 const routes = [
   {
+    path: '/about',
+    title: '매장 소개 | 카툰플러스 서울대입구역점',
+    description: '카툰플러스 서울대입구역점의 만화, OTT 룸, 게임, 안마의자와 매장 이용 경험을 소개합니다.',
+  },
+  {
     path: '/books',
     title: '도서 검색 | 카툰플러스 서울대입구역점',
     description: '카툰플러스 서울대입구역점의 실시간 도서 재고와 서가 위치를 검색하세요. 초성 검색 지원.',

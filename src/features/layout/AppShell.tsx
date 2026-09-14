@@ -2,8 +2,8 @@ import type { ReactNode } from 'react';
 import mascotLogo from '../../assets/mascot_logo_circle.png';
 
 const customerLinks = [
-  ['홈', '/'],
-  ['도서 검색', '/books'],
+  ['도서 검색', '/'],
+  ['매장 소개', '/about'],
   ['즐길거리', '/games'],
   ['메뉴·요금', '/menu'],
   ['이벤트·공지', '/events'],
@@ -106,8 +106,8 @@ function StoreIcon() {
 }
 
 const mobileNavItems = [
-  { label: '홈', href: '/', icon: HomeIcon },
-  { label: '도서 검색', href: '/books', icon: BooksIcon },
+  { label: '도서 검색', href: '/', icon: BooksIcon },
+  { label: '매장 소개', href: '/about', icon: HomeIcon },
   { label: '즐길거리', href: '/games', icon: GamesIcon },
   { label: '메뉴·요금', href: '/menu', icon: MenuIcon },
   { label: '이벤트·공지', href: '/events', icon: EventsIcon },

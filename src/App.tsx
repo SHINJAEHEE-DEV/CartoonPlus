@@ -7,7 +7,7 @@ import { StaffAccessPage } from './features/staff/StaffAccessPage';
 import { AdminAccountsPage } from './features/staff/AdminAccountsPage';
 import { InventoryPage } from './features/staff/InventoryPage';
 import { BookRequestsPage } from './features/staff/BookRequestsPage';
-import { HomePage } from './features/customer/HomePage';
+import { StoreIntroductionPage } from './features/customer/StoreIntroductionPage';
 import { PublicInfoPage } from './features/customer/PublicInfoPage';
 import { MenuPage } from './features/customer/MenuPage';
 import { StoreContentPage } from './features/staff/StoreContentPage';
@@ -99,8 +99,9 @@ export default function App() {
         <Route path="/event" element={<Navigate to="/events" replace />} />
 
         {/* Customer Routes */}
-        <Route path="/" element={<CustomerRoute><HomePage /></CustomerRoute>} />
+        <Route path="/" element={<CustomerRoute><BooksRoute /></CustomerRoute>} />
         <Route path="/books" element={<CustomerRoute><BooksRoute /></CustomerRoute>} />
+        <Route path="/about" element={<CustomerRoute><StoreIntroductionPage /></CustomerRoute>} />
         <Route path="/menu" element={<CustomerRoute><MenuPage /></CustomerRoute>} />
         <Route path="/new-arrivals" element={<CustomerRoute><NewArrivalsPage /></CustomerRoute>} />
         <Route path="/games" element={<CustomerRoute><PublicInfoPage kind="games" /></CustomerRoute>} />

@@ -51,8 +51,8 @@ const POPULAR_PRICES = [
 
 import { usePageTitle } from '../../lib/usePageTitle';
 
-export function HomePage() {
-  usePageTitle();
+export function StoreIntroductionPage() {
+  usePageTitle('매장 소개');
   const [newBooks, setNewBooks] = useState<SearchableBook[]>([]);
   const [featured, setFeatured] = useState<ManagedEvent>(() => getFeaturedEvent());
 
