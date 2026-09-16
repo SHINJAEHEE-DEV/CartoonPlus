@@ -12,12 +12,18 @@ import { supabase } from '../../lib/supabase';
 import { Pagination } from '../common/Pagination';
 import { useSelectedStaffStoreId } from './StaffStoreContext';
 
+type InventoryBook = { title: string; author: string; category: string };
+
 interface InventoryItem {
   id: string;
   volume_range: string;
   shelf_location: string;
   archived_at: string | null;
-  books: { title: string; author: string; category: string }[];
+  books: InventoryBook | InventoryBook[] | null;
+}
+
+function getBook(item: InventoryItem): InventoryBook | undefined {
+  return Array.isArray(item.books) ? item.books[0] : item.books ?? undefined;
 }
 
 export function InventoryPage() {
@@ -145,11 +151,15 @@ export function InventoryPage() {
     if (!searchFilter) return items;
     const q = searchFilter.toLowerCase();
     return items.filter(
-      (item) =>
-        item.books[0]?.title.toLowerCase().includes(q) ||
-        item.books[0]?.author.toLowerCase().includes(q) ||
-        item.volume_range.toLowerCase().includes(q) ||
-        item.shelf_location.toLowerCase().includes(q)
+      (item) => {
+        const book = getBook(item);
+        return (
+          book?.title.toLowerCase().includes(q) ||
+          book?.author.toLowerCase().includes(q) ||
+          item.volume_range.toLowerCase().includes(q) ||
+          item.shelf_location.toLowerCase().includes(q)
+        );
+      }
     );
   }, [items, searchFilter]);
 
@@ -376,7 +386,7 @@ export function InventoryPage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {paginatedItems.map((item) => {
-            const b = item.books[0];
+            const b = getBook(item);
             return (
               <div
                 key={item.id}

@@ -48,9 +48,10 @@ export function DashboardPage() {
       setCounts({
         requests: requests.count ?? 0,
         broadcasts: todayBroadcasts,
-        recentInventory: (inventory.data ?? []).map(
-          (item) => item.books?.[0]?.title ?? '도서 정보'
-        ),
+        recentInventory: (inventory.data ?? []).map((item) => {
+          const book = Array.isArray(item.books) ? item.books[0] : item.books;
+          return book?.title ?? '도서 정보';
+        }),
       });
     });
   }, []);
