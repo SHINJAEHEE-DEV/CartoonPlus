@@ -1,11 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
-import { BROADCAST_PRESETS, createBroadcastTimerWorker } from './broadcastRunner';
+import { createBroadcastTimerWorker, getKoreanFemaleVoices } from './broadcastRunner';
 
 describe('broadcastRunner', () => {
-  it('contains valid predefined audio presets', () => {
-    expect(BROADCAST_PRESETS.length).toBeGreaterThanOrEqual(6);
-    expect(BROADCAST_PRESETS.some(([title]) => title === '기본')).toBe(true);
-    expect(BROADCAST_PRESETS.some(([title]) => title === '마감')).toBe(true);
+  it('offers only Korean female voices exposed by the browser', () => {
+    expect(
+      getKoreanFemaleVoices([
+        { name: 'Microsoft SunHi', lang: 'ko-KR' },
+        { name: 'Microsoft Heami', lang: 'ko-KR' },
+        { name: 'Microsoft InJoon', lang: 'ko-KR' },
+        { name: 'Eddy', lang: 'ko-KR' },
+        { name: 'Samantha', lang: 'en-US' },
+      ] as SpeechSynthesisVoice[]).map((voice) => voice.name)
+    ).toEqual(['Microsoft SunHi', 'Microsoft Heami']);
   });
 
   it('starts and cleans up a timer worker or fallback interval', () => {

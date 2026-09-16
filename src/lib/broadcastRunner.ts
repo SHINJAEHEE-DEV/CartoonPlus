@@ -3,14 +3,18 @@ import { speakKorean } from './broadcast';
 import { isDue, type ScheduledBroadcast } from './broadcastSchedule';
 import { supabase } from './supabase';
 
-export const BROADCAST_PRESETS = [
-  ['기본', '/audio/기본.mp3', '매장 이용 에티켓 및 기본 안내'],
-  ['마감', '/audio/마감.mp3', '영업 마감 15분 전 퇴실 준비 안내'],
-  ['만석', '/audio/만석.mp3', '만석 및 대기 번호표 접수 안내'],
-  ['소음', '/audio/소음.mp3', '정숙 및 이어폰 착용 권장 안내'],
-  ['신분증 검사', '/audio/신분증검사.mp3', '오후 10시 이후 청소년 퇴실/신분증 확인'],
-  ['음료 픽업 요청', '/audio/음료픽업요청.mp3', '제조 완료 음료 카운터 수령 안내'],
-] as const;
+const WINDOWS_FEMALE_VOICE_NAMES = ['SunHi', 'Heami'];
+
+/** Returns the supported Windows female Korean voices that this browser can actually use. */
+export function getKoreanFemaleVoices(
+  voices: readonly SpeechSynthesisVoice[]
+): SpeechSynthesisVoice[] {
+  return voices.filter(
+    (voice) =>
+      voice.lang.toLowerCase() === 'ko-kr' &&
+      WINDOWS_FEMALE_VOICE_NAMES.some((name) => voice.name.toLowerCase().includes(name.toLowerCase()))
+  );
+}
 
 export type StoredSchedule = ScheduledBroadcast & {
   id: string;
@@ -18,6 +22,7 @@ export type StoredSchedule = ScheduledBroadcast & {
 };
 
 export const NOTIFY_SCHEDULE_UPDATE_EVENT = 'cartoonplus_broadcast_schedules_updated';
+let playbackQueue = Promise.resolve();
 
 export function notifyScheduleUpdated(): void {
   if (typeof window !== 'undefined') {
@@ -32,7 +37,6 @@ export async function fetchActiveSchedules(): Promise<StoredSchedule[]> {
       .from('scheduled_broadcasts')
       .select('id, message_text, schedule_type, target_time, target_days, target_date, is_enabled')
       .eq('is_enabled', true)
-      .is('archived_at', null)
       .order('target_time');
 
     if (error || !data) return [];
@@ -89,34 +93,8 @@ async function finishBroadcastRun(id: string | undefined, success: boolean): Pro
 }
 
 export async function playBroadcast(message: string, scheduledId?: string): Promise<boolean> {
+  const run = async () => {
   const runId = await recordBroadcastRun(message, scheduledId);
-  const matchedPreset = BROADCAST_PRESETS.find(([title]) => title === message);
-
-  if (matchedPreset) {
-    return new Promise((resolve) => {
-      try {
-        const audioPath = `${import.meta.env.BASE_URL}${matchedPreset[1].replace(/^\//, '')}`;
-        const audio = new Audio(audioPath);
-        audio.onended = () => {
-          void finishBroadcastRun(runId, true);
-          resolve(true);
-        };
-        audio.onerror = () => {
-          void finishBroadcastRun(runId, false);
-          resolve(false);
-        };
-        void audio.play().catch(() => {
-          void finishBroadcastRun(runId, false);
-          resolve(false);
-        });
-      } catch {
-        void finishBroadcastRun(runId, false);
-        resolve(false);
-      }
-    });
-  }
-
-  // TTS 재생
   try {
     await speakKorean(message);
     await finishBroadcastRun(runId, true);
@@ -125,6 +103,14 @@ export async function playBroadcast(message: string, scheduledId?: string): Prom
     await finishBroadcastRun(runId, false);
     return false;
   }
+  };
+
+  const queued = playbackQueue.then(run, run);
+  playbackQueue = queued.then(
+    () => undefined,
+    () => undefined
+  );
+  return queued;
 }
 
 /**

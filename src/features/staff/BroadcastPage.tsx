@@ -1,28 +1,25 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { speakKorean } from '../../lib/broadcast';
+import { speakKorean, stopKoreanSpeech } from '../../lib/broadcast';
 import { type ScheduledBroadcast } from '../../lib/broadcastSchedule';
 import { supabase } from '../../lib/supabase';
-import { notifyScheduleUpdated } from '../../lib/broadcastRunner';
+import { getKoreanFemaleVoices, notifyScheduleUpdated } from '../../lib/broadcastRunner';
 
-const presets = [
-  ['기본', '/audio/기본.mp3', '매장 이용 에티켓 및 기본 안내'],
-  ['마감', '/audio/마감.mp3', '영업 마감 15분 전 퇴실 준비 안내'],
-  ['만석', '/audio/만석.mp3', '만석 및 대기 번호표 접수 안내'],
-  ['소음', '/audio/소음.mp3', '정숙 및 이어폰 착용 권장 안내'],
-  ['신분증 검사', '/audio/신분증검사.mp3', '오후 10시 이후 청소년 퇴실/신분증 확인'],
-  ['음료 픽업 요청', '/audio/음료픽업요청.mp3', '제조 완료 음료 카운터 수령 안내'],
-] as const;
+type BroadcastPresetPreview = readonly [string, string, string, string?];
 
-const timedPresets = [
-  { message_text: '기본', target_time: '14:00' },
-  { message_text: '신분증 검사', target_time: '21:45' },
-  { message_text: '마감', target_time: '22:45' },
+const initialPresets: BroadcastPresetPreview[] = [
+  ['기본', '매장 이용 후 퇴실 시 사용하신 담요, 만화책, 식기 등을 모두 반납해 주시고 쓰레기는 쓰레기통에 버려 주시기 바랍니다.', '매장 이용 에티켓 및 기본 안내'],
+  ['마감', '안내 말씀드립니다. 저희 매장 이용 시간은 11시까지입니다. 10시 50분부터 마감 준비를 하오니 사용하신 담요, 만화책, 식기 등을 반납하고 자리 정돈 부탁드립니다.', '영업 마감 15분 전 퇴실 준비 안내'],
+  ['만석', '현재 만석으로 자리 이동이 제한됩니다. 퇴실 시 사용하신 담요, 만화책, 식기 등을 반납하고 자리 정돈 부탁드립니다.', '만석 및 자리 정돈 안내'],
+  ['소음', '모든 고객님이 편안하게 이용하실 수 있도록 큰 소리는 삼가 주시고 자리 정돈 부탁드립니다.', '정숙 및 이어폰 착용 권장 안내'],
+  ['신분증 검사', '잠시 후 10시부터 신분증 확인을 진행합니다. 계속 이용하실 고객님께서는 실물 신분증을 미리 준비해 주시기 바랍니다.', '오후 10시 이후 신분증 확인 안내'],
+  ['음료 픽업 요청', '주문하신 음료가 카운터에 준비되어 있습니다. 카카오톡 알림을 확인해 주시기 바랍니다.', '제조 완료 음료 카운터 수령 안내'],
 ];
 
 type StoredSchedule = ScheduledBroadcast & { id: string; message_text: string };
 type FailedRun = { id: string; message_text: string; triggered_at: string };
 type ScheduleForm = {
   message: string;
+  presetId: string;
   type: ScheduledBroadcast['scheduleType'];
   time: string;
   date: string;
@@ -31,6 +28,7 @@ type ScheduleForm = {
 
 const emptySchedule: ScheduleForm = {
   message: '',
+  presetId: '',
   type: 'daily',
   time: '09:00',
   date: '',
@@ -48,7 +46,10 @@ const dayLabels: Record<string, string> = {
 };
 
 export function BroadcastPage() {
+  const [presets, setPresets] = useState(initialPresets);
   const [text, setText] = useState('');
+  const [voiceNames, setVoiceNames] = useState<string[]>([]);
+  const [voiceName, setVoiceName] = useState('');
   const [status, setStatus] = useState<'대기' | '재생 중' | '성공' | '실패'>('대기');
   const [currentPlaying, setCurrentPlaying] = useState<string | null>(null);
   const [schedules, setSchedules] = useState<StoredSchedule[]>([]);
@@ -99,7 +100,7 @@ export function BroadcastPage() {
     setCurrentPlaying(value);
     const runId = await recordRun(value, scheduledId);
     try {
-      await speakKorean(value);
+      await speakKorean(value, voiceName || undefined);
       await finishRun(runId, true);
       setStatus('성공');
       setCurrentPlaying(null);
@@ -112,38 +113,11 @@ export function BroadcastPage() {
     }
   };
 
-  const playAudio = async (src: string, title: string, scheduledId?: string) => {
-    setStatus('재생 중');
-    setCurrentPlaying(title);
-    const runId = await recordRun(title, scheduledId);
-    try {
-      const audio = new Audio(`${import.meta.env.BASE_URL}${src.replace(/^\//, '')}`);
-      await audio.play();
-      audio.onended = () => {
-        void finishRun(runId, true);
-        setStatus('성공');
-        setCurrentPlaying(null);
-      };
-      audio.onerror = () => {
-        void finishRun(runId, false);
-        void loadFailedRuns();
-        setStatus('실패');
-        setCurrentPlaying(null);
-      };
-    } catch {
-      await finishRun(runId, false);
-      await loadFailedRuns();
-      setStatus('실패');
-      setCurrentPlaying(null);
-    }
-  };
-
   const loadSchedules = async () => {
     if (!supabase) return;
     const { data, error } = await supabase
       .from('scheduled_broadcasts')
       .select('id, message_text, schedule_type, target_time, target_days, target_date, is_enabled')
-      .is('archived_at', null)
       .order('target_time');
     if (error) {
       setScheduleStatus(`예약을 불러오지 못했습니다: ${error.message}`);
@@ -162,29 +136,83 @@ export function BroadcastPage() {
     );
   };
 
+  const loadPresets = async () => {
+    if (!supabase) return;
+    const { data } = await supabase
+      .from('broadcast_presets')
+      .select('id, title, message_text')
+      .eq('store_id', (await supabase.from('stores').select('id').eq('slug', 'snu').single()).data?.id ?? '')
+      .order('created_at');
+    if (data?.length) {
+      setPresets(data.map((preset) => [preset.title, preset.message_text, '편집 가능한 TTS 프리셋', preset.id] as const));
+    }
+  };
+
+  const editPreset = async (title: string, message: string) => {
+    const nextTitle = window.prompt('프리셋 제목', title)?.trim();
+    const nextMessage = window.prompt('방송 문구', message)?.trim();
+    if (!nextTitle || !nextMessage || !supabase) return;
+    const { data: store } = await supabase.from('stores').select('id').eq('slug', 'snu').single();
+    if (!store) return;
+    const { error } = await supabase
+      .from('broadcast_presets')
+      .update({ title: nextTitle, message_text: nextMessage })
+      .eq('store_id', store.id)
+      .eq('title', title);
+    setScheduleStatus(error ? `프리셋을 수정하지 못했습니다: ${error.message}` : '프리셋을 수정했습니다.');
+    if (!error) await loadPresets();
+  };
+
+  const deletePreset = async (title: string) => {
+    if (!supabase || !window.confirm(`'${title}' 프리셋과 연결 예약을 삭제할까요?`)) return;
+    const { data: store } = await supabase.from('stores').select('id').eq('slug', 'snu').single();
+    if (!store) return;
+    const { error } = await supabase
+      .from('broadcast_presets')
+      .delete()
+      .eq('store_id', store.id)
+      .eq('title', title);
+    setScheduleStatus(error ? `프리셋을 삭제하지 못했습니다: ${error.message}` : '프리셋과 연결 예약을 삭제했습니다.');
+    if (!error) {
+      await loadPresets();
+      await loadSchedules();
+      notifyScheduleUpdated();
+    }
+  };
+
+  const createPreset = async () => {
+    if (!supabase) return;
+    const title = window.prompt('새 프리셋 제목')?.trim();
+    const message = window.prompt('방송 문구')?.trim();
+    if (!title || !message) return;
+    const { data: store } = await supabase.from('stores').select('id').eq('slug', 'snu').single();
+    if (!store) return;
+    const { error } = await supabase
+      .from('broadcast_presets')
+      .insert({ store_id: store.id, title, message_text: message });
+    setScheduleStatus(error ? `프리셋을 추가하지 못했습니다: ${error.message}` : '프리셋을 추가했습니다.');
+    if (!error) await loadPresets();
+  };
+
   useEffect(() => {
     const setup = async () => {
-      if (!supabase) return;
-      const { data: store } = await supabase.from('stores').select('id').eq('slug', 'snu').single();
-      const { data: existing } = await supabase.from('scheduled_broadcasts').select('message_text');
-      const missing = timedPresets.filter(
-        (p) => !(existing ?? []).some((item) => item.message_text === p.message_text)
-      );
-      if (store && missing.length) {
-        await supabase.from('scheduled_broadcasts').insert(
-          missing.map((item) => ({
-            ...item,
-            store_id: store.id,
-            schedule_type: 'daily',
-            is_enabled: true,
-          }))
-        );
-        notifyScheduleUpdated();
-      }
       await loadSchedules();
+      await loadPresets();
       void loadFailedRuns();
     };
     void setup();
+  }, []);
+
+  useEffect(() => {
+    if (!('speechSynthesis' in window)) return;
+    const refreshVoices = () => {
+      const names = getKoreanFemaleVoices(window.speechSynthesis.getVoices()).map((voice) => voice.name);
+      setVoiceNames(names);
+      setVoiceName((current) => current || names[0] || '');
+    };
+    refreshVoices();
+    window.speechSynthesis.addEventListener('voiceschanged', refreshVoices);
+    return () => window.speechSynthesis.removeEventListener('voiceschanged', refreshVoices);
   }, []);
 
   const saveSchedule = async (event: FormEvent) => {
@@ -206,6 +234,7 @@ export function BroadcastPage() {
     const { error } = await supabase.from('scheduled_broadcasts').insert({
       store_id: store.id,
       message_text: schedule.message.trim(),
+      broadcast_preset_id: schedule.presetId || null,
       schedule_type: schedule.type,
       target_time: schedule.time,
       target_days: schedule.type === 'weekdays' ? schedule.weekdays : null,
@@ -298,8 +327,27 @@ export function BroadcastPage() {
           <p style={{ margin: '6px 0 0 0', fontSize: '14px', color: '#6B6354', fontWeight: 600 }}>
             PC 브라우저를 열어 두면 등록된 스케줄에 맞춰 매장 스피커로 자동 송출됩니다.
           </p>
+          <label style={{ display: 'block', marginTop: '10px', fontSize: '13px', fontWeight: 800 }}>
+            여성 한국어 음성
+            <select value={voiceName} onChange={(event) => setVoiceName(event.target.value)} style={{ marginLeft: '8px' }}>
+              <option value="">이 PC 기본 한국어 음성 사용</option>
+              {voiceNames.map((name) => <option key={name} value={name}>{name}</option>)}
+            </select>
+          </label>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {status === '재생 중' && (
+            <button
+              type="button"
+              onClick={() => {
+                stopKoreanSpeech();
+                setStatus('대기');
+                setCurrentPlaying(null);
+              }}
+            >
+              방송 중지
+            </button>
+          )}
           <div
             style={{
               display: 'flex',
@@ -372,8 +420,9 @@ export function BroadcastPage() {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: '18px', fontWeight: 900 }}>📻 원클릭 정규 안내 방송</div>
+            <button type="button" onClick={() => void createPreset()}>+ 프리셋 추가</button>
             <span style={{ fontSize: '12px', fontWeight: 800, color: '#8A8175' }}>
-              6종 오디오 프리셋
+              편집 가능한 TTS 프리셋
             </span>
           </div>
 
@@ -384,11 +433,9 @@ export function BroadcastPage() {
               gap: '12px',
             }}
           >
-            {presets.map(([title, src, desc]) => (
-              <button
-                key={src}
-                onClick={() => void playAudio(src, title)}
-                disabled={status === '재생 중'}
+            {presets.map(([title, message, desc]) => (
+              <div
+                key={title}
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
@@ -399,7 +446,6 @@ export function BroadcastPage() {
                   background: '#FFF9EC',
                   border: '2px solid #1E1E1E',
                   borderRadius: '14px',
-                  cursor: status === '재생 중' ? 'not-allowed' : 'pointer',
                   textAlign: 'left',
                   transition: 'all 0.15s ease',
                   opacity: status === '재생 중' ? 0.6 : 1,
@@ -416,14 +462,18 @@ export function BroadcastPage() {
                   <span style={{ fontSize: '15px', fontWeight: 900, color: '#1E1E1E' }}>
                     {title}
                   </span>
-                  <span style={{ fontSize: '14px' }}>🔊</span>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button type="button" onClick={() => void play(message)} disabled={status === '재생 중'}>재생</button>
+                    <button type="button" onClick={() => void editPreset(title, message)}>수정</button>
+                    <button type="button" onClick={() => void deletePreset(title)}>삭제</button>
+                  </div>
                 </div>
                 <span
                   style={{ fontSize: '11px', color: '#8A8175', fontWeight: 600, lineHeight: 1.3 }}
                 >
                   {desc}
                 </span>
-              </button>
+              </div>
             ))}
           </div>
         </div>
@@ -687,6 +737,17 @@ export function BroadcastPage() {
               방송 문구 (프리셋 이름 또는 TTS 전문)
             </label>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <select
+                aria-label="프리셋 선택"
+                value={schedule.presetId}
+                onChange={(event) => {
+                  const preset = presets.find(([, , , id]) => id === event.target.value);
+                  if (preset) setSchedule({ ...schedule, presetId: event.target.value, message: preset[1] });
+                }}
+              >
+                <option value="">프리셋 선택</option>
+                {presets.map(([title, , , id]) => <option key={id ?? title} value={id ?? ''}>{title}</option>)}
+              </select>
               <input
                 required
                 value={schedule.message}
