@@ -2,6 +2,13 @@
 
 개발 과정에서 발생하는 이슈, 데이터 전처리 분석, 성능 최적화 및 트러블슈팅 내역을 체계적으로 기록합니다.
 
+## 2026-09-16 직원 도서 신청 관리의 컬럼·UUID 조회 오류
+
+- **증상**: 직원의 도서 입고 신청 관리 화면에서 `column book_requests.user_comment does not exist` 및 `invalid input syntax for type uuid: ""` 오류가 표시된다.
+- **원인**: `book_requests` 스키마의 코멘트 컬럼은 `customer_comment`인데 화면이 과거 이름인 `user_comment`를 조회했다. 또한 선택 지점 ID를 비동기로 조회하는 첫 렌더에서 아직 준비되지 않은 ID를 빈 문자열로 대체해 UUID 필터에 전달했다. 재고 관리 화면도 같은 빈 UUID 패턴을 사용했다.
+- **수정**: 신청 관리 화면의 조회·표시 필드를 `customer_comment`로 통일했다. 신청·재고 목록은 유효한 지점 UUID가 준비된 뒤에만 쿼리하도록 변경했다.
+- **검증**: `BookRequestsPage` 회귀 테스트가 빈 지점 ID에서는 DB 호출이 발생하지 않고, 유효 ID에서는 `customer_comment` 컬럼과 해당 UUID를 사용하는 것을 확인한다. 전체 테스트·타입 검사·Cloudflare 빌드를 통과해야 한다.
+
 ## 2026-09-16 Cloudflare 직원 페이지 직접 접근 시 404 반복
 
 - **확인 대상**: 문서에 기록된 `https://cartoonplus.pages.dev`. 사용자가 접속한 정확한 주소와 로그인 후 동작은 별도 확인이 필요하다.

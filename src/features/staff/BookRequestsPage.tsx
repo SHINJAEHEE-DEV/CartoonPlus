@@ -8,7 +8,7 @@ interface BookRequestItem {
   title: string;
   author: string | null;
   desired_volume: string | null;
-  user_comment?: string | null;
+  customer_comment?: string | null;
   status: string;
   created_at?: string;
 }
@@ -31,10 +31,14 @@ export function BookRequestsPage() {
 
   const load = async () => {
     if (!supabase) return;
+    if (!selectedStoreId) {
+      setItems([]);
+      return;
+    }
     let query = supabase
       .from('book_requests')
-      .select('id,title,author,desired_volume,user_comment,status,created_at')
-      .eq('store_id', selectedStoreId ?? '')
+      .select('id,title,author,desired_volume,customer_comment,status,created_at')
+      .eq('store_id', selectedStoreId)
       .order('created_at', { ascending: false });
 
     if (statusFilter !== 'all') {
@@ -234,9 +238,9 @@ export function BookRequestsPage() {
                           희망 권수: {item.desired_volume}
                         </div>
                       )}
-                      {item.user_comment && (
+                      {item.customer_comment && (
                         <div style={{ fontSize: '12px', color: '#6B6354', marginTop: '2px' }}>
-                          💬 {item.user_comment}
+                          💬 {item.customer_comment}
                         </div>
                       )}
                     </div>

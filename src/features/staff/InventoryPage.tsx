@@ -35,10 +35,14 @@ export function InventoryPage() {
 
   const load = async () => {
     if (!supabase) return;
+    if (!selectedStoreId) {
+      setItems([]);
+      return;
+    }
     const { data, error } = await supabase
       .from('book_inventories')
       .select('id,volume_range,shelf_location,archived_at,books(title,author,category)')
-      .eq('store_id', selectedStoreId ?? '')
+      .eq('store_id', selectedStoreId)
       .order('updated_at', { ascending: false });
 
     if (error) setMessage(error.message);
