@@ -11,9 +11,10 @@ import {
 import { supabase } from '../../lib/supabase';
 import { Pagination } from '../common/Pagination';
 import { useSelectedStaffStoreId } from './StaffStoreContext';
-import { normalizeBookCategory } from '../../lib/bookSearch';
+import { normalizeBookCategory, splitBookCategories } from '../../lib/bookSearch';
 
 type InventoryBook = { title: string; author: string; category: string };
+const GENRE_OPTIONS = ['소년', '순정', '판타지', 'SF', '액션', '로맨스', '스릴러', '아이, 교육'];
 
 interface InventoryItem {
   id: string;
@@ -25,7 +26,7 @@ interface InventoryItem {
 }
 
 function getBook(item: InventoryItem): InventoryBook | undefined {
-  return Array.isArray(item.books) ? item.books[0] : item.books ?? undefined;
+  return Array.isArray(item.books) ? item.books[0] : (item.books ?? undefined);
 }
 
 export function InventoryPage() {
@@ -40,6 +41,7 @@ export function InventoryPage() {
   const [searchFilter, setSearchFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [genreTags, setGenreTags] = useState<string[]>([]);
 
   const load = async () => {
     if (!supabase) return;
@@ -68,7 +70,7 @@ export function InventoryPage() {
       p_store_id: selectedStoreId,
       p_title: String(form.get('title')),
       p_author: String(form.get('author')),
-      p_category: normalizeBookCategory(String(form.get('category'))),
+      p_category: normalizeBookCategory(genreTags.join(',')),
       p_last_volume: Number(form.get('volume')),
       p_shelf_location: String(form.get('shelf')),
     });
@@ -152,17 +154,15 @@ export function InventoryPage() {
   const filteredItems = useMemo(() => {
     if (!searchFilter) return items;
     const q = searchFilter.toLowerCase();
-    return items.filter(
-      (item) => {
-        const book = getBook(item);
-        return (
-          book?.title.toLowerCase().includes(q) ||
-          book?.author.toLowerCase().includes(q) ||
-          item.volume_range.toLowerCase().includes(q) ||
-          item.shelf_location.toLowerCase().includes(q)
-        );
-      }
-    );
+    return items.filter((item) => {
+      const book = getBook(item);
+      return (
+        book?.title.toLowerCase().includes(q) ||
+        book?.author.toLowerCase().includes(q) ||
+        item.volume_range.toLowerCase().includes(q) ||
+        item.shelf_location.toLowerCase().includes(q)
+      );
+    });
   }, [items, searchFilter]);
 
   // 페이지네이션 슬라이싱
@@ -180,7 +180,7 @@ export function InventoryPage() {
     [items]
   );
   const knownGenres = useMemo(
-    () => [...new Set(knownBooks.flatMap((book) => book.category.split(/[,·/]/u).map((v) => v.trim())))].filter(Boolean),
+    () => [...new Set(knownBooks.flatMap((book) => splitBookCategories(book.category)))],
     [knownBooks]
   );
 
@@ -288,6 +288,14 @@ export function InventoryPage() {
             placeholder="도서명 *"
             required
             list="inventory-book-titles"
+            onChange={(event) => {
+              const match = knownBooks.find((book) => book.title === event.currentTarget.value);
+              if (!match) return;
+              const form = event.currentTarget.form;
+              const author = form?.elements.namedItem('author') as HTMLInputElement | null;
+              if (author) author.value = match.author;
+              setGenreTags(splitBookCategories(match.category));
+            }}
             style={{
               padding: '10px 12px',
               borderRadius: '10px',
@@ -296,7 +304,11 @@ export function InventoryPage() {
             }}
           />
           <datalist id="inventory-book-titles">
-            {knownBooks.map((book) => <option key={`${book.title}-${book.author}`} value={book.title}>{book.author}</option>)}
+            {knownBooks.map((book) => (
+              <option key={`${book.title}-${book.author}`} value={book.title}>
+                {book.author}
+              </option>
+            ))}
           </datalist>
           <input
             name="author"
@@ -309,18 +321,47 @@ export function InventoryPage() {
               fontSize: '13px',
             }}
           />
+          <input type="hidden" name="category" value={genreTags.join(',')} />
           <input
-            name="category"
-            placeholder="장르 (쉼표로 여러 개 입력, 예: 소년,판타지)"
-            list="inventory-genres"
+            placeholder="장르 입력 후 Enter 또는 쉼표"
             style={{
               padding: '10px 12px',
               borderRadius: '10px',
               border: '2px solid #1E1E1E',
               fontSize: '13px',
             }}
+            onKeyDown={(event) => {
+              if (event.key !== 'Enter' && event.key !== ',') return;
+              event.preventDefault();
+              const values = splitBookCategories(event.currentTarget.value);
+              setGenreTags((tags) => [...new Set([...tags, ...values])]);
+              event.currentTarget.value = '';
+            }}
+            list="inventory-genres"
           />
-          <datalist id="inventory-genres">{knownGenres.map((genre) => <option key={genre} value={genre} />)}</datalist>
+          <datalist id="inventory-genres">
+            {[...new Set([...GENRE_OPTIONS, ...knownGenres])].map((genre) => (
+              <option key={genre} value={genre} />
+            ))}
+          </datalist>
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', gridColumn: '1 / -1' }}>
+            {GENRE_OPTIONS.map((genre) => (
+              <button
+                key={genre}
+                type="button"
+                onClick={() =>
+                  setGenreTags((tags) =>
+                    tags.includes(genre) ? tags.filter((tag) => tag !== genre) : [...tags, genre]
+                  )
+                }
+              >
+                {genre}
+              </button>
+            ))}
+            {genreTags.map((genre) => (
+              <span key={genre}>#{genre}</span>
+            ))}
+          </div>
           <input
             name="volume"
             defaultValue={defaultVolume.replace(/\D/g, '')}
@@ -453,7 +494,8 @@ export function InventoryPage() {
                       marginTop: '2px',
                     }}
                   >
-                    {item.last_volume === null ? '권수 확인 필요' : `${item.last_volume}권`} · 서가 위치: {item.shelf_location}
+                    {item.last_volume === null ? '권수 확인 필요' : `${item.last_volume}권`} · 서가
+                    위치: {item.shelf_location}
                   </div>
                 </div>
 
