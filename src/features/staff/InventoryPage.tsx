@@ -11,6 +11,7 @@ import {
 import { supabase } from '../../lib/supabase';
 import { Pagination } from '../common/Pagination';
 import { useSelectedStaffStoreId } from './StaffStoreContext';
+import { normalizeBookCategory } from '../../lib/bookSearch';
 
 type InventoryBook = { title: string; author: string; category: string };
 
@@ -67,7 +68,7 @@ export function InventoryPage() {
       p_store_id: selectedStoreId,
       p_title: String(form.get('title')),
       p_author: String(form.get('author')),
-      p_category: String(form.get('category')),
+      p_category: normalizeBookCategory(String(form.get('category'))),
       p_last_volume: Number(form.get('volume')),
       p_shelf_location: String(form.get('shelf')),
     });
@@ -169,6 +170,19 @@ export function InventoryPage() {
     const start = (currentPage - 1) * pageSize;
     return filteredItems.slice(start, start + pageSize);
   }, [filteredItems, currentPage, pageSize]);
+
+  const knownBooks = useMemo(
+    () =>
+      items
+        .map(getBook)
+        .filter((book): book is InventoryBook => Boolean(book))
+        .sort((a, b) => a.title.localeCompare(b.title, 'ko')),
+    [items]
+  );
+  const knownGenres = useMemo(
+    () => [...new Set(knownBooks.flatMap((book) => book.category.split(/[,·/]/u).map((v) => v.trim())))].filter(Boolean),
+    [knownBooks]
+  );
 
   return (
     <main
@@ -273,6 +287,7 @@ export function InventoryPage() {
             defaultValue={defaultTitle}
             placeholder="도서명 *"
             required
+            list="inventory-book-titles"
             style={{
               padding: '10px 12px',
               borderRadius: '10px',
@@ -280,6 +295,9 @@ export function InventoryPage() {
               fontSize: '13px',
             }}
           />
+          <datalist id="inventory-book-titles">
+            {knownBooks.map((book) => <option key={`${book.title}-${book.author}`} value={book.title}>{book.author}</option>)}
+          </datalist>
           <input
             name="author"
             defaultValue={defaultAuthor}
@@ -293,7 +311,8 @@ export function InventoryPage() {
           />
           <input
             name="category"
-            placeholder="장르 (예: 액션/소년)"
+            placeholder="장르 (쉼표로 여러 개 입력, 예: 소년,판타지)"
+            list="inventory-genres"
             style={{
               padding: '10px 12px',
               borderRadius: '10px',
@@ -301,6 +320,7 @@ export function InventoryPage() {
               fontSize: '13px',
             }}
           />
+          <datalist id="inventory-genres">{knownGenres.map((genre) => <option key={genre} value={genre} />)}</datalist>
           <input
             name="volume"
             defaultValue={defaultVolume.replace(/\D/g, '')}
