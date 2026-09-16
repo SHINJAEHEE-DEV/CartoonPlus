@@ -16,6 +16,7 @@ type InventoryBook = { title: string; author: string; category: string };
 
 interface InventoryItem {
   id: string;
+  last_volume: number | null;
   volume_range: string;
   shelf_location: string;
   archived_at: string | null;
@@ -47,7 +48,7 @@ export function InventoryPage() {
     }
     const { data, error } = await supabase
       .from('book_inventories')
-      .select('id,volume_range,shelf_location,archived_at,books(title,author,category)')
+      .select('id,last_volume,volume_range,shelf_location,archived_at,books(title,author,category)')
       .eq('store_id', selectedStoreId)
       .order('updated_at', { ascending: false });
 
@@ -67,7 +68,7 @@ export function InventoryPage() {
       p_title: String(form.get('title')),
       p_author: String(form.get('author')),
       p_category: String(form.get('category')),
-      p_volume_range: String(form.get('volume')),
+      p_last_volume: Number(form.get('volume')),
       p_shelf_location: String(form.get('shelf')),
     });
     setMessage(error?.message ?? '도서 재고를 저장했습니다.');
@@ -118,7 +119,7 @@ export function InventoryPage() {
         p_title: book.title,
         p_author: book.author,
         p_category: book.category,
-        p_volume_range: book.volumeRange,
+        p_last_volume: Number(/(\d+)[^\d]*$/u.exec(book.volumeRange)?.[1]) || null,
         p_shelf_location: book.shelfLocation,
       };
       const { error } = targetStoreId
@@ -302,8 +303,11 @@ export function InventoryPage() {
           />
           <input
             name="volume"
-            defaultValue={defaultVolume}
-            placeholder="권수 (예: 1~22권) *"
+            defaultValue={defaultVolume.replace(/\D/g, '')}
+            placeholder="마지막 권수 (예: 22)"
+            type="number"
+            min="1"
+            inputMode="numeric"
             required
             style={{
               padding: '10px 12px',
@@ -429,7 +433,7 @@ export function InventoryPage() {
                       marginTop: '2px',
                     }}
                   >
-                    {item.volume_range} · 서가 위치: {item.shelf_location}
+                    {item.last_volume === null ? '권수 확인 필요' : `${item.last_volume}권`} · 서가 위치: {item.shelf_location}
                   </div>
                 </div>
 

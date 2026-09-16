@@ -27,6 +27,7 @@ describe('InventoryPage', () => {
       data: [
         {
           id: 'inventory-1',
+          last_volume: 12,
           volume_range: '1~12권',
           shelf_location: '책장 5번',
           archived_at: null,
