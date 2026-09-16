@@ -2,6 +2,16 @@
 
 개발 과정에서 발생하는 이슈, 데이터 전처리 분석, 성능 최적화 및 트러블슈팅 내역을 체계적으로 기록합니다.
 
+## 2026-09-16 Cloudflare 직원 페이지 직접 접근 시 404 반복
+
+- **확인 대상**: 문서에 기록된 `https://cartoonplus.pages.dev`. 사용자가 접속한 정확한 주소와 로그인 후 동작은 별도 확인이 필요하다.
+- **재현**: `curl -sS -L -o /dev/null -w '%{http_code}\n' https://cartoonplus.pages.dev/staff` → `404`. `/staff/dashboard`도 `404`, 루트 `/`는 `200`이다. 응답 HTML의 스크립트를 Node VM에서 실행해 각각 같은 경로로 `location.replace`하는 것을 확인했다.
+- **원인**: 직원 경로의 정적 HTML 및 rewrite 규칙이 없고, 최상위 `404.html`이 있어 Cloudflare Pages의 기본 SPA fallback이 적용되지 않는다. `public/404.html`은 Cloudflare 호스트에서 현재 URL로 다시 이동하므로 앱을 로드하지 못하고 재요청한다. `scripts/generate-ssg.js`의 `_routes.json`은 Functions 호출 범위 설정이며 SPA rewrite를 제공하지 않는다.
+- **수정**: `public/_redirects`에 `/staff /index.html 200` 및 `/staff/* /index.html 200`을 추가해 직원 경로를 앱 진입점으로 연결했다. 고객 SSG 페이지를 유지하면서 직원 직접 접근·새로고침을 처리하며 별도 서버 도입이 필요 없다. 전체 SPA fallback 복원은 Cloudflare 빌드에서 최상위 `404.html`을 제외하는 대안이다.
+- **완료 기준**: 재배포 후 `/staff`와 `/staff/dashboard`의 HTTP 200 및 앱 HTML 응답, 브라우저의 로그인 화면 표시·승인 계정 로그인·하위 경로 새로고침을 확인한다.
+- **검증/배포**: `npm run build:cloudflare`, 타입 검사, 전체 테스트 57건 및 변경 파일 포맷 검사 통과. 빌드 산출물에 `_redirects` 포함을 확인했다. 로컬 커밋 완료 후 `git push origin main`이 GitHub 인증 부재(`could not read Username`)로 실패하여 운영 배포는 미반영 상태다. GitHub 인증 복구 후 main push → Cloudflare 자동 배포 → 운영 HTTP·브라우저 확인이 필요하다. 실제 승인 계정 로그인은 별도 확인 대상이다.
+- **공식 근거**: [Serving Pages](https://developers.cloudflare.com/pages/configuration/serving-pages/), [Redirects](https://developers.cloudflare.com/pages/configuration/redirects/), [Functions routing](https://developers.cloudflare.com/pages/functions/routing/).
+
 ## 2026-09-14 로컬 지점 URL이 과거 GitHub Pages base 경로로 차단됨
 
 - **증상/재현 조건**: `npm run dev` 상태에서 `http://localhost:5173/stores/jamsil`처럼 루트 지점 URL로 접속하면 Vite가 `/CartoonPlus/` base URL을 요구하며 앱을 제공하지 않는다.
