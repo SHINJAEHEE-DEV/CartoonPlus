@@ -28,7 +28,7 @@ const staffLinks = [
   ['방송', '/staff/broadcast'],
 ] as const;
 
-const STAFF_ENTRY_HOLD_MS = 3000;
+const STAFF_ENTRY_HOLD_MS = 2000;
 
 function Brand({
   allowStaffEntry = false,

@@ -42,7 +42,7 @@ describe('CustomerShell', () => {
     expect(screen.queryByRole('link', { name: '계정 관리' })).toBeNull();
   });
 
-  it('starts staff entry after a three-second pointer or keyboard hold', () => {
+  it('starts staff entry after a two-second pointer or keyboard hold', () => {
     vi.useFakeTimers();
     const onStaffEntry = vi.fn();
     render(
@@ -53,11 +53,11 @@ describe('CustomerShell', () => {
     const logo = screen.getByRole('link', { name: '카툰플러스 홈' });
 
     fireEvent.pointerDown(logo);
-    vi.advanceTimersByTime(3000);
+    vi.advanceTimersByTime(2000);
     expect(onStaffEntry).toHaveBeenCalledOnce();
 
     fireEvent.keyDown(logo, { key: 'Enter' });
-    vi.advanceTimersByTime(3000);
+    vi.advanceTimersByTime(2000);
     expect(onStaffEntry).toHaveBeenCalledTimes(2);
     vi.useRealTimers();
   });
