@@ -2,12 +2,11 @@ import { FormEvent, useEffect, useRef, useState } from 'react';
 import { isKoreanSpeechCancellation, speakKorean, stopKoreanSpeech } from '../../lib/broadcast';
 import { type ScheduledBroadcast } from '../../lib/broadcastSchedule';
 import { supabase } from '../../lib/supabase';
-import { getKoreanFemaleVoices, notifyScheduleUpdated } from '../../lib/broadcastRunner';
+import { notifyScheduleUpdated } from '../../lib/broadcastRunner';
 import { useSelectedStaffStoreId } from './StaffStoreContext';
+import { useBroadcastVoice } from './useBroadcastVoice';
 
 type BroadcastPresetPreview = readonly [string, string, string, string?];
-
-const VOICE_STORAGE_KEY = 'cartoonplus_broadcast_voice';
 
 const initialPresets: BroadcastPresetPreview[] = [
   ['기본', '매장 이용 후 퇴실 시 사용하신 담요, 만화책, 식기 등을 모두 반납해 주시고 쓰레기는 쓰레기통에 버려 주시기 바랍니다.', '매장 이용 에티켓 및 기본 안내'],
@@ -79,14 +78,8 @@ function formatError(err: unknown): string {
 export function BroadcastPage() {
   const [presets, setPresets] = useState(initialPresets);
   const storeId = useSelectedStaffStoreId();
+  const { voiceName, voiceNames, setVoiceName } = useBroadcastVoice();
   const [text, setText] = useState('');
-  const [voiceNames, setVoiceNames] = useState<string[]>([]);
-  const [voiceName, setVoiceName] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem(VOICE_STORAGE_KEY) || '';
-    }
-    return '';
-  });
   const [status, setStatus] = useState<'대기' | '재생 중' | '성공' | '실패'>('대기');
   const [currentPlaying, setCurrentPlaying] = useState<string | null>(null);
   const [schedules, setSchedules] = useState<StoredSchedule[]>([]);
@@ -99,13 +92,6 @@ export function BroadcastPage() {
 
   const scheduleFormRef = useRef<HTMLFormElement>(null);
   const scheduleTypeSelectRef = useRef<HTMLSelectElement>(null);
-
-  const handleVoiceChange = (newVoice: string) => {
-    setVoiceName(newVoice);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(VOICE_STORAGE_KEY, newVoice);
-    }
-  };
 
   const recordRun = async (message: string, scheduledId?: string) => {
     if (!supabase) return;
@@ -308,23 +294,6 @@ export function BroadcastPage() {
     const interval = window.setInterval(() => void loadMissedRuns(), 30_000);
     return () => window.clearInterval(interval);
   }, [storeId]);
-
-  useEffect(() => {
-    if (!('speechSynthesis' in window)) return;
-    const refreshVoices = () => {
-      const names = getKoreanFemaleVoices(window.speechSynthesis.getVoices()).map((voice) => voice.name);
-      setVoiceNames(names);
-      const saved = localStorage.getItem(VOICE_STORAGE_KEY);
-      if (saved && names.includes(saved)) {
-        setVoiceName(saved);
-      } else if (!voiceName && names.length > 0) {
-        setVoiceName(names[0]);
-      }
-    };
-    refreshVoices();
-    window.speechSynthesis.addEventListener('voiceschanged', refreshVoices);
-    return () => window.speechSynthesis.removeEventListener('voiceschanged', refreshVoices);
-  }, [voiceName]);
 
   const saveSchedule = async (event: FormEvent) => {
     event.preventDefault();
@@ -544,7 +513,7 @@ export function BroadcastPage() {
             <select
               aria-label="한국어 음성 선택"
               value={voiceName}
-              onChange={(event) => handleVoiceChange(event.target.value)}
+              onChange={(event) => setVoiceName(event.target.value)}
               style={{
                 padding: '6px 12px',
                 borderRadius: '8px',
