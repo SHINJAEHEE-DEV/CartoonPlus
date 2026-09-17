@@ -18,6 +18,12 @@ const initialPresets: BroadcastPresetPreview[] = [
 
 type StoredSchedule = ScheduledBroadcast & { id: string; message_text: string; presetId?: string };
 type MissedRun = { id: string; message_text: string; triggered_at: string };
+type PresetEditor = {
+  id?: string;
+  title: string;
+  message: string;
+  linkedScheduleCount: number;
+};
 type ScheduleForm = {
   message: string;
   presetId: string;
@@ -59,6 +65,8 @@ export function BroadcastPage() {
   const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
   const [scheduleStatus, setScheduleStatus] = useState('');
   const [missedRuns, setMissedRuns] = useState<MissedRun[]>([]);
+  const [presetEditor, setPresetEditor] = useState<PresetEditor | null>(null);
+  const [isSavingPreset, setIsSavingPreset] = useState(false);
 
   const recordRun = async (message: string, scheduledId?: string) => {
     if (!supabase) return;
@@ -161,26 +169,38 @@ export function BroadcastPage() {
     return count ?? 0;
   };
 
-  const editPreset = async (title: string, message: string, presetId?: string) => {
-    const nextTitle = window.prompt('프리셋 제목', title)?.trim();
-    const nextMessage = window.prompt('방송 문구', message)?.trim();
-    if (!nextTitle || !nextMessage || !supabase) return;
-    const linkedScheduleCount = await countLinkedSchedules(presetId);
-    if (
-      linkedScheduleCount > 0 &&
-      !window.confirm(`문구를 수정하면 연결된 예약 ${linkedScheduleCount}건에도 반영됩니다. 저장할까요?`)
-    )
+  const openPresetEditor = async (preset?: BroadcastPresetPreview) => {
+    const [title = '', message = '', , id] = preset ?? [];
+    setPresetEditor({ title, message, id, linkedScheduleCount: 0 });
+    if (id) {
+      const linkedScheduleCount = await countLinkedSchedules(id);
+      setPresetEditor((current) => (current?.id === id ? { ...current, linkedScheduleCount } : current));
+    }
+  };
+
+  const savePreset = async () => {
+    if (!presetEditor || !supabase || isSavingPreset) return;
+    const title = presetEditor.title.trim();
+    const message = presetEditor.message.trim();
+    if (!title || !message) {
+      setScheduleStatus('프리셋 제목과 방송 문구를 입력해 주세요.');
       return;
+    }
     if (!storeId) return;
-    const update = supabase.from('broadcast_presets').update({ title: nextTitle, message_text: nextMessage });
-    const { error } = presetId
-      ? await update.eq('id', presetId)
-      : await update.eq('store_id', storeId).eq('title', title);
-    setScheduleStatus(error ? `프리셋을 수정하지 못했습니다: ${error.message}` : '프리셋을 수정했습니다.');
-    if (!error) {
-      await loadPresets();
-      await loadSchedules();
-      notifyScheduleUpdated();
+    setIsSavingPreset(true);
+    try {
+      const { error } = presetEditor.id
+        ? await supabase.from('broadcast_presets').update({ title, message_text: message }).eq('id', presetEditor.id)
+        : await supabase.from('broadcast_presets').insert({ store_id: storeId, title, message_text: message });
+      setScheduleStatus(error ? `프리셋을 저장하지 못했습니다: ${error.message}` : '프리셋을 저장했습니다.');
+      if (!error) {
+        await loadPresets();
+        await loadSchedules();
+        notifyScheduleUpdated();
+        setPresetEditor(null);
+      }
+    } finally {
+      setIsSavingPreset(false);
     }
   };
 
@@ -199,19 +219,6 @@ export function BroadcastPage() {
       await loadSchedules();
       notifyScheduleUpdated();
     }
-  };
-
-  const createPreset = async () => {
-    if (!supabase) return;
-    const title = window.prompt('새 프리셋 제목')?.trim();
-    const message = window.prompt('방송 문구')?.trim();
-    if (!title || !message) return;
-    if (!storeId) return;
-    const { error } = await supabase
-      .from('broadcast_presets')
-      .insert({ store_id: storeId, title, message_text: message });
-    setScheduleStatus(error ? `프리셋을 추가하지 못했습니다: ${error.message}` : '프리셋을 추가했습니다.');
-    if (!error) await loadPresets();
   };
 
   useEffect(() => {
@@ -451,7 +458,7 @@ export function BroadcastPage() {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: '18px', fontWeight: 900 }}>📻 원클릭 정규 안내 방송</div>
-            <button type="button" onClick={() => void createPreset()}>+ 프리셋 추가</button>
+            <button type="button" onClick={() => void openPresetEditor()}>+ 프리셋 추가</button>
             <span style={{ fontSize: '12px', fontWeight: 800, color: '#8A8175' }}>
               편집 가능한 TTS 프리셋
             </span>
@@ -495,7 +502,7 @@ export function BroadcastPage() {
                   </span>
                   <div style={{ display: 'flex', gap: '4px' }}>
                     <button type="button" onClick={() => void play(message)} disabled={status === '재생 중'}>재생</button>
-                    <button type="button" onClick={() => void editPreset(title, message, id)}>수정</button>
+                    <button type="button" onClick={() => void openPresetEditor([title, message, desc, id])}>수정</button>
                     <button type="button" onClick={() => void deletePreset(title, id)}>삭제</button>
                   </div>
                 </div>
@@ -980,6 +987,181 @@ export function BroadcastPage() {
           </ul>
         )}
       </div>
+
+      {presetEditor && (
+        <div
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !isSavingPreset) setPresetEditor(null);
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100,
+            display: 'grid',
+            placeItems: 'center',
+            padding: '20px',
+            background: 'rgba(30, 30, 30, 0.55)',
+          }}
+        >
+          <form
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="preset-editor-title"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void savePreset();
+            }}
+            style={{
+              width: 'min(100%, 620px)',
+              maxHeight: 'calc(100vh - 40px)',
+              overflowY: 'auto',
+              padding: '24px',
+              background: '#FFFDF7',
+              border: '2.5px solid #1E1E1E',
+              borderRadius: '18px',
+              boxShadow: '6px 6px 0 #1E1E1E',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: 900, color: '#7A5C00', marginBottom: '5px' }}>TTS 안내 방송</div>
+                <h2 id="preset-editor-title" style={{ margin: 0, fontSize: '22px', lineHeight: 1.25 }}>
+                  {presetEditor.id ? '안내 방송 프리셋 수정' : '새 안내 방송 프리셋'}
+                </h2>
+              </div>
+              <button
+                type="button"
+                aria-label="프리셋 편집 닫기"
+                onClick={() => setPresetEditor(null)}
+                disabled={isSavingPreset}
+                style={{
+                  width: '34px',
+                  height: '34px',
+                  padding: 0,
+                  border: '1.5px solid #1E1E1E',
+                  borderRadius: '50%',
+                  background: '#FFF',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <p style={{ margin: '12px 0 20px', color: '#625B50', fontSize: '13px', lineHeight: 1.55 }}>
+              저장한 문구는 이 지점의 TTS 방송과 예약 방송에서 바로 사용할 수 있습니다.
+            </p>
+
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 900, marginBottom: '7px' }}>
+              프리셋 이름
+              <input
+                autoFocus
+                required
+                maxLength={40}
+                value={presetEditor.title}
+                onChange={(event) => setPresetEditor({ ...presetEditor, title: event.target.value })}
+                placeholder="예: 영업 마감 안내"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  marginTop: '7px',
+                  padding: '12px 14px',
+                  border: '2px solid #1E1E1E',
+                  borderRadius: '10px',
+                  background: '#FFF',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                }}
+              />
+            </label>
+
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 900, marginTop: '18px', marginBottom: '7px' }}>
+              방송 문구
+              <textarea
+                required
+                maxLength={1000}
+                rows={7}
+                value={presetEditor.message}
+                onChange={(event) => setPresetEditor({ ...presetEditor, message: event.target.value })}
+                placeholder="고객에게 들려줄 안내 문구를 입력하세요."
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  marginTop: '7px',
+                  padding: '12px 14px',
+                  border: '2px solid #1E1E1E',
+                  borderRadius: '10px',
+                  background: '#FFF',
+                  resize: 'vertical',
+                  fontSize: '14px',
+                  lineHeight: 1.55,
+                }}
+              />
+            </label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '7px', color: '#756D60', fontSize: '12px', fontWeight: 700 }}>
+              <span>문장이 길면 자연스러운 호흡을 위해 문장 부호를 넣어 주세요.</span>
+              <span>{presetEditor.message.length} / 1000자</span>
+            </div>
+
+            {presetEditor.id && presetEditor.linkedScheduleCount > 0 && (
+              <div
+                style={{
+                  marginTop: '18px',
+                  padding: '12px 14px',
+                  border: '1.5px solid #D79000',
+                  borderRadius: '10px',
+                  background: '#FFF3C9',
+                  color: '#5A4300',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  lineHeight: 1.5,
+                }}
+              >
+                연결된 예약 방송 {presetEditor.linkedScheduleCount}건의 문구도 저장 즉시 함께 변경됩니다.
+              </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap', marginTop: '24px' }}>
+              <button
+                type="button"
+                onClick={() => void play(presetEditor.message)}
+                disabled={!presetEditor.message.trim() || status === '재생 중' || isSavingPreset}
+                style={{
+                  padding: '10px 14px',
+                  border: '2px solid #1E1E1E',
+                  borderRadius: '10px',
+                  background: '#FFF',
+                  fontWeight: 900,
+                  cursor: 'pointer',
+                }}
+              >
+                {status === '재생 중' ? '재생 중…' : '음성 미리 듣기'}
+              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setPresetEditor(null)}
+                  disabled={isSavingPreset}
+                  style={{ padding: '10px 14px', border: '2px solid #1E1E1E', borderRadius: '10px', background: '#FFF', fontWeight: 900, cursor: 'pointer' }}
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingPreset}
+                  style={{ padding: '10px 18px', border: '2px solid #1E1E1E', borderRadius: '10px', background: '#FED943', fontWeight: 900, cursor: 'pointer' }}
+                >
+                  {isSavingPreset ? '저장 중…' : '저장'}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
 
     </div>
   );
