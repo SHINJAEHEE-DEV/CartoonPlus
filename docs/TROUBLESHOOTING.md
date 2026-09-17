@@ -2,6 +2,35 @@
 
 개발 과정에서 발생하는 이슈, 데이터 전처리 분석, 성능 최적화 및 트러블슈팅 내역을 체계적으로 기록합니다.
 
+## 2026-09-17 직원 운영 대시보드 데이터 로딩 실패 ("운영 데이터를 불러오지 못했습니다") 해결
+
+- **증상**: 직원 운영 대시보드(`/staff/dashboard`) 접속 시 "운영 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요." 오류 카드가 표시되며 KPI 통계가 로드되지 않음.
+- **원인**: 대시보드 최근 갱신 도서 조회(`DashboardPage.tsx`)에서 `book_inventories` 테이블을 대상으로 `.is('archived_at', null)` 필터를 호출하고 있었음. 그러나 최근 마이그레이션(`20260917100000_remove_inventory_archives.sql`)에서 `book_inventories` 테이블의 `archived_at` 컬럼이 완전 삭제(`DROP COLUMN`)되었기 때문에 PostgREST에서 400 에러(`column book_inventories.archived_at does not exist`)가 발생하여 대시보드 전체 로딩이 중단됨.
+- **수정**: `src/features/staff/DashboardPage.tsx`에서 `book_inventories` 쿼리의 불필요한 `.is('archived_at', null)` 조건을 제거하고, `DashboardPage.test.tsx` 회귀 테스트를 추가함.
+- **검증**: `npm test` 전체 69개 단위 테스트 통과 및 `npm run build` SSG 프로덕션 빌드 성공 확인.
+
+## 2026-09-17 도서 마스터 및 재고 데이터 동기화 (장르·권수·도서명·작가 반영, 기존 서가 유지)
+
+- **배경/요구사항**: 서울대입구역점(`snu`) 재고 데이터셋에 대해, 기존에 정리된 603종 정제 데이터셋(`public/data/cleaned-inventory.csv` / `docs/BOOK_INVENTORY_CLASSIFICATION_MAPPING.md`)을 기준으로 **도서명, 작가, 11대 표준 장르, 권수(보유권수 및 last_volume)**를 DB에 전면 동기화함.
+- **점진적 서가 동기화 준수**: 실물 도서 이동이 진행 중인 현장 운영 상황을 반영하여, **서가 번호(기존 서가 `책장 N번`)는 유지**하고 메타데이터(이름, 작가, 장르, 권수)만 최신 마스터 데이터로 정합성을 맞춤.
+- **수정 및 처리**:
+  1. `20260917150000_apply_cleaned_inventory_master.sql`: 600개 고유 도서 마스터(`books`)의 도서명, 작가, 표준 장르, 초성 검색 인덱스(`initial_consonants`), 정규화 컬럼을 일괄 갱신하고 `book_inventories`의 권수 범위(`volume_range`), 끝 권수(`last_volume`), 기존 서가(`shelf_location`)를 동기화함.
+  2. `20260917151000_cleanup_legacy_inventory_master.sql`: 과거 작가명 누락 및 표기 차이로 중복 잔존하던 레거시 재고 8건 및 미참조 도서 마스터를 영구 정리함.
+  3. `scripts/import-baseline-inventory.mjs` & `src/lib/inventoryCsv.ts`: `cleaned-inventory.csv`의 한글 헤더 포맷(`도서명`, `보유권수`, `작가`, `목표장르`, `기존서가`)을 파싱하도록 갱신 및 fallback 파일 동기화.
+- **검증**:
+  - Supabase `customer_book_catalogue` 뷰 전수 검증: 601개(정제 600종 + 직원 직접 추가분 1종) 전수 1:1 일치(mismatch: 0건).
+  - 11대 표준 장르 정상 분포 확인 (`웹툰`: 165, `로맨스/로판`: 164, `드라마/스포츠/SF`: 65, `판타지/무협`: 51, `코믹스/그래픽노블`: 41, `일상/개그`: 40, `스릴러/추리/호러`: 37, `액션/모험`: 36, `BL/GL`: 1).
+  - 회귀 테스트 (`npm test`, 66개 전체 통과) 및 프로덕션 빌드/SSG 생성 완료.
+
+## 2026-09-17 스태프 페이지 모바일 뷰포트 레이아웃 깨짐 및 내비게이션 과밀 해결
+
+- **증상**: 모바일 브라우저(폭 860px 이하)에서 스태프 콘솔 접속 시, 좌측 사이드바가 가로 1열 헤더로 강제 전환되며 브랜드 로고, 지점 선택 드롭다운, 7개 메뉴 탭, 계정 관리, 로그아웃 버튼이 겹치거나 화면 상단을 가득 채움. 도서 재고(`InventoryPage`), 입고 신청(`BookRequestsPage`), 매장 콘텐츠(`StoreContentPage`), 방송 콘솔(`BroadcastPage`), 계정 관리(`AdminAccountsPage`)의 단일 라인 Grid/Flex가 좁은 화면에서 찌그러지고 삭제/수정 버튼 터치가 불안정함.
+- **원인**: 데스크톱 중심의 240px 고정 사이드바 및 인라인 Flex 스타일이 적용되어 있었고, 모바일 화면을 위한 별도 드로어(Drawer) 내비게이션 및 반응형 2단 카드 스택 구조가 미비했음.
+- **수정**:
+  1. `StaffShell`에 모바일 전용 컴팩트 상단 헤더(`staff-mobile-header`) 및 우측 슬라이드오버 Drawer(`staff-drawer`)를 구축하여 본문 작업 공간을 최대로 확보함.
+  2. `StaffStoreSelector`에 헤더/드로어 반응형 팝오버를 적용해 z-index 클리핑 문제를 해결함.
+  3. 모든 스태프 페이지 폼을 모바일 1열 풀위드 스택으로 표준화하고, 아이템 목록을 2단 반응형 카드 구조(`staff-item-row`)로 개편하여 터치 타깃 44px 이상을 확보함.
+- **검증**: `npm test` 회귀 테스트(63개 테스트 전체 통과) 및 `npm run build` SSG 프로덕션 빌드 성공. 모바일 뷰포트(360px ~ 768px)에서 드로어 열림/닫힘 및 카드 스택 정상 렌더링 확인.
 
 ## 2026-09-17 방송 및 운영 항목 삭제 설계 점검
 
