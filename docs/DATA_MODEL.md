@@ -28,7 +28,7 @@ erDiagram
 | ---------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `stores`               | 지점 마스터                               | UUID `id`, 고유 `slug`, `name`                                                                       |
 | `books`                | 지점과 독립적인 도서 메타데이터           | `(title, author)` 고유, 검색용 정규화·초성 컬럼, `archived_at`                                       |
-| `book_inventories`     | 지점별 도서 보유 권수·서가                | `(store_id, book_id)` 고유, `volume_range`, `shelf_location`, `first_registered_at`, `archived_at`   |
+| `book_inventories`     | 지점별 도서 보유 권수·서가                | `(store_id, book_id)` 고유, `volume_range`, `shelf_location`, `first_registered_at`; 삭제는 영구 처리 |
 | `staff_accounts`       | Supabase Auth 사용자와 연결된 직원 프로필 | `id`는 `auth.users(id)` FK, `login_id` 고유, 역할 `staff/admin`, 상태 `pending/approved/deactivated` |
 | `book_requests`        | 고객 희망 도서 신청                       | `status`: `received/ordered/completed/unavailable`; 연락처는 저장하지 않음                           |
 | `store_content`        | 지점별 공개 콘텐츠                        | `(store_id, content_key)` 고유, 값은 `jsonb`                                                         |
@@ -36,8 +36,8 @@ erDiagram
 | `store_events`         | 지점별 이벤트                             | 공개 여부, 상시 여부, 기간, 보관 상태                                                                |
 | `menu_items`           | 메뉴·요금                                 | 지점, 카테고리, 가격, 품절·정렬 정보                                                                 |
 | `broadcast_presets`    | 안내 방송 문구                            | 지점 전용 또는 공통(`store_id` NULL)                                                                 |
-| `scheduled_broadcasts` | 예약 방송                                 | 매일·요일·일회성, 활성화·보관 상태                                                                   |
-| `broadcast_runs`       | 방송 실행 감사 기록                       | 예약 참조(선택), `pending/success/failure`, 오류 메시지                                              |
+| `scheduled_broadcasts` | 예약 방송                                 | 매일·요일·일회성, 활성화, 선택적 `broadcast_preset_id`; 삭제는 영구 처리                            |
+| `broadcast_runs`       | 방송 실행 감사 기록                       | 예약 참조(선택, 삭제 시 NULL), `pending/success/failure/missed`, 오류 메시지                         |
 
 ## 접근 제어
 
@@ -56,7 +56,7 @@ RLS가 모든 운영 테이블에서 접근 기준을 강제한다.
 
 서울대입구역점 CSV는 Caspio 형식(`title`, `number`, `genre`, `author`)을 사용한다. 잠실점 CSV는 서가 형식(`a_`, `a___`)으로, 한 `a___` 값의 `//` 묶음을 개별 제목으로 나눈다. 홍대점 CSV는 `a_`(제목 묶음), `a_1`(서가), `a_2`(장르) 형식으로 `//` 또는 권수 뒤에 오며 다음 제목이 숫자로 시작하지 않는 단일 `/` 구분자를 개별 제목으로 나눈다. 제목 자체의 `/`와 괄호 표기는 원문으로 보존한다. 모든 형식에서 끝의 공백+숫자만 권수로 분리해 `1~N권`으로 저장하고 서가 번호를 유지한다. 잠실 형식에서 숫자 뒤 괄호 표기처럼 권수와 제목을 확정할 수 없는 항목은 업로드 전에 운영자 검토 대상으로 중단한다.
 
-가져오기는 인증된 지점 권한을 서버에서 재검증한다. 잠실·홍대 형식은 `upsert_inventory_for_store`의 명시적 대상 Store ID로만 반영하며, 일반 Staff가 다른 지점 데이터를 변경할 수 없다. 같은 지점·같은 도서는 중복 생성하지 않으며, CSV에 없는 기존 재고를 자동 삭제하지 않는다. 보관은 `archived_at`으로 처리한다.
+가져오기는 인증된 지점 권한을 서버에서 재검증한다. 잠실·홍대 형식은 `upsert_inventory_for_store`의 명시적 대상 Store ID로만 반영하며, 일반 Staff가 다른 지점 데이터를 변경할 수 없다. 같은 지점·같은 도서는 중복 생성하지 않으며, CSV에 없는 기존 재고를 자동 삭제하지 않는다.
 
 이번 주 2개 지점 추가 작업의 목표는 **CSV 업로드 성공과 중복 검증**이다. 고객 검색·직원 로그인·현장 표본 확인을 마치면 각 지점의 공개 운영을 승인한다.
 

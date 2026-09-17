@@ -16,6 +16,7 @@ const initialPresets: BroadcastPresetPreview[] = [
 ];
 
 type StoredSchedule = ScheduledBroadcast & { id: string; message_text: string; presetId?: string };
+type MissedRun = { id: string; message_text: string; triggered_at: string };
 type ScheduleForm = {
   message: string;
   presetId: string;
@@ -46,6 +47,7 @@ const dayLabels: Record<string, string> = {
 
 export function BroadcastPage() {
   const [presets, setPresets] = useState(initialPresets);
+  const [storeId, setStoreId] = useState<string | null>(null);
   const [text, setText] = useState('');
   const [voiceNames, setVoiceNames] = useState<string[]>([]);
   const [voiceName, setVoiceName] = useState('');
@@ -55,6 +57,7 @@ export function BroadcastPage() {
   const [schedule, setSchedule] = useState<ScheduleForm>(emptySchedule);
   const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
   const [scheduleStatus, setScheduleStatus] = useState('');
+  const [missedRuns, setMissedRuns] = useState<MissedRun[]>([]);
 
   const recordRun = async (message: string, scheduledId?: string) => {
     if (!supabase) return;
@@ -62,6 +65,7 @@ export function BroadcastPage() {
       .from('broadcast_runs')
       .insert({
         scheduled_broadcast_id: scheduledId ?? null,
+        store_id: storeId,
         message_text: message,
         status: 'pending',
       })
@@ -135,6 +139,23 @@ export function BroadcastPage() {
     }
   };
 
+  const loadStoreId = async () => {
+    if (!supabase) return;
+    const { data } = await supabase.from('stores').select('id').eq('slug', 'snu').single();
+    setStoreId(data?.id ?? null);
+  };
+
+  const loadMissedRuns = async () => {
+    if (!supabase) return;
+    const { data } = await supabase
+      .from('broadcast_runs')
+      .select('id, message_text, triggered_at')
+      .eq('status', 'missed')
+      .order('triggered_at', { ascending: false })
+      .limit(10);
+    setMissedRuns((data ?? []) as MissedRun[]);
+  };
+
   const editPreset = async (title: string, message: string) => {
     const nextTitle = window.prompt('프리셋 제목', title)?.trim();
     const nextMessage = window.prompt('방송 문구', message)?.trim();
@@ -183,8 +204,10 @@ export function BroadcastPage() {
 
   useEffect(() => {
     const setup = async () => {
+      await loadStoreId();
       await loadSchedules();
       await loadPresets();
+      await loadMissedRuns();
     };
     void setup();
   }, []);
@@ -918,6 +941,28 @@ export function BroadcastPage() {
             </div>
           )}
         </div>
+      </div>
+
+      <div
+        style={{
+          background: '#FFF4F4',
+          border: '2px solid #E03131',
+          borderRadius: '16px',
+          padding: '16px 20px',
+        }}
+      >
+        <strong>미실행 예약 방송</strong>
+        {missedRuns.length === 0 ? (
+          <span style={{ marginLeft: '8px', fontSize: '13px' }}>최근 미실행 기록이 없습니다.</span>
+        ) : (
+          <ul style={{ margin: '10px 0 0', paddingLeft: '20px', fontSize: '13px' }}>
+            {missedRuns.map((run) => (
+              <li key={run.id}>
+                {new Date(run.triggered_at).toLocaleString('ko-KR')} · {run.message_text}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
     </div>

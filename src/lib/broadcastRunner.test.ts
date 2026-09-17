@@ -29,6 +29,7 @@ describe('broadcastRunner', () => {
     const schedules = [
       {
         id: 'daily',
+        storeId: 'store-a',
         message_text: '매일 방송',
         scheduleType: 'daily' as const,
         targetTime: '10:01',
@@ -36,6 +37,7 @@ describe('broadcastRunner', () => {
       },
       {
         id: 'weekday',
+        storeId: 'store-a',
         message_text: '월요일 방송',
         scheduleType: 'weekdays' as const,
         targetTime: '10:02',

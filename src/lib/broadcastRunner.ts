@@ -18,6 +18,7 @@ export function getKoreanFemaleVoices(
 
 export type StoredSchedule = ScheduledBroadcast & {
   id: string;
+  storeId: string;
   message_text: string;
 };
 
@@ -46,6 +47,7 @@ export function getSchedulesDueBetween(
 }
 
 export const NOTIFY_SCHEDULE_UPDATE_EVENT = 'cartoonplus_broadcast_schedules_updated';
+const LAST_BROADCAST_CHECK_KEY = 'cartoonplus_last_broadcast_check';
 let playbackQueue = Promise.resolve();
 
 export function notifyScheduleUpdated(): void {
@@ -59,7 +61,7 @@ export async function fetchActiveSchedules(): Promise<StoredSchedule[]> {
   try {
     const { data, error } = await supabase
       .from('scheduled_broadcasts')
-      .select('id, message_text, schedule_type, target_time, target_days, target_date, is_enabled')
+      .select('id, store_id, message_text, schedule_type, target_time, target_days, target_date, is_enabled')
       .eq('is_enabled', true)
       .order('target_time');
 
@@ -67,6 +69,7 @@ export async function fetchActiveSchedules(): Promise<StoredSchedule[]> {
 
     return data.map((item) => ({
       id: item.id,
+      storeId: item.store_id,
       message_text: item.message_text,
       scheduleType: item.schedule_type,
       targetTime: item.target_time.slice(0, 5),
@@ -82,7 +85,8 @@ export async function fetchActiveSchedules(): Promise<StoredSchedule[]> {
 async function recordBroadcastRun(
   message: string,
   scheduledId?: string,
-  status: 'pending' | 'missed' = 'pending'
+  status: 'pending' | 'missed' = 'pending',
+  storeId?: string
 ): Promise<string | undefined> {
   if (!supabase) return undefined;
   try {
@@ -90,6 +94,7 @@ async function recordBroadcastRun(
       .from('broadcast_runs')
       .insert({
         scheduled_broadcast_id: scheduledId ?? null,
+        store_id: storeId ?? null,
         message_text: message,
         status,
       })
@@ -117,17 +122,21 @@ async function finishBroadcastRun(id: string | undefined, success: boolean): Pro
   }
 }
 
-export async function playBroadcast(message: string, scheduledId?: string): Promise<boolean> {
+export async function playBroadcast(
+  message: string,
+  scheduledId?: string,
+  storeId?: string
+): Promise<boolean> {
   const run = async () => {
-  const runId = await recordBroadcastRun(message, scheduledId);
-  try {
-    await speakKorean(message);
-    await finishBroadcastRun(runId, true);
-    return true;
-  } catch {
-    await finishBroadcastRun(runId, false);
-    return false;
-  }
+    const runId = await recordBroadcastRun(message, scheduledId, 'pending', storeId);
+    try {
+      await speakKorean(message);
+      await finishBroadcastRun(runId, true);
+      return true;
+    } catch {
+      await finishBroadcastRun(runId, false);
+      return false;
+    }
   };
 
   const queued = playbackQueue.then(run, run);
@@ -187,6 +196,11 @@ export function useGlobalBroadcastScheduler(): void {
   };
 
   useEffect(() => {
+    const storedCheck = window.localStorage.getItem(LAST_BROADCAST_CHECK_KEY);
+    if (storedCheck) {
+      const parsed = new Date(storedCheck);
+      if (!Number.isNaN(parsed.getTime())) lastCheckedAtRef.current = parsed;
+    }
     void reloadSchedules();
 
     // 1. 스케줄 변경 이벤트 수신 시 즉시 갱신
@@ -207,11 +221,12 @@ export function useGlobalBroadcastScheduler(): void {
           const executionKey = `${item.id}:${now.toISOString().slice(0, 16)}`;
           if (!executedKeysRef.current.has(executionKey)) {
             executedKeysRef.current.add(executionKey);
-            void recordBroadcastRun(item.message_text, item.id, 'missed');
+            void recordBroadcastRun(item.message_text, item.id, 'missed', item.storeId);
           }
         }
       }
       lastCheckedAtRef.current = now;
+      window.localStorage.setItem(LAST_BROADCAST_CHECK_KEY, now.toISOString());
 
       for (const item of schedulesRef.current) {
         const executionKey = `${item.id}:${currentMinuteKey}`;
@@ -219,7 +234,7 @@ export function useGlobalBroadcastScheduler(): void {
 
         if (isDue(item, now)) {
           executedKeysRef.current.add(executionKey);
-          void playBroadcast(item.message_text, item.id);
+          void playBroadcast(item.message_text, item.id, item.storeId);
         }
       }
     });
