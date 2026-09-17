@@ -225,9 +225,10 @@ export function BroadcastPage() {
   }, [storeId]);
 
   useEffect(() => {
+    if (!storeId) return;
     const interval = window.setInterval(() => void loadMissedRuns(), 30_000);
     return () => window.clearInterval(interval);
-  }, []);
+  }, [storeId]);
 
   useEffect(() => {
     if (!('speechSynthesis' in window)) return;
