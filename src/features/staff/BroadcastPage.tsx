@@ -74,15 +74,11 @@ export function BroadcastPage() {
     return data?.id as string | undefined;
   };
 
-  const finishRun = async (id: string | undefined, success: boolean) => {
+  const finishRun = async (id: string | undefined, status: 'success' | 'failure' | 'cancelled') => {
     if (id && supabase) {
       await supabase
         .from('broadcast_runs')
-        .update(
-          success
-            ? { status: 'success' }
-            : { status: 'failure', error_message: '브라우저 음성 재생 실패' }
-        )
+        .update(status === 'failure' ? { status, error_message: '브라우저 음성 재생 실패' } : { status })
         .eq('id', id);
     }
   };
@@ -93,12 +89,13 @@ export function BroadcastPage() {
     const runId = await recordRun(value, scheduledId);
     try {
       await speakKorean(value, voiceName || undefined);
-      await finishRun(runId, true);
+      await finishRun(runId, 'success');
       setStatus('성공');
       setCurrentPlaying(null);
     } catch (error) {
-      await finishRun(runId, false);
-      setStatus(isKoreanSpeechCancellation(error) ? '대기' : '실패');
+      const cancelled = isKoreanSpeechCancellation(error);
+      await finishRun(runId, cancelled ? 'cancelled' : 'failure');
+      setStatus(cancelled ? '대기' : '실패');
       setCurrentPlaying(null);
     }
   };
@@ -210,6 +207,11 @@ export function BroadcastPage() {
       await loadMissedRuns();
     };
     void setup();
+  }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => void loadMissedRuns(), 30_000);
+    return () => window.clearInterval(interval);
   }, []);
 
   useEffect(() => {

@@ -54,4 +54,27 @@ describe('broadcastRunner', () => {
       ).map((item) => item.id)
     ).toEqual(['daily', 'weekday']);
   });
+
+  it('keeps each missed occurrence of one schedule distinct', () => {
+    const due = getSchedulesDueBetween(
+      [
+        {
+          id: 'daily',
+          storeId: 'store-a',
+          message_text: '매일 방송',
+          scheduleType: 'daily',
+          targetTime: '10:00',
+          isEnabled: true,
+        },
+      ],
+      new Date('2026-09-14T09:59:00'),
+      new Date('2026-09-16T10:01:00')
+    );
+
+    expect(due.map((item) => item.dueAt.toISOString())).toEqual([
+      '2026-09-14T01:00:00.000Z',
+      '2026-09-15T01:00:00.000Z',
+      '2026-09-16T01:00:00.000Z',
+    ]);
+  });
 });

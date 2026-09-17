@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { speakKorean } from './broadcast';
+import { isKoreanSpeechCancellation, speakKorean } from './broadcast';
 import { isDue, type ScheduledBroadcast } from './broadcastSchedule';
 import { supabase } from './supabase';
 
 const WINDOWS_FEMALE_VOICE_NAMES = ['SunHi', 'Heami'];
+export type BroadcastRunStatus = 'pending' | 'success' | 'failure' | 'missed' | 'cancelled';
 
 /** Returns the supported Windows female Korean voices that this browser can actually use. */
 export function getKoreanFemaleVoices(
@@ -27,8 +28,8 @@ export function getSchedulesDueBetween(
   schedules: readonly StoredSchedule[],
   previousCheck: Date,
   currentCheck: Date
-): StoredSchedule[] {
-  const due: StoredSchedule[] = [];
+): Array<StoredSchedule & { dueAt: Date }> {
+  const due: Array<StoredSchedule & { dueAt: Date }> = [];
   const cursor = new Date(previousCheck);
   cursor.setSeconds(0, 0);
   cursor.setMinutes(cursor.getMinutes() + 1);
@@ -38,7 +39,7 @@ export function getSchedulesDueBetween(
 
   while (cursor < currentMinute) {
     for (const schedule of schedules) {
-      if (isDue(schedule, cursor)) due.push(schedule);
+      if (isDue(schedule, cursor)) due.push({ ...schedule, dueAt: new Date(cursor) });
     }
     cursor.setMinutes(cursor.getMinutes() + 1);
   }
@@ -49,6 +50,20 @@ export function getSchedulesDueBetween(
 export const NOTIFY_SCHEDULE_UPDATE_EVENT = 'cartoonplus_broadcast_schedules_updated';
 const LAST_BROADCAST_CHECK_KEY = 'cartoonplus_last_broadcast_check';
 let playbackQueue = Promise.resolve();
+
+function createPlaybackTabId(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
+  return `broadcast-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+async function claimPlaybackLease(storeId: string, tabId: string): Promise<boolean> {
+  if (!supabase) return false;
+  const { data, error } = await supabase.rpc('claim_broadcast_playback_lease', {
+    p_store_id: storeId,
+    p_tab_id: tabId,
+  });
+  return !error && data === true;
+}
 
 export function notifyScheduleUpdated(): void {
   if (typeof window !== 'undefined') {
@@ -85,8 +100,9 @@ export async function fetchActiveSchedules(): Promise<StoredSchedule[]> {
 async function recordBroadcastRun(
   message: string,
   scheduledId?: string,
-  status: 'pending' | 'missed' = 'pending',
-  storeId?: string
+  status: Extract<BroadcastRunStatus, 'pending' | 'missed'> = 'pending',
+  storeId?: string,
+  triggeredAt?: Date
 ): Promise<string | undefined> {
   if (!supabase) return undefined;
   try {
@@ -97,6 +113,7 @@ async function recordBroadcastRun(
         store_id: storeId ?? null,
         message_text: message,
         status,
+        ...(triggeredAt ? { triggered_at: triggeredAt.toISOString() } : {}),
       })
       .select('id')
       .single();
@@ -106,16 +123,15 @@ async function recordBroadcastRun(
   }
 }
 
-async function finishBroadcastRun(id: string | undefined, success: boolean): Promise<void> {
+async function finishBroadcastRun(
+  id: string | undefined,
+  status: Extract<BroadcastRunStatus, 'success' | 'failure' | 'cancelled'>
+): Promise<void> {
   if (!id || !supabase) return;
   try {
     await supabase
       .from('broadcast_runs')
-      .update(
-        success
-          ? { status: 'success' }
-          : { status: 'failure', error_message: '브라우저 음성 재생 실패' }
-      )
+      .update(status === 'failure' ? { status, error_message: '브라우저 음성 재생 실패' } : { status })
       .eq('id', id);
   } catch {
     // ignore
@@ -131,10 +147,10 @@ export async function playBroadcast(
     const runId = await recordBroadcastRun(message, scheduledId, 'pending', storeId);
     try {
       await speakKorean(message);
-      await finishBroadcastRun(runId, true);
+      await finishBroadcastRun(runId, 'success');
       return true;
-    } catch {
-      await finishBroadcastRun(runId, false);
+    } catch (error) {
+      await finishBroadcastRun(runId, isKoreanSpeechCancellation(error) ? 'cancelled' : 'failure');
       return false;
     }
   };
@@ -189,6 +205,7 @@ export function useGlobalBroadcastScheduler(): void {
   const schedulesRef = useRef<StoredSchedule[]>([]);
   const executedKeysRef = useRef<Set<string>>(new Set());
   const lastCheckedAtRef = useRef<Date | null>(null);
+  const playbackTabIdRef = useRef(createPlaybackTabId());
 
   const reloadSchedules = async () => {
     const data = await fetchActiveSchedules();
@@ -196,10 +213,14 @@ export function useGlobalBroadcastScheduler(): void {
   };
 
   useEffect(() => {
-    const storedCheck = window.localStorage.getItem(LAST_BROADCAST_CHECK_KEY);
-    if (storedCheck) {
-      const parsed = new Date(storedCheck);
-      if (!Number.isNaN(parsed.getTime())) lastCheckedAtRef.current = parsed;
+    try {
+      const storedCheck = typeof window !== 'undefined' && window.localStorage ? window.localStorage.getItem(LAST_BROADCAST_CHECK_KEY) : null;
+      if (storedCheck) {
+        const parsed = new Date(storedCheck);
+        if (!Number.isNaN(parsed.getTime())) lastCheckedAtRef.current = parsed;
+      }
+    } catch {
+      // Ignore storage errors in restricted/test environments
     }
     void reloadSchedules();
 
@@ -211,17 +232,19 @@ export function useGlobalBroadcastScheduler(): void {
     const resyncInterval = setInterval(() => void reloadSchedules(), 30 * 60 * 1000);
 
     // 3. Web Worker 기반 정밀 백그라운드 타이머 (10초 주기)
-    const stopWorker = createBroadcastTimerWorker(() => {
+    const tick = async () => {
       const now = new Date();
       const currentMinuteKey = now.toISOString().slice(0, 16);
 
       const previousCheck = lastCheckedAtRef.current;
       if (previousCheck && now.getTime() - previousCheck.getTime() > 70_000) {
         for (const item of getSchedulesDueBetween(schedulesRef.current, previousCheck, now)) {
-          const executionKey = `${item.id}:${now.toISOString().slice(0, 16)}`;
+          const executionKey = `${item.id}:${item.dueAt.toISOString().slice(0, 16)}`;
           if (!executedKeysRef.current.has(executionKey)) {
-            executedKeysRef.current.add(executionKey);
-            void recordBroadcastRun(item.message_text, item.id, 'missed', item.storeId);
+            if (await claimPlaybackLease(item.storeId, playbackTabIdRef.current)) {
+              executedKeysRef.current.add(executionKey);
+              void recordBroadcastRun(item.message_text, item.id, 'missed', item.storeId, item.dueAt);
+            }
           }
         }
       }
@@ -233,11 +256,14 @@ export function useGlobalBroadcastScheduler(): void {
         if (executedKeysRef.current.has(executionKey)) continue;
 
         if (isDue(item, now)) {
-          executedKeysRef.current.add(executionKey);
-          void playBroadcast(item.message_text, item.id, item.storeId);
+          if (await claimPlaybackLease(item.storeId, playbackTabIdRef.current)) {
+            executedKeysRef.current.add(executionKey);
+            void playBroadcast(item.message_text, item.id, item.storeId);
+          }
         }
       }
-    });
+    };
+    const stopWorker = createBroadcastTimerWorker(() => void tick());
 
     return () => {
       window.removeEventListener(NOTIFY_SCHEDULE_UPDATE_EVENT, handleUpdate);

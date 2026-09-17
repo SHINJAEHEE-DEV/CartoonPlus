@@ -37,7 +37,8 @@ erDiagram
 | `menu_items`           | 메뉴·요금                                 | 지점, 카테고리, 가격, 품절·정렬 정보                                                                 |
 | `broadcast_presets`    | 안내 방송 문구                            | 지점 전용 또는 공통(`store_id` NULL)                                                                 |
 | `scheduled_broadcasts` | 예약 방송                                 | 매일·요일·일회성, 활성화, 선택적 `broadcast_preset_id`; 삭제는 영구 처리                            |
-| `broadcast_runs`       | 방송 실행 감사 기록                       | 예약 참조(선택, 삭제 시 NULL), `pending/success/failure/missed`, 오류 메시지                         |
+| `broadcast_runs`       | 방송 실행 감사 기록                       | 예약 참조(선택, 삭제 시 NULL), `pending/success/failure/missed/cancelled`, 오류 메시지               |
+| `broadcast_playback_leases` | 방송 담당 탭 임대                    | 지점당 한 행, 탭 식별자와 30초 만료 시각으로 중복 송출 방지                                         |
 
 ## 접근 제어
 
