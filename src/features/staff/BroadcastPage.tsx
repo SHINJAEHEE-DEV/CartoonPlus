@@ -61,11 +61,14 @@ export function BroadcastPage() {
 
   const recordRun = async (message: string, scheduledId?: string) => {
     if (!supabase) return;
+    const targetStoreId =
+      storeId ?? (await supabase.from('stores').select('id').eq('slug', 'snu').single()).data?.id ?? null;
+    if (!targetStoreId) return;
     const { data } = await supabase
       .from('broadcast_runs')
       .insert({
         scheduled_broadcast_id: scheduledId ?? null,
-        store_id: storeId,
+        store_id: targetStoreId,
         message_text: message,
         status: 'pending',
       })

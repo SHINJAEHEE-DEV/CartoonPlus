@@ -206,6 +206,7 @@ export function useGlobalBroadcastScheduler(): void {
   const executedKeysRef = useRef<Set<string>>(new Set());
   const lastCheckedAtRef = useRef<Date | null>(null);
   const playbackTabIdRef = useRef(createPlaybackTabId());
+  const tickInFlightRef = useRef(false);
 
   const reloadSchedules = async () => {
     const data = await fetchActiveSchedules();
@@ -233,6 +234,9 @@ export function useGlobalBroadcastScheduler(): void {
 
     // 3. Web Worker 기반 정밀 백그라운드 타이머 (10초 주기)
     const tick = async () => {
+      if (tickInFlightRef.current) return;
+      tickInFlightRef.current = true;
+      try {
       const now = new Date();
       const currentMinuteKey = now.toISOString().slice(0, 16);
 
@@ -261,6 +265,9 @@ export function useGlobalBroadcastScheduler(): void {
             void playBroadcast(item.message_text, item.id, item.storeId);
           }
         }
+      }
+      } finally {
+        tickInFlightRef.current = false;
       }
     };
     const stopWorker = createBroadcastTimerWorker(() => void tick());
