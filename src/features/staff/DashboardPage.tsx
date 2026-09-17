@@ -36,8 +36,7 @@ export function DashboardPage() {
         .from('scheduled_broadcasts')
         .select('schedule_type,target_date,target_days')
         .eq('store_id', selectedStoreId)
-        .eq('is_enabled', true)
-        .is('archived_at', null),
+        .eq('is_enabled', true),
       supabase
         .from('book_inventories')
         .select('updated_at,books(title)')

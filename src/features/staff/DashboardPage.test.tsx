@@ -78,6 +78,12 @@ describe('DashboardPage', () => {
       expect(fromMock).toHaveBeenCalledWith('book_inventories');
     });
 
+    // Verify scheduled_broadcasts query did not call .is('archived_at', null)
+    expect(broadcastsQuery.select).toHaveBeenCalledWith('schedule_type,target_date,target_days');
+    expect(broadcastsQuery.eq).toHaveBeenCalledWith('store_id', selectedStoreId.value);
+    expect(broadcastsQuery.eq).toHaveBeenCalledWith('is_enabled', true);
+    expect(broadcastsQuery.is).not.toHaveBeenCalled();
+
     // Verify inventory query did not call .is('archived_at', null)
     expect(inventoryQuery.select).toHaveBeenCalledWith('updated_at,books(title)');
     expect(inventoryQuery.eq).toHaveBeenCalledWith('store_id', selectedStoreId.value);
