@@ -156,30 +156,49 @@ export function BroadcastPage() {
     setMissedRuns((data ?? []) as MissedRun[]);
   };
 
-  const editPreset = async (title: string, message: string) => {
+  const countLinkedSchedules = async (presetId?: string): Promise<number> => {
+    if (!supabase || !presetId) return 0;
+    const { count } = await supabase
+      .from('scheduled_broadcasts')
+      .select('id', { count: 'exact', head: true })
+      .eq('broadcast_preset_id', presetId);
+    return count ?? 0;
+  };
+
+  const editPreset = async (title: string, message: string, presetId?: string) => {
     const nextTitle = window.prompt('프리셋 제목', title)?.trim();
     const nextMessage = window.prompt('방송 문구', message)?.trim();
     if (!nextTitle || !nextMessage || !supabase) return;
+    const linkedScheduleCount = await countLinkedSchedules(presetId);
+    if (
+      linkedScheduleCount > 0 &&
+      !window.confirm(`문구를 수정하면 연결된 예약 ${linkedScheduleCount}건에도 반영됩니다. 저장할까요?`)
+    )
+      return;
     const { data: store } = await supabase.from('stores').select('id').eq('slug', 'snu').single();
     if (!store) return;
-    const { error } = await supabase
-      .from('broadcast_presets')
-      .update({ title: nextTitle, message_text: nextMessage })
-      .eq('store_id', store.id)
-      .eq('title', title);
+    const update = supabase.from('broadcast_presets').update({ title: nextTitle, message_text: nextMessage });
+    const { error } = presetId
+      ? await update.eq('id', presetId)
+      : await update.eq('store_id', store.id).eq('title', title);
     setScheduleStatus(error ? `프리셋을 수정하지 못했습니다: ${error.message}` : '프리셋을 수정했습니다.');
-    if (!error) await loadPresets();
+    if (!error) {
+      await loadPresets();
+      await loadSchedules();
+      notifyScheduleUpdated();
+    }
   };
 
-  const deletePreset = async (title: string) => {
-    if (!supabase || !window.confirm(`'${title}' 프리셋과 연결 예약을 삭제할까요?`)) return;
+  const deletePreset = async (title: string, presetId?: string) => {
+    if (!supabase) return;
+    const linkedScheduleCount = await countLinkedSchedules(presetId);
+    if (!window.confirm(`'${title}' 프리셋과 연결 예약 ${linkedScheduleCount}건을 삭제할까요?`)) return;
     const { data: store } = await supabase.from('stores').select('id').eq('slug', 'snu').single();
     if (!store) return;
-    const { error } = await supabase
-      .from('broadcast_presets')
-      .delete()
-      .eq('store_id', store.id)
-      .eq('title', title);
+    const deletion = supabase.from('broadcast_presets').delete();
+    const { error } = presetId
+      ? await deletion.eq('id', presetId)
+      : await deletion.eq('store_id', store.id).eq('title', title);
     setScheduleStatus(error ? `프리셋을 삭제하지 못했습니다: ${error.message}` : '프리셋과 연결 예약을 삭제했습니다.');
     if (!error) {
       await loadPresets();
@@ -453,7 +472,7 @@ export function BroadcastPage() {
               gap: '12px',
             }}
           >
-            {presets.map(([title, message, desc]) => (
+            {presets.map(([title, message, desc, id]) => (
               <div
                 key={title}
                 style={{
@@ -484,8 +503,8 @@ export function BroadcastPage() {
                   </span>
                   <div style={{ display: 'flex', gap: '4px' }}>
                     <button type="button" onClick={() => void play(message)} disabled={status === '재생 중'}>재생</button>
-                    <button type="button" onClick={() => void editPreset(title, message)}>수정</button>
-                    <button type="button" onClick={() => void deletePreset(title)}>삭제</button>
+                    <button type="button" onClick={() => void editPreset(title, message, id)}>수정</button>
+                    <button type="button" onClick={() => void deletePreset(title, id)}>삭제</button>
                   </div>
                 </div>
                 <span
