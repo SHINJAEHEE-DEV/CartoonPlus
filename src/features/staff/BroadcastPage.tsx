@@ -3,6 +3,7 @@ import { isKoreanSpeechCancellation, speakKorean, stopKoreanSpeech } from '../..
 import { type ScheduledBroadcast } from '../../lib/broadcastSchedule';
 import { supabase } from '../../lib/supabase';
 import { getKoreanFemaleVoices, notifyScheduleUpdated } from '../../lib/broadcastRunner';
+import { useSelectedStaffStoreId } from './StaffStoreContext';
 
 type BroadcastPresetPreview = readonly [string, string, string, string?];
 
@@ -47,7 +48,7 @@ const dayLabels: Record<string, string> = {
 
 export function BroadcastPage() {
   const [presets, setPresets] = useState(initialPresets);
-  const [storeId, setStoreId] = useState<string | null>(null);
+  const storeId = useSelectedStaffStoreId();
   const [text, setText] = useState('');
   const [voiceNames, setVoiceNames] = useState<string[]>([]);
   const [voiceName, setVoiceName] = useState('');
@@ -61,14 +62,12 @@ export function BroadcastPage() {
 
   const recordRun = async (message: string, scheduledId?: string) => {
     if (!supabase) return;
-    const targetStoreId =
-      storeId ?? (await supabase.from('stores').select('id').eq('slug', 'snu').single()).data?.id ?? null;
-    if (!targetStoreId) return;
+    if (!storeId) return;
     const { data } = await supabase
       .from('broadcast_runs')
       .insert({
         scheduled_broadcast_id: scheduledId ?? null,
-        store_id: targetStoreId,
+        store_id: storeId,
         message_text: message,
         status: 'pending',
       })
@@ -130,22 +129,15 @@ export function BroadcastPage() {
 
   const loadPresets = async () => {
     if (!supabase) return;
+    if (!storeId) return;
     const { data } = await supabase
       .from('broadcast_presets')
       .select('id, title, message_text')
-      .eq('store_id', (await supabase.from('stores').select('id').eq('slug', 'snu').single()).data?.id ?? '')
+      .eq('store_id', storeId)
       .order('created_at');
     if (data?.length) {
       setPresets(data.map((preset) => [preset.title, preset.message_text, '편집 가능한 TTS 프리셋', preset.id] as const));
     }
-  };
-
-  const loadStoreId = async (): Promise<string | null> => {
-    if (!supabase) return null;
-    const { data } = await supabase.from('stores').select('id').eq('slug', 'snu').single();
-    const id = data?.id ?? null;
-    setStoreId(id);
-    return id;
   };
 
   const loadMissedRuns = async (targetStoreId = storeId) => {
@@ -179,12 +171,11 @@ export function BroadcastPage() {
       !window.confirm(`문구를 수정하면 연결된 예약 ${linkedScheduleCount}건에도 반영됩니다. 저장할까요?`)
     )
       return;
-    const { data: store } = await supabase.from('stores').select('id').eq('slug', 'snu').single();
-    if (!store) return;
+    if (!storeId) return;
     const update = supabase.from('broadcast_presets').update({ title: nextTitle, message_text: nextMessage });
     const { error } = presetId
       ? await update.eq('id', presetId)
-      : await update.eq('store_id', store.id).eq('title', title);
+      : await update.eq('store_id', storeId).eq('title', title);
     setScheduleStatus(error ? `프리셋을 수정하지 못했습니다: ${error.message}` : '프리셋을 수정했습니다.');
     if (!error) {
       await loadPresets();
@@ -197,12 +188,11 @@ export function BroadcastPage() {
     if (!supabase) return;
     const linkedScheduleCount = await countLinkedSchedules(presetId);
     if (!window.confirm(`'${title}' 프리셋과 연결 예약 ${linkedScheduleCount}건을 삭제할까요?`)) return;
-    const { data: store } = await supabase.from('stores').select('id').eq('slug', 'snu').single();
-    if (!store) return;
+    if (!storeId) return;
     const deletion = supabase.from('broadcast_presets').delete();
     const { error } = presetId
       ? await deletion.eq('id', presetId)
-      : await deletion.eq('store_id', store.id).eq('title', title);
+      : await deletion.eq('store_id', storeId).eq('title', title);
     setScheduleStatus(error ? `프리셋을 삭제하지 못했습니다: ${error.message}` : '프리셋과 연결 예약을 삭제했습니다.');
     if (!error) {
       await loadPresets();
@@ -216,24 +206,23 @@ export function BroadcastPage() {
     const title = window.prompt('새 프리셋 제목')?.trim();
     const message = window.prompt('방송 문구')?.trim();
     if (!title || !message) return;
-    const { data: store } = await supabase.from('stores').select('id').eq('slug', 'snu').single();
-    if (!store) return;
+    if (!storeId) return;
     const { error } = await supabase
       .from('broadcast_presets')
-      .insert({ store_id: store.id, title, message_text: message });
+      .insert({ store_id: storeId, title, message_text: message });
     setScheduleStatus(error ? `프리셋을 추가하지 못했습니다: ${error.message}` : '프리셋을 추가했습니다.');
     if (!error) await loadPresets();
   };
 
   useEffect(() => {
     const setup = async () => {
-      const targetStoreId = await loadStoreId();
-      await loadSchedules(targetStoreId);
+      if (!storeId) return;
+      await loadSchedules(storeId);
       await loadPresets();
-      await loadMissedRuns(targetStoreId);
+      await loadMissedRuns(storeId);
     };
     void setup();
-  }, []);
+  }, [storeId]);
 
   useEffect(() => {
     const interval = window.setInterval(() => void loadMissedRuns(), 30_000);
@@ -259,17 +248,12 @@ export function BroadcastPage() {
       return;
     }
     setScheduleStatus('저장 중...');
-    const { data: store, error: storeError } = await supabase
-      .from('stores')
-      .select('id')
-      .eq('slug', 'snu')
-      .single();
-    if (storeError || !store) {
-      setScheduleStatus('서울대입구역점 정보를 찾을 수 없습니다.');
+    if (!storeId) {
+      setScheduleStatus('지점 정보를 불러오는 중입니다.');
       return;
     }
     const values = {
-      store_id: store.id,
+      store_id: storeId,
       message_text: schedule.message.trim(),
       broadcast_preset_id:
         presets.find((preset) => preset[3] === schedule.presetId)?.[1] === schedule.message.trim()
