@@ -1,62 +1,89 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { useSelectedStaffStoreId } from './StaffStoreContext';
+import { useSelectedStaffStoreId, useStaffStore } from './StaffStoreContext';
+import { publicStoreList, type StoreSlug } from '../../lib/storeContext';
 import {
   PRICE_PACKAGES as INITIAL_PRICE_PACKAGES,
   BEVERAGE_ITEMS as INITIAL_BEVERAGE_ITEMS,
   FOOD_ITEMS as INITIAL_FOOD_ITEMS,
+  normalizeBeverageCategory,
   type PricePackage,
   type BeverageItem,
   type MenuItem,
 } from '../customer/menuData';
 
+function getDefaultStoreInfo(slug: StoreSlug) {
+  if (slug === 'jamsil') {
+    return {
+      address: '서울특별시 송파구 백제고분로9길 23, 2층 (잠실동)',
+      phone: '02-423-9588',
+      hours: '월~목 10:00–23:00 / 금 10:00–24:00 / 토 24시간 / 일 00:00–23:00',
+      parking: '주변 공영 주차장 및 매장 문의',
+      directions: '지하철 2호선 잠실새내역 4번 출구에서 도보 5분.',
+    };
+  }
+  if (slug === 'hongdae') {
+    return {
+      address: '서울특별시 마포구 양화로16길 29 (서교동) 홍익몰 지하 1층',
+      phone: '02-337-6588',
+      hours: '24시간 영업 · 연중무휴 정상 영업',
+      parking: '홍익몰 건물 주차장 이용 가능',
+      directions: '지하철 2호선·공항철도 홍대입구역 9번 출구에서 도보 5분.',
+    };
+  }
+  return {
+    address: '서울특별시 관악구 관악로 155, 3층 (봉천동 856-5 대우디오슈페리움 1단지)',
+    phone: '02-888-0852',
+    hours: '매일 10:00 – 23:00 (연중무휴, 공휴일·명절 정상 영업)',
+    parking: '건물 지하 주차장 이용 가능 (이용 시 카운터 문의)',
+    directions: '지하철 2호선 서울대입구역 3번 출구에서 도보 1~2분 직진. 1층 빽다방·올리브영 건물 3층.',
+  };
+}
+
 export function StoreContentPage() {
   const selectedStoreId = useSelectedStaffStoreId();
+  const { selectedStoreSlug } = useStaffStore();
+  const currentStore =
+    publicStoreList.find((s) => s.slug === selectedStoreSlug) ?? publicStoreList[0];
+
   const [activeTab, setActiveTab] = useState<'packages' | 'beverages' | 'foods' | 'info'>('info');
   const [message, setMessage] = useState('');
 
-  const [storeInfo, setStoreInfo] = useState(() => {
-    const saved = localStorage.getItem('cp_store_info');
-    return saved
-      ? JSON.parse(saved)
-      : {
-          address: '서울특별시 관악구 관악로 155, 3층 (봉천동 856-5 대우디오슈페리움 1단지)',
-          phone: '02-888-0852',
-          hours: '매일 10:00 – 23:00 (연중무휴, 공휴일·명절 정상 영업)',
-          parking: '건물 지하 주차장 이용 가능 (이용 시 카운터 문의)',
-          directions:
-            '지하철 2호선 서울대입구역 3번 출구에서 도보 1~2분 직진. 1층 빽다방·올리브영 건물 3층.',
-        };
-  });
-
-  // 1. 요금제 상태
-  const [packages, setPackages] = useState<PricePackage[]>(() => {
-    const saved = localStorage.getItem('cp_price_packages');
-    return saved ? JSON.parse(saved) : INITIAL_PRICE_PACKAGES;
-  });
-
-  // 2. 음료 메뉴 상태
-  const [beverages, setBeverages] = useState<BeverageItem[]>(() => {
-    const saved = localStorage.getItem('cp_beverage_items');
-    return saved ? JSON.parse(saved) : INITIAL_BEVERAGE_ITEMS;
-  });
-
-  // 3. 음식/디저트/스낵 상태
-  const [foods, setFoods] = useState<MenuItem[]>(() => {
-    const saved = localStorage.getItem('cp_food_items');
-    return saved ? JSON.parse(saved) : INITIAL_FOOD_ITEMS;
-  });
+  const [storeInfo, setStoreInfo] = useState(() => getDefaultStoreInfo(selectedStoreSlug));
+  const [packages, setPackages] = useState<PricePackage[]>(() => INITIAL_PRICE_PACKAGES);
+  const [beverages, setBeverages] = useState<BeverageItem[]>(() => INITIAL_BEVERAGE_ITEMS);
+  const [foods, setFoods] = useState<MenuItem[]>(() => INITIAL_FOOD_ITEMS);
 
   const [bevSubFilter, setBevSubFilter] = useState<string>('ALL');
   const [foodCategoryFilter, setFoodCategoryFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Supabase 로드 시도
+  // 지점(selectedStoreSlug / selectedStoreId) 변경 시 로컬스토리지 및 Supabase 데이터 재로드
   useEffect(() => {
+    const slug = selectedStoreSlug || 'snu';
+    const defaultInfo = getDefaultStoreInfo(slug);
+
+    // 1. 로컬스토리지에서 지점별 데이터 우선 로드
+    try {
+      const savedInfo = localStorage.getItem(`cp_store_info_${slug}`) || (slug === 'snu' ? localStorage.getItem('cp_store_info') : null);
+      setStoreInfo(savedInfo ? JSON.parse(savedInfo) : defaultInfo);
+
+      const savedPackages = localStorage.getItem(`cp_price_packages_${slug}`) || (slug === 'snu' ? localStorage.getItem('cp_price_packages') : null);
+      setPackages(savedPackages ? JSON.parse(savedPackages) : INITIAL_PRICE_PACKAGES);
+
+      const savedBevs = localStorage.getItem(`cp_beverage_items_${slug}`) || (slug === 'snu' ? localStorage.getItem('cp_beverage_items') : null);
+      setBeverages(savedBevs ? JSON.parse(savedBevs) : INITIAL_BEVERAGE_ITEMS);
+
+      const savedFoods = localStorage.getItem(`cp_food_items_${slug}`) || (slug === 'snu' ? localStorage.getItem('cp_food_items') : null);
+      setFoods(savedFoods ? JSON.parse(savedFoods) : INITIAL_FOOD_ITEMS);
+    } catch {
+      // JSON 파싱 실패 시 fallback
+    }
+
+    // 2. Supabase DB에서 지점별 데이터 로드
     const loadFromSupabase = async () => {
-      if (!supabase) return;
+      if (!supabase || !selectedStoreId) return;
       try {
-        if (!selectedStoreId) return;
         const { data } = await supabase
           .from('store_content')
           .select('content_key, content_value')
@@ -84,78 +111,78 @@ export function StoreContentPage() {
           }
         }
       } catch {
-        // Supabase 테이블 구조가 다를 경우 로컬 상태 유지
+        // fallback
       }
     };
     void loadFromSupabase();
-  }, [selectedStoreId]);
+  }, [selectedStoreSlug, selectedStoreId]);
 
   // 저장 헬퍼
   const savePackagesToStorage = async (newPackages: PricePackage[]) => {
     setPackages(newPackages);
-    localStorage.setItem('cp_price_packages', JSON.stringify(newPackages));
-    if (supabase) {
-      if (selectedStoreId) {
-        await supabase.from('store_content').upsert(
-          {
-            store_id: selectedStoreId,
-            content_key: 'price_packages',
-            content_value: { packages: newPackages },
-          },
-          { onConflict: 'store_id,content_key' }
-        );
-      }
+    const slug = selectedStoreSlug || 'snu';
+    localStorage.setItem(`cp_price_packages_${slug}`, JSON.stringify(newPackages));
+    if (slug === 'snu') localStorage.setItem('cp_price_packages', JSON.stringify(newPackages));
+    if (supabase && selectedStoreId) {
+      await supabase.from('store_content').upsert(
+        {
+          store_id: selectedStoreId,
+          content_key: 'price_packages',
+          content_value: { packages: newPackages },
+        },
+        { onConflict: 'store_id,content_key' }
+      );
     }
   };
 
   const saveBeveragesToStorage = async (newBeverages: BeverageItem[]) => {
     setBeverages(newBeverages);
-    localStorage.setItem('cp_beverage_items', JSON.stringify(newBeverages));
-    if (supabase) {
-      if (selectedStoreId) {
-        await supabase.from('store_content').upsert(
-          {
-            store_id: selectedStoreId,
-            content_key: 'beverage_items',
-            content_value: { beverages: newBeverages },
-          },
-          { onConflict: 'store_id,content_key' }
-        );
-      }
+    const slug = selectedStoreSlug || 'snu';
+    localStorage.setItem(`cp_beverage_items_${slug}`, JSON.stringify(newBeverages));
+    if (slug === 'snu') localStorage.setItem('cp_beverage_items', JSON.stringify(newBeverages));
+    if (supabase && selectedStoreId) {
+      await supabase.from('store_content').upsert(
+        {
+          store_id: selectedStoreId,
+          content_key: 'beverage_items',
+          content_value: { beverages: newBeverages },
+        },
+        { onConflict: 'store_id,content_key' }
+      );
     }
   };
 
   const saveFoodsToStorage = async (newFoods: MenuItem[]) => {
     setFoods(newFoods);
-    localStorage.setItem('cp_food_items', JSON.stringify(newFoods));
-    if (supabase) {
-      if (selectedStoreId) {
-        await supabase.from('store_content').upsert(
-          {
-            store_id: selectedStoreId,
-            content_key: 'food_items',
-            content_value: { foods: newFoods },
-          },
-          { onConflict: 'store_id,content_key' }
-        );
-      }
+    const slug = selectedStoreSlug || 'snu';
+    localStorage.setItem(`cp_food_items_${slug}`, JSON.stringify(newFoods));
+    if (slug === 'snu') localStorage.setItem('cp_food_items', JSON.stringify(newFoods));
+    if (supabase && selectedStoreId) {
+      await supabase.from('store_content').upsert(
+        {
+          store_id: selectedStoreId,
+          content_key: 'food_items',
+          content_value: { foods: newFoods },
+        },
+        { onConflict: 'store_id,content_key' }
+      );
     }
   };
 
   const saveStoreInfoToStorage = async (newInfo: any) => {
     setStoreInfo(newInfo);
-    localStorage.setItem('cp_store_info', JSON.stringify(newInfo));
-    if (supabase) {
-      if (selectedStoreId) {
-        await supabase
-          .from('store_content')
-          .upsert(
-            { store_id: selectedStoreId, content_key: 'store_info', content_value: newInfo },
-            { onConflict: 'store_id,content_key' }
-          );
-      }
+    const slug = selectedStoreSlug || 'snu';
+    localStorage.setItem(`cp_store_info_${slug}`, JSON.stringify(newInfo));
+    if (slug === 'snu') localStorage.setItem('cp_store_info', JSON.stringify(newInfo));
+    if (supabase && selectedStoreId) {
+      await supabase
+        .from('store_content')
+        .upsert(
+          { store_id: selectedStoreId, content_key: 'store_info', content_value: newInfo },
+          { onConflict: 'store_id,content_key' }
+        );
     }
-    setMessage('매장 정보를 저장했습니다.');
+    setMessage(`[${currentStore.name}] 매장 정보를 저장했습니다.`);
   };
 
   // --- 1. 요금제 핸들러 ---
@@ -280,9 +307,10 @@ export function StoreContentPage() {
     setMessage('상품을 삭제했습니다.');
   };
 
-  // 필터링
   const filteredBeverages = beverages.filter((b) => {
-    const matchesCategory = bevSubFilter === 'ALL' || b.subCategory === bevSubFilter;
+    const normCat = normalizeBeverageCategory(b.subCategory);
+    const matchesCategory =
+      bevSubFilter === 'ALL' || normCat === bevSubFilter || b.subCategory === bevSubFilter;
     const matchesSearch =
       !searchQuery.trim() ||
       b.nameKo.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -300,7 +328,7 @@ export function StoreContentPage() {
   });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '26px' }}>
+    <div className="staff-page-container">
       {/* 헤더 */}
       <div
         style={{
@@ -312,24 +340,22 @@ export function StoreContentPage() {
         }}
       >
         <div>
-          <div className="section-kicker">STORE CONTENT & PRICING</div>
+          <div className="section-kicker">STORE CONTENT & PRICING · {currentStore.name}</div>
           <h1 className="section-title">매장 요금제 및 메뉴 관리</h1>
           <p style={{ margin: '6px 0 0 0', fontSize: '14px', color: '#6B6354', fontWeight: 600 }}>
-            이용 요금제, 음료(단품가/패키지 차액), 식사·라면·젤라또·스낵 메뉴를 실시간으로 추가,
-            수정, 품절 처리합니다.
+            {currentStore.name}의 이용 요금제, 음료(단품가/패키지 차액), 식사·라면·젤라또·스낵 메뉴 및 기본 정보를 실시간으로 관리합니다.
           </p>
         </div>
 
         {/* 상단 탭 스위처 */}
         <div
+          className="staff-filter-scroll"
           style={{
-            display: 'flex',
-            gap: '8px',
+            gap: '6px',
             background: '#FFF9EC',
             padding: '6px',
-            borderRadius: '14px',
+            borderRadius: '16px',
             border: '2.5px solid #1E1E1E',
-            flexWrap: 'wrap',
           }}
         >
           <button
@@ -338,17 +364,18 @@ export function StoreContentPage() {
               setSearchQuery('');
             }}
             style={{
-              padding: '8px 16px',
+              padding: '8px 14px',
               borderRadius: '10px',
               background: activeTab === 'info' ? '#1E1E1E' : 'transparent',
               color: activeTab === 'info' ? '#FED943' : '#1E1E1E',
               fontWeight: 800,
-              fontSize: '14px',
+              fontSize: '13px',
               border: 'none',
               cursor: 'pointer',
+              whiteSpace: 'nowrap',
             }}
           >
-            기본 정보 관리
+            기본 정보
           </button>
           <button
             onClick={() => {
@@ -356,16 +383,17 @@ export function StoreContentPage() {
               setSearchQuery('');
             }}
             style={{
-              padding: '8px 16px',
+              padding: '8px 14px',
               borderRadius: '10px',
               border: '2px solid #1E1E1E',
               background: activeTab === 'packages' ? '#FED943' : '#FFFFFF',
               fontWeight: 900,
               fontSize: '13px',
               cursor: 'pointer',
+              whiteSpace: 'nowrap',
             }}
           >
-            💳 이용 요금제 ({packages.length})
+            💳 요금제 ({packages.length})
           </button>
           <button
             onClick={() => {
@@ -373,16 +401,17 @@ export function StoreContentPage() {
               setSearchQuery('');
             }}
             style={{
-              padding: '8px 16px',
+              padding: '8px 14px',
               borderRadius: '10px',
               border: '2px solid #1E1E1E',
               background: activeTab === 'beverages' ? '#FED943' : '#FFFFFF',
               fontWeight: 900,
               fontSize: '13px',
               cursor: 'pointer',
+              whiteSpace: 'nowrap',
             }}
           >
-            음료 메뉴 ({beverages.length})
+            ☕ 음료 ({beverages.length})
           </button>
           <button
             onClick={() => {
@@ -390,16 +419,17 @@ export function StoreContentPage() {
               setSearchQuery('');
             }}
             style={{
-              padding: '8px 16px',
+              padding: '8px 14px',
               borderRadius: '10px',
               border: '2px solid #1E1E1E',
               background: activeTab === 'foods' ? '#FED943' : '#FFFFFF',
               fontWeight: 900,
               fontSize: '13px',
               cursor: 'pointer',
+              whiteSpace: 'nowrap',
             }}
           >
-            식사·디저트·스낵 ({foods.length})
+            🍜 식사·스낵 ({foods.length})
           </button>
         </div>
       </div>
@@ -817,13 +847,14 @@ export function StoreContentPage() {
                     boxSizing: 'border-box',
                   }}
                 >
-                  <option value="커피/라떼">커피/라떼</option>
-                  <option value="아이스티/티">아이스티/티</option>
-                  <option value="라떼/음료">라떼/음료</option>
-                  <option value="콤부차">콤부차</option>
-                  <option value="에이드">에이드</option>
-                  <option value="스무디/생과일">스무디/생과일</option>
-                  <option value="쉐이크">쉐이크</option>
+                  <option value="COFFEE">COFFEE (커피)</option>
+                  <option value="LATTE">LATTE (라떼)</option>
+                  <option value="TEA">TEA (티 &amp; 아이스티)</option>
+                  <option value="KOMBU TEA">KOMBU TEA (콤부차)</option>
+                  <option value="ADE">ADE (에이드)</option>
+                  <option value="Fruit Juice">Fruit Juice (생과일 주스)</option>
+                  <option value="SMOOTHIE">SMOOTHIE (스무디)</option>
+                  <option value="SHAKE">SHAKE (쉐이크)</option>
                 </select>
               </div>
               <div>
@@ -977,13 +1008,14 @@ export function StoreContentPage() {
 
                 {[
                   'ALL',
-                  '커피/라떼',
-                  '아이스티/티',
-                  '라떼/음료',
-                  '콤부차',
-                  '에이드',
-                  '스무디/생과일',
-                  '쉐이크',
+                  'COFFEE',
+                  'LATTE',
+                  'TEA',
+                  'KOMBU TEA',
+                  'ADE',
+                  'Fruit Juice',
+                  'SMOOTHIE',
+                  'SHAKE',
                 ].map((sub) => (
                   <button
                     key={sub}

@@ -182,15 +182,7 @@ export function InventoryPage() {
   );
 
   return (
-    <main
-      style={{
-        maxWidth: '1100px',
-        margin: '0 auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px',
-      }}
-    >
+    <main className="staff-page-container">
       <div>
         <span
           style={{ fontSize: '12px', fontWeight: 900, color: '#8A6A00', letterSpacing: '0.08em' }}
@@ -219,18 +211,7 @@ export function InventoryPage() {
       )}
 
       {/* 등록 및 CSV 가져오기 */}
-      <section
-        style={{
-          background: '#FFFFFF',
-          border: '3px solid #1E1E1E',
-          borderRadius: '24px',
-          padding: '24px',
-          boxShadow: '5px 5px 0 #1E1E1E',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px',
-        }}
-      >
+      <section className="staff-section-card">
         <div
           style={{
             display: 'flex',
@@ -240,7 +221,7 @@ export function InventoryPage() {
             gap: '12px',
           }}
         >
-          <h2 style={{ fontSize: '18px', fontWeight: 900 }}>➕ 신규 도서 등록 및 CSV 업로드</h2>
+          <h2 style={{ fontSize: '17px', fontWeight: 900 }}>➕ 신규 도서 등록 및 CSV 업로드</h2>
           <label
             style={{
               padding: '8px 16px',
@@ -253,6 +234,7 @@ export function InventoryPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
+              boxShadow: '1.5px 1.5px 0 #1E1E1E',
             }}
           >
             📁 CSV 대량 가져오기
@@ -273,11 +255,7 @@ export function InventoryPage() {
             e.preventDefault();
             void save(new FormData(e.currentTarget));
           }}
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: '10px',
-          }}
+          className="staff-form-grid"
         >
           <input
             name="title"
@@ -294,8 +272,8 @@ export function InventoryPage() {
               setGenreTags(splitBookCategories(match.category));
             }}
             style={{
-              padding: '10px 12px',
-              borderRadius: '10px',
+              padding: '11px 13px',
+              borderRadius: '12px',
               border: '2px solid #1E1E1E',
               fontSize: '13px',
             }}
@@ -312,8 +290,8 @@ export function InventoryPage() {
             defaultValue={defaultAuthor}
             placeholder="작가명"
             style={{
-              padding: '10px 12px',
-              borderRadius: '10px',
+              padding: '11px 13px',
+              borderRadius: '12px',
               border: '2px solid #1E1E1E',
               fontSize: '13px',
             }}
@@ -322,8 +300,8 @@ export function InventoryPage() {
           <input
             placeholder="장르 입력 후 Enter 또는 쉼표"
             style={{
-              padding: '10px 12px',
-              borderRadius: '10px',
+              padding: '11px 13px',
+              borderRadius: '12px',
               border: '2px solid #1E1E1E',
               fontSize: '13px',
             }}
@@ -341,22 +319,45 @@ export function InventoryPage() {
               <option key={genre} value={genre} />
             ))}
           </datalist>
-          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', gridColumn: '1 / -1' }}>
-            {GENRE_OPTIONS.map((genre) => (
-              <button
-                key={genre}
-                type="button"
-                onClick={() =>
-                  setGenreTags((tags) =>
-                    tags.includes(genre) ? tags.filter((tag) => tag !== genre) : [...tags, genre]
-                  )
-                }
-              >
-                {genre}
-              </button>
-            ))}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', gridColumn: '1 / -1' }}>
+            {GENRE_OPTIONS.map((genre) => {
+              const isSelected = genreTags.includes(genre);
+              return (
+                <button
+                  key={genre}
+                  type="button"
+                  onClick={() =>
+                    setGenreTags((tags) =>
+                      tags.includes(genre) ? tags.filter((tag) => tag !== genre) : [...tags, genre]
+                    )
+                  }
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '999px',
+                    border: '1.5px solid #1E1E1E',
+                    background: isSelected ? '#1E1E1E' : '#FFF9EC',
+                    color: isSelected ? '#FED943' : '#1E1E1E',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {genre}
+                </button>
+              );
+            })}
             {genreTags.map((genre) => (
-              <span key={genre}>#{genre}</span>
+              <span
+                key={genre}
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  color: '#8A6A00',
+                  alignSelf: 'center',
+                }}
+              >
+                #{genre}
+              </span>
             ))}
           </div>
           <input
@@ -368,8 +369,8 @@ export function InventoryPage() {
             inputMode="numeric"
             required
             style={{
-              padding: '10px 12px',
-              borderRadius: '10px',
+              padding: '11px 13px',
+              borderRadius: '12px',
               border: '2px solid #1E1E1E',
               fontSize: '13px',
             }}
@@ -379,8 +380,8 @@ export function InventoryPage() {
             placeholder="서가 (예: A-03) *"
             required
             style={{
-              padding: '10px 12px',
-              borderRadius: '10px',
+              padding: '11px 13px',
+              borderRadius: '12px',
               border: '2px solid #1E1E1E',
               fontSize: '13px',
             }}
@@ -388,14 +389,15 @@ export function InventoryPage() {
           <button
             type="submit"
             style={{
-              padding: '10px 20px',
-              borderRadius: '10px',
+              padding: '11px 20px',
+              borderRadius: '12px',
               background: '#1E1E1E',
               color: '#FED943',
               fontSize: '13px',
               fontWeight: 900,
               border: '2px solid #1E1E1E',
               cursor: 'pointer',
+              boxShadow: '2px 2px 0 #8A8175',
             }}
           >
             저장
@@ -404,15 +406,7 @@ export function InventoryPage() {
       </section>
 
       {/* 재고 목록 & 검색 & 페이징 */}
-      <section
-        style={{
-          background: '#FFFFFF',
-          border: '3px solid #1E1E1E',
-          borderRadius: '24px',
-          padding: '24px',
-          boxShadow: '5px 5px 0 #1E1E1E',
-        }}
-      >
+      <section className="staff-section-card">
         <div
           style={{
             display: 'flex',
@@ -420,11 +414,10 @@ export function InventoryPage() {
             justifyContent: 'space-between',
             flexWrap: 'wrap',
             gap: '12px',
-            marginBottom: '16px',
           }}
         >
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: 900 }}>
+            <h2 style={{ fontSize: '17px', fontWeight: 900 }}>
               📚 등록 도서 목록 ({filteredItems.length}권)
             </h2>
           </div>
@@ -441,7 +434,8 @@ export function InventoryPage() {
               borderRadius: '999px',
               border: '2px solid #1E1E1E',
               fontSize: '13px',
-              width: '240px',
+              width: '100%',
+              maxWidth: '260px',
             }}
           />
         </div>
@@ -450,22 +444,19 @@ export function InventoryPage() {
           {paginatedItems.map((item) => {
             const b = getBook(item);
             return (
-              <div
-                key={item.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '12px 16px',
-                  background: '#FFFDF5',
-                  border: '1.5px solid #1E1E1E',
-                  borderRadius: '12px',
-                  gap: '12px',
-                }}
-              >
+              <div key={item.id} className="staff-item-row">
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <strong style={{ fontSize: '15px' }}>{b?.title || '제목 없음'}</strong>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <strong style={{ fontSize: '15px', wordBreak: 'break-word' }}>
+                      {b?.title || '제목 없음'}
+                    </strong>
                     <span style={{ fontSize: '11px', color: '#6B6354' }}>
                       {b?.author || '작가 미상'}
                     </span>
@@ -473,10 +464,11 @@ export function InventoryPage() {
                       <span
                         style={{
                           fontSize: '10px',
-                          padding: '1px 6px',
+                          padding: '2px 6px',
                           background: '#FFFFFF',
                           border: '1px solid #1E1E1E',
                           borderRadius: '4px',
+                          fontWeight: 800,
                         }}
                       >
                         {b.category}
@@ -488,7 +480,7 @@ export function InventoryPage() {
                       fontSize: '12px',
                       color: '#8A6A00',
                       fontWeight: 700,
-                      marginTop: '2px',
+                      marginTop: '3px',
                     }}
                   >
                     {item.last_volume === null ? '권수 확인 필요' : `${item.last_volume}권`} · 서가
@@ -496,16 +488,16 @@ export function InventoryPage() {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div className="staff-item-row-actions">
                   <button
                     type="button"
                     onClick={() => void removeInventory(item.id)}
                     style={{
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      border: '1px solid #1E1E1E',
+                      padding: '6px 14px',
+                      borderRadius: '8px',
+                      border: '1.5px solid #1E1E1E',
                       background: '#FFFFFF',
-                      fontSize: '11px',
+                      fontSize: '12px',
                       fontWeight: 800,
                       cursor: 'pointer',
                     }}

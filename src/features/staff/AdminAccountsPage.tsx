@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { useStaffStore } from './StaffStoreContext';
+import { publicStoreList } from '../../lib/storeContext';
 
 type Account = {
   id: string;
@@ -11,6 +13,10 @@ type Account = {
 };
 
 export function AdminAccountsPage() {
+  const { selectedStoreSlug } = useStaffStore();
+  const currentStore =
+    publicStoreList.find((s) => s.slug === selectedStoreSlug) ?? publicStoreList[0];
+
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [message, setMessage] = useState('');
   const [filterRole, setFilterRole] = useState<string>('ALL');
@@ -63,7 +69,7 @@ export function AdminAccountsPage() {
       : accounts.filter((a) => (filterRole === 'ADMIN' ? a.role === 'admin' : a.role === 'staff'));
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '26px' }}>
+    <div className="staff-page-container">
       {/* 헤더 타이틀 */}
       <div
         style={{
@@ -75,11 +81,10 @@ export function AdminAccountsPage() {
         }}
       >
         <div>
-          <div className="section-kicker">ADMINISTRATION</div>
+          <div className="section-kicker">ADMINISTRATION · {currentStore.name}</div>
           <h1 className="section-title">직원 계정 관리</h1>
           <p style={{ margin: '6px 0 0 0', fontSize: '14px', color: '#6B6354', fontWeight: 600 }}>
-            서울대입구역점 카운터 및 매니저 계정의 가입 승인, 권한 설정, 비밀번호 재발급을
-            관리합니다.
+            카툰플러스 전 지점 카운터 및 매니저 계정의 가입 승인, 권한 설정, 비밀번호 재발급을 관리합니다.
           </p>
         </div>
         <button
@@ -131,10 +136,7 @@ export function AdminAccountsPage() {
       )}
 
       {/* KPI 3종 상태 요약 */}
-      <div
-        className="dashboard-grid"
-        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}
-      >
+      <div className="dashboard-grid">
         <div className="kpi-card">
           <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A8175' }}>총 등록 계정</div>
           <div className="kpi-val">{accounts.length}명</div>
@@ -163,18 +165,7 @@ export function AdminAccountsPage() {
       </div>
 
       {/* 직원 목록 테이블 카드 */}
-      <div
-        style={{
-          background: '#ffffff',
-          border: '3px solid #1E1E1E',
-          borderRadius: '22px',
-          padding: '24px',
-          boxShadow: '4px 4px 0 #1E1E1E',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '18px',
-        }}
-      >
+      <div className="staff-section-card">
         <div
           style={{
             display: 'flex',
@@ -184,8 +175,8 @@ export function AdminAccountsPage() {
             gap: '12px',
           }}
         >
-          <div style={{ fontSize: '18px', fontWeight: 900 }}>직원 명부 및 권한 관리</div>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ fontSize: '17px', fontWeight: 900 }}>직원 명부 및 권한 관리</div>
+          <div className="staff-filter-scroll">
             <button
               onClick={() => setFilterRole('ALL')}
               style={{
@@ -196,6 +187,7 @@ export function AdminAccountsPage() {
                 fontWeight: 900,
                 fontSize: '12px',
                 cursor: 'pointer',
+                boxShadow: filterRole === 'ALL' ? '2px 2px 0 #1E1E1E' : 'none',
               }}
             >
               전체 ({accounts.length})
@@ -210,6 +202,7 @@ export function AdminAccountsPage() {
                 fontWeight: 900,
                 fontSize: '12px',
                 cursor: 'pointer',
+                boxShadow: filterRole === 'STAFF' ? '2px 2px 0 #1E1E1E' : 'none',
               }}
             >
               스태프 ({accounts.filter((a) => a.role === 'staff').length})
@@ -224,6 +217,7 @@ export function AdminAccountsPage() {
                 fontWeight: 900,
                 fontSize: '12px',
                 cursor: 'pointer',
+                boxShadow: filterRole === 'ADMIN' ? '2px 2px 0 #1E1E1E' : 'none',
               }}
             >
               관리자 ({accounts.filter((a) => a.role === 'admin').length})
@@ -246,7 +240,7 @@ export function AdminAccountsPage() {
             조회된 직원 계정이 없습니다.
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {filteredAccounts.map((a) => {
               const isApproved = a.status === 'approved';
               const isDeactivated = a.status === 'deactivated';
@@ -255,27 +249,19 @@ export function AdminAccountsPage() {
               return (
                 <div
                   key={a.id}
+                  className="staff-item-row"
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: '14px',
-                    padding: '16px 20px',
-                    borderRadius: '16px',
-                    border: '2.5px solid #1E1E1E',
                     background: isDeactivated ? '#F7F6F3' : '#FFFFFF',
                     opacity: isDeactivated ? 0.7 : 1,
-                    transition: 'all 0.15s ease',
                   }}
                 >
                   <div
-                    style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}
                   >
                     <div
                       style={{
-                        width: '42px',
-                        height: '42px',
+                        width: '40px',
+                        height: '40px',
                         borderRadius: '50%',
                         background: a.role === 'admin' ? '#1E1E1E' : '#FED943',
                         color: a.role === 'admin' ? '#FED943' : '#1E1E1E',
@@ -283,19 +269,20 @@ export function AdminAccountsPage() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontWeight: 900,
-                        fontSize: '16px',
+                        fontSize: '15px',
                         border: '2px solid #1E1E1E',
+                        flexShrink: 0,
                       }}
                     >
                       {a.name.slice(0, 1)}
                     </div>
 
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <strong style={{ fontSize: '16px', color: '#1E1E1E' }}>{a.name}</strong>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        <strong style={{ fontSize: '15px', color: '#1E1E1E' }}>{a.name}</strong>
                         <span
                           style={{
-                            padding: '2px 8px',
+                            padding: '2px 7px',
                             borderRadius: '6px',
                             background: a.role === 'admin' ? '#1E1E1E' : '#FFF3C9',
                             color: a.role === 'admin' ? '#FED943' : '#1E1E1E',
@@ -308,7 +295,7 @@ export function AdminAccountsPage() {
                         </span>
                         <span
                           style={{
-                            padding: '2px 8px',
+                            padding: '2px 7px',
                             borderRadius: '6px',
                             background: isApproved ? '#D6F5E3' : isPending ? '#FFF3C9' : '#FFE3E3',
                             color: isApproved ? '#1A7A3E' : isPending ? '#B25E00' : '#C92A2A',
@@ -322,7 +309,7 @@ export function AdminAccountsPage() {
                       </div>
                       <div
                         style={{
-                          fontSize: '13px',
+                          fontSize: '12px',
                           color: '#6B6354',
                           fontWeight: 600,
                           marginTop: '3px',
@@ -337,9 +324,7 @@ export function AdminAccountsPage() {
                     </div>
                   </div>
 
-                  <div
-                    style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}
-                  >
+                  <div className="staff-item-row-actions">
                     {!isApproved && (
                       <button
                         onClick={() => void update(a.id, 'approved')}

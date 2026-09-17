@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { useSelectedStaffStoreId, useStaffStore } from './StaffStoreContext';
+import { publicStoreList } from '../../lib/storeContext';
 
 type Counts = {
   requests: number;
@@ -8,30 +10,38 @@ type Counts = {
 };
 
 export function DashboardPage() {
+  const { selectedStoreSlug } = useStaffStore();
+  const selectedStoreId = useSelectedStaffStoreId();
+  const currentStore =
+    publicStoreList.find((s) => s.slug === selectedStoreSlug) ?? publicStoreList[0];
+
   const [counts, setCounts] = useState<Counts | null>(null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (!supabase) {
+    if (!supabase || !selectedStoreId) {
       setCounts({ requests: 0, broadcasts: 0, recentInventory: [] });
       return;
     }
     const today = new Date().toISOString().slice(0, 10);
     const weekday = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][new Date().getDay()];
+    setError(false);
     void Promise.all([
       supabase
         .from('book_requests')
         .select('*', { count: 'exact', head: true })
+        .eq('store_id', selectedStoreId)
         .eq('status', 'received'),
       supabase
         .from('scheduled_broadcasts')
         .select('schedule_type,target_date,target_days')
+        .eq('store_id', selectedStoreId)
         .eq('is_enabled', true)
         .is('archived_at', null),
       supabase
         .from('book_inventories')
         .select('updated_at,books(title)')
-        .is('archived_at', null)
+        .eq('store_id', selectedStoreId)
         .order('updated_at', { ascending: false })
         .limit(4),
     ]).then(([requests, broadcasts, inventory]) => {
@@ -54,10 +64,10 @@ export function DashboardPage() {
         }),
       });
     });
-  }, []);
+  }, [selectedStoreId]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="staff-page-container">
       {/* 타이틀 및 동기화 상태 */}
       <div
         style={{
@@ -73,7 +83,7 @@ export function DashboardPage() {
           <h1 className="section-title">운영 대시보드</h1>
         </div>
         <div style={{ fontSize: '12px', fontWeight: 700, color: '#8A8175' }}>
-          서울대입구역점 · 카운터 전용 콘솔
+          {currentStore.name} · 카운터 전용 콘솔
         </div>
       </div>
 
@@ -92,16 +102,13 @@ export function DashboardPage() {
       ) : (
         <>
           {/* KPI 4종 카드 그리드 */}
-          <div
-            className="dashboard-grid"
-            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}
-          >
+          <div className="dashboard-grid">
             <div className="kpi-card">
               <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A8175' }}>
                 처리 대기 신청
               </div>
               <div className="kpi-val">{counts === null ? '...' : `${counts.requests}건`}</div>
-              <div className="kpi-note">미확인 고객 요청</div>
+              <div className="kpi-note">{currentStore.name} 고객 요청</div>
             </div>
 
             <div className="kpi-card">
@@ -133,7 +140,7 @@ export function DashboardPage() {
                 정상 운영
               </div>
               <div className="kpi-note" style={{ color: '#5C5344' }}>
-                10:00 – 23:00
+                {currentStore.hours || '10:00 – 23:00'}
               </div>
             </div>
           </div>
@@ -141,20 +148,15 @@ export function DashboardPage() {
           {/* 2열 바로가기 카드 */}
           <div className="home-split">
             {/* 도서 입고 신청 카드 */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '14px',
-                padding: '22px',
-                background: '#ffffff',
-                border: '3px solid #1E1E1E',
-                borderRadius: '22px',
-                boxShadow: '5px 5px 0 #1E1E1E',
-              }}
-            >
+            <div className="staff-section-card">
               <div
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                }}
               >
                 <div style={{ fontSize: '16px', fontWeight: 900 }}>도서 입고 신청 관리</div>
                 <a
@@ -179,20 +181,21 @@ export function DashboardPage() {
 
             {/* 방송 콘솔 다크 카드 */}
             <div
+              className="staff-section-card"
               style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '14px',
-                padding: '22px',
                 background: '#1E1E1E',
-                borderRadius: '22px',
                 color: '#FFF9EC',
-                border: '3px solid #1E1E1E',
-                boxShadow: '5px 5px 0 #FED943',
+                boxShadow: '4px 4px 0 #FED943',
               }}
             >
               <div
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                }}
               >
                 <div style={{ fontSize: '16px', fontWeight: 900 }}>매장 안내 방송 콘솔</div>
                 <a
@@ -217,19 +220,8 @@ export function DashboardPage() {
           </div>
 
           {/* 최근 재고 작업 */}
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-              padding: '22px',
-              background: '#ffffff',
-              border: '3px solid #1E1E1E',
-              borderRadius: '22px',
-              boxShadow: '5px 5px 0 #1E1E1E',
-            }}
-          >
-            <div style={{ fontSize: '16px', fontWeight: 900 }}>최근 변경된 도서</div>
+          <div className="staff-section-card">
+            <div style={{ fontSize: '16px', fontWeight: 900 }}>최근 변경된 도서 ({currentStore.name})</div>
             {counts?.recentInventory && counts.recentInventory.length > 0 ? (
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {counts.recentInventory.map((title, idx) => (
@@ -259,3 +251,4 @@ export function DashboardPage() {
     </div>
   );
 }
+

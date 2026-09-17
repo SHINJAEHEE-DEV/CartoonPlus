@@ -76,15 +76,7 @@ export function BookRequestsPage() {
   }, [items, currentPage]);
 
   return (
-    <main
-      style={{
-        maxWidth: '1100px',
-        margin: '0 auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px',
-      }}
-    >
+    <main className="staff-page-container">
       <div>
         <span
           style={{ fontSize: '12px', fontWeight: 900, color: '#8A6A00', letterSpacing: '0.08em' }}
@@ -116,68 +108,52 @@ export function BookRequestsPage() {
       )}
 
       {/* 상태 필터 탭 */}
-      <section
-        style={{
-          background: '#FFFFFF',
-          border: '3px solid #1E1E1E',
-          borderRadius: '24px',
-          padding: '20px 24px',
-          boxShadow: '5px 5px 0 #1E1E1E',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          flexWrap: 'wrap',
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => setStatusFilter('all')}
-          style={{
-            padding: '8px 16px',
-            borderRadius: '999px',
-            border: '2px solid #1E1E1E',
-            background: statusFilter === 'all' ? '#1E1E1E' : '#FFFFFF',
-            color: statusFilter === 'all' ? '#FED943' : '#1E1E1E',
-            fontSize: '13px',
-            fontWeight: 900,
-            cursor: 'pointer',
-          }}
-        >
-          전체 보기
-        </button>
-        {Object.entries(STATUS_LABELS).map(([key, info]) => (
+      <section className="staff-section-card" style={{ padding: '16px 20px' }}>
+        <div className="staff-filter-scroll">
           <button
-            key={key}
             type="button"
-            onClick={() => setStatusFilter(key)}
+            onClick={() => setStatusFilter('all')}
             style={{
               padding: '8px 16px',
               borderRadius: '999px',
               border: '2px solid #1E1E1E',
-              background: statusFilter === key ? '#1E1E1E' : '#FFFFFF',
-              color: statusFilter === key ? '#FED943' : '#1E1E1E',
+              background: statusFilter === 'all' ? '#1E1E1E' : '#FFFFFF',
+              color: statusFilter === 'all' ? '#FED943' : '#1E1E1E',
               fontSize: '13px',
               fontWeight: 900,
               cursor: 'pointer',
+              boxShadow: statusFilter === 'all' ? '2px 2px 0 #8A8175' : 'none',
             }}
           >
-            {info.label}
+            전체 보기
           </button>
-        ))}
+          {Object.entries(STATUS_LABELS).map(([key, info]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setStatusFilter(key)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '999px',
+                border: '2px solid #1E1E1E',
+                background: statusFilter === key ? '#1E1E1E' : '#FFFFFF',
+                color: statusFilter === key ? '#FED943' : '#1E1E1E',
+                fontSize: '13px',
+                fontWeight: 900,
+                cursor: 'pointer',
+                boxShadow: statusFilter === key ? '2px 2px 0 #8A8175' : 'none',
+              }}
+            >
+              {info.label}
+            </button>
+          ))}
+        </div>
       </section>
 
       {/* 목록 리스트 */}
-      <section
-        style={{
-          background: '#FFFFFF',
-          border: '3px solid #1E1E1E',
-          borderRadius: '24px',
-          padding: '24px',
-          boxShadow: '5px 5px 0 #1E1E1E',
-        }}
-      >
-        <div style={{ marginBottom: '16px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 900 }}>신청 내역 ({items.length}건)</h2>
+      <section className="staff-section-card">
+        <div>
+          <h2 style={{ fontSize: '17px', fontWeight: 900 }}>신청 내역 ({items.length}건)</h2>
         </div>
 
         {items.length > 0 ? (
@@ -190,22 +166,16 @@ export function BookRequestsPage() {
                   text: '#546E7A',
                 };
                 return (
-                  <div
-                    key={item.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '14px 18px',
-                      background: '#FFFDF5',
-                      border: '2px solid #1E1E1E',
-                      borderRadius: '14px',
-                      gap: '14px',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <div style={{ flex: 1, minWidth: '240px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div key={item.id} className="staff-item-row">
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          flexWrap: 'wrap',
+                        }}
+                      >
                         <span
                           style={{
                             padding: '2px 8px',
@@ -219,7 +189,9 @@ export function BookRequestsPage() {
                         >
                           {badge.label}
                         </span>
-                        <strong style={{ fontSize: '16px' }}>{item.title}</strong>
+                        <strong style={{ fontSize: '15px', wordBreak: 'break-word' }}>
+                          {item.title}
+                        </strong>
                         {item.author && (
                           <span style={{ fontSize: '12px', color: '#6B6354' }}>
                             ({item.author})
@@ -239,18 +211,25 @@ export function BookRequestsPage() {
                         </div>
                       )}
                       {item.customer_comment && (
-                        <div style={{ fontSize: '12px', color: '#6B6354', marginTop: '2px' }}>
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: '#6B6354',
+                            marginTop: '3px',
+                            wordBreak: 'break-word',
+                          }}
+                        >
                           💬 {item.customer_comment}
                         </div>
                       )}
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div className="staff-item-row-actions">
                       <select
                         value={item.status}
                         onChange={(e) => void updateStatus(item.id, e.target.value)}
                         style={{
-                          padding: '6px 12px',
+                          padding: '7px 12px',
                           borderRadius: '8px',
                           border: '2px solid #1E1E1E',
                           background: '#FFFFFF',
@@ -270,13 +249,14 @@ export function BookRequestsPage() {
                         <a
                           href={`/staff/inventory?title=${encodeURIComponent(item.title)}&author=${encodeURIComponent(item.author || '')}&volume=${encodeURIComponent(item.desired_volume || '')}`}
                           style={{
-                            padding: '6px 12px',
+                            padding: '7px 12px',
                             borderRadius: '8px',
                             background: '#1E1E1E',
                             color: '#FED943',
                             fontSize: '12px',
                             fontWeight: 800,
                             textDecoration: 'none',
+                            whiteSpace: 'nowrap',
                           }}
                         >
                           재고 등록 바로가기 →

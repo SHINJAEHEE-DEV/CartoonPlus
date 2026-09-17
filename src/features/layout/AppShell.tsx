@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { MASCOT_ASSETS } from '../../lib/brandAssets';
 import {
@@ -430,8 +430,155 @@ export function StaffShell({
   storeName?: string | null;
   onSignOut?: () => void;
 }) {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    if (isDrawerOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isDrawerOpen]);
+
   return (
     <div className="staff-shell">
+      {/* 모바일 전용 컴팩트 상단 헤더 */}
+      <header className="staff-mobile-header">
+        <div className="staff-mobile-header-brand">
+          <div className="staff-mobile-logo-wrap">
+            <img src={MASCOT_ASSETS.logoCircle} alt="카툰플러스" />
+          </div>
+          <div className="staff-mobile-title-wrap">
+            <span className="staff-mobile-title">STAFF</span>
+            <span className="staff-mobile-store">{storeName ?? '카툰플러스'}</span>
+          </div>
+        </div>
+
+        <div className="staff-mobile-header-actions">
+          {isAdmin && <StaffStoreSelector variant="header" />}
+          <button
+            type="button"
+            className="staff-hamburger-btn"
+            onClick={() => setIsDrawerOpen(true)}
+            aria-label="직원 메뉴 열기"
+            aria-expanded={isDrawerOpen}
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      {/* 모바일 슬라이드오버 Drawer */}
+      {isDrawerOpen && (
+        <div className="staff-drawer-overlay">
+          <div
+            className="staff-drawer-backdrop"
+            onClick={() => setIsDrawerOpen(false)}
+            aria-hidden="true"
+          />
+          <aside className="staff-drawer" aria-label="직원 모바일 메뉴">
+            <div className="staff-drawer-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="staff-mobile-logo-wrap">
+                  <img src={MASCOT_ASSETS.logoCircle} alt="카툰플러스" />
+                </div>
+                <div>
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 900,
+                      color: '#FED943',
+                      letterSpacing: '0.12em',
+                    }}
+                  >
+                    STAFF CONSOLE
+                  </div>
+                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#FFF9EC' }}>
+                    {isAdmin
+                      ? 'ADMIN · 전체 지점'
+                      : `STAFF · ${storeName ?? '소속 지점 확인 중'}`}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="staff-drawer-close-btn"
+                onClick={() => setIsDrawerOpen(false)}
+                aria-label="메뉴 닫기"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="staff-drawer-body">
+              <nav className="staff-drawer-nav" aria-label="직원 메뉴">
+                {staffLinks.map(([label, href]) => (
+                  <a
+                    key={href}
+                    href={href}
+                    aria-current={currentPath === href ? 'page' : undefined}
+                    onClick={() => setIsDrawerOpen(false)}
+                    className={`staff-drawer-link ${currentPath === href ? 'active' : ''}`}
+                  >
+                    {label}
+                  </a>
+                ))}
+
+                {isAdmin && (
+                  <a
+                    href="/staff/accounts"
+                    aria-current={currentPath === '/staff/accounts' ? 'page' : undefined}
+                    onClick={() => setIsDrawerOpen(false)}
+                    className={`staff-drawer-link admin-link ${
+                      currentPath === '/staff/accounts' ? 'active' : ''
+                    }`}
+                  >
+                    ⚙️ 계정 관리 (관리자)
+                  </a>
+                )}
+              </nav>
+
+              <div className="staff-drawer-footer">
+                <a
+                  href="/"
+                  className="staff-drawer-customer-link"
+                  onClick={() => setIsDrawerOpen(false)}
+                >
+                  ← 고객 화면 보기
+                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsDrawerOpen(false);
+                    onSignOut?.();
+                  }}
+                  className="staff-drawer-signout-btn"
+                >
+                  로그아웃
+                </button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {/* 데스크톱 사이드바 */}
       <aside className="staff-sidebar">
         <Brand />
         <div
@@ -496,6 +643,7 @@ export function StaffShell({
           ← 고객 화면 보기
         </a>
       </aside>
+
       <main className="staff-content">{children}</main>
     </div>
   );

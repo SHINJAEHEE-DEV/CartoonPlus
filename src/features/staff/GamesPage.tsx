@@ -1,6 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
-import { useSelectedStaffStoreId } from './StaffStoreContext';
+import { useSelectedStaffStoreId, useStaffStore } from './StaffStoreContext';
+import { publicStoreList } from '../../lib/storeContext';
+import { getStaticStoreGames } from '../../lib/brandAssets';
 
 export type Game = {
   id: string;
@@ -8,6 +10,7 @@ export type Game = {
   item_type: string;
   players?: string;
   genre?: string;
+  quantity?: number;
 };
 
 const labels: Record<string, string> = {
@@ -17,400 +20,42 @@ const labels: Record<string, string> = {
   BOARD_GAME: '보드게임',
 };
 
-const INITIAL_GAMES: Game[] = [
-  // 1. 닌텐도 스위치 (8종)
-  {
-    id: 'g-nsw-01',
-    title: '슈퍼 마리오 파티 잼버리',
-    item_type: 'NINTENDO',
-    players: '1-4인',
-    genre: '파티/보드',
-  },
-  {
-    id: 'g-nsw-02',
-    title: '오버쿡드! 올유캔잇',
-    item_type: 'NINTENDO',
-    players: '1-4인',
-    genre: '협동 요리',
-  },
-  {
-    id: 'g-nsw-03',
-    title: '폴가이즈 (Fall Guys)',
-    item_type: 'NINTENDO',
-    players: '1-4인',
-    genre: '배틀로얄 파티',
-  },
-  {
-    id: 'g-nsw-04',
-    title: '슈퍼 버니 맨 (Super Bunny Man)',
-    item_type: 'NINTENDO',
-    players: '2인 전용',
-    genre: '협동 액션',
-  },
-  {
-    id: 'g-nsw-05',
-    title: '태고의 달인 쿵딱! 원더풀 페스티벌',
-    item_type: 'NINTENDO',
-    players: '1-2인',
-    genre: '리듬 액션 (북 컨트롤러)',
-  },
-  {
-    id: 'g-nsw-06',
-    title: '슈퍼 커비 헌터즈',
-    item_type: 'NINTENDO',
-    players: '1-4인',
-    genre: '액션 RPG',
-  },
-  {
-    id: 'g-nsw-07',
-    title: '포켓몬 챔피언스',
-    item_type: 'NINTENDO',
-    players: '1-2인',
-    genre: '배틀/어드벤처',
-  },
-  {
-    id: 'g-nsw-08',
-    title: '리듬 세상 더 베스트 플러스',
-    item_type: 'NINTENDO',
-    players: '1-4인',
-    genre: '리듬 게임',
-  },
-
-  // 2. PlayStation 4 / 5 (12종)
-  {
-    id: 'g-ps4-01',
-    title: '잇 테익스 투 (It Takes Two)',
-    item_type: 'PLAYSTATION_4',
-    players: '2인 전용',
-    genre: '협동 어드벤처 (최고인기)',
-  },
-  {
-    id: 'g-ps4-02',
-    title: '휴먼: 폴 플랫 (Human Fall Flat)',
-    item_type: 'PLAYSTATION_4',
-    players: '1-2인',
-    genre: '물리 퍼즐/액션',
-  },
-  {
-    id: 'g-ps4-03',
-    title: '오버쿡드 2 (Overcooked! 2)',
-    item_type: 'PLAYSTATION_4',
-    players: '1-4인',
-    genre: '협동 요리',
-  },
-  {
-    id: 'g-ps4-04',
-    title: '무빙 아웃 (Moving Out)',
-    item_type: 'PLAYSTATION_4',
-    players: '1-4인',
-    genre: '협동 이사 액션',
-  },
-  {
-    id: 'g-ps4-05',
-    title: '리틀 나이트메어 2 (Little Nightmares II)',
-    item_type: 'PLAYSTATION_4',
-    players: '1인',
-    genre: '서스펜스 어드벤처',
-  },
-  {
-    id: 'g-ps4-06',
-    title: '노바디 세이브즈 더 월드',
-    item_type: 'PLAYSTATION_4',
-    players: '1-2인',
-    genre: '액션 RPG',
-  },
-  {
-    id: 'g-ps4-07',
-    title: '태고의 달인 모두 함께 쿵딱쿵!',
-    item_type: 'PLAYSTATION_4',
-    players: '1-2인',
-    genre: '리듬 액션',
-  },
-  {
-    id: 'g-ps4-08',
-    title: '브롤할라 (Brawlhalla)',
-    item_type: 'PLAYSTATION_4',
-    players: '1-4인',
-    genre: '난투 대전 액션',
-  },
-  {
-    id: 'g-ps4-09',
-    title: '드래곤볼 제노버스 2',
-    item_type: 'PLAYSTATION_4',
-    players: '1-2인',
-    genre: '격투 액션',
-  },
-  {
-    id: 'g-ps4-10',
-    title: '로블록스 (Roblox)',
-    item_type: 'PLAYSTATION_4',
-    players: '1-4인',
-    genre: '샌드박스 파티',
-  },
-  {
-    id: 'g-ps4-11',
-    title: '포트나이트 (Fortnite)',
-    item_type: 'PLAYSTATION_4',
-    players: '1-4인',
-    genre: '배틀로얄/슈팅',
-  },
-  {
-    id: 'g-ps4-12',
-    title: '이풋볼 (eFootball™)',
-    item_type: 'PLAYSTATION_4',
-    players: '1-2인',
-    genre: '축구 스포츠',
-  },
-
-  // 3. 실물 보드게임 (40여종)
-  {
-    id: 'g-bg-01',
-    title: '다빈치코드 (Da Vinci Code)',
-    item_type: 'BOARD_GAME',
-    players: '2-4인',
-    genre: '숫자 추리 (3세트 보유)',
-  },
-  {
-    id: 'g-bg-02',
-    title: '루미큐브 클래식 (Rummikub)',
-    item_type: 'BOARD_GAME',
-    players: '2-4인',
-    genre: '숫자 조합 전략 (스테디셀러)',
-  },
-  {
-    id: 'g-bg-03',
-    title: '스플렌더 (Splendor)',
-    item_type: 'BOARD_GAME',
-    players: '2-4인',
-    genre: '보석 자원 엔진빌딩 (2세트 보유)',
-  },
-  {
-    id: 'g-bg-04',
-    title: '스플렌더 확장: 찬란한 도시',
-    item_type: 'BOARD_GAME',
-    players: '2-4인',
-    genre: '스플렌더 공식 확장판',
-  },
-  {
-    id: 'g-bg-05',
-    title: '시타델 (Citadels)',
-    item_type: 'BOARD_GAME',
-    players: '2-8인',
-    genre: '직업 블러핑/도시 건설 (2세트)',
-  },
-  {
-    id: 'g-bg-06',
-    title: '라스베가스 (Las Vegas)',
-    item_type: 'BOARD_GAME',
-    players: '2-5인',
-    genre: '카지노 주사위 베팅',
-  },
-  {
-    id: 'g-bg-07',
-    title: '카탄 (Catan)',
-    item_type: 'BOARD_GAME',
-    players: '3-4인',
-    genre: '자원 채취 & 무역 영토확장',
-  },
-  {
-    id: 'g-bg-08',
-    title: '뱅! (BANG!)',
-    item_type: 'BOARD_GAME',
-    players: '4-7인',
-    genre: '서부 총잡이 마피아 게임',
-  },
-  {
-    id: 'g-bg-09',
-    title: '로스트 시티 (Lost Cities)',
-    item_type: 'BOARD_GAME',
-    players: '2인 전용',
-    genre: '2인 카드 탐험 (2세트)',
-  },
-  {
-    id: 'g-bg-10',
-    title: '텔레스트레이션 (Telestrations)',
-    item_type: 'BOARD_GAME',
-    players: '4-8인',
-    genre: '릴레이 스케치 파티 게임',
-  },
-  {
-    id: 'g-bg-11',
-    title: '루핑루이 (Loopin Louie)',
-    item_type: 'BOARD_GAME',
-    players: '2-4인',
-    genre: '순발력 비행기 튕기기',
-  },
-  {
-    id: 'g-bg-12',
-    title: '우봉고 (Ubongo)',
-    item_type: 'BOARD_GAME',
-    players: '1-4인',
-    genre: '스피드 도형 퍼즐 맞추기',
-  },
-  {
-    id: 'g-bg-13',
-    title: '젬블로 (Gemblo)',
-    item_type: 'BOARD_GAME',
-    players: '1-6인',
-    genre: '육각형 보석 영역 확장',
-  },
-  {
-    id: 'g-bg-14',
-    title: '콰르토 (Quarto)',
-    item_type: 'BOARD_GAME',
-    players: '2인 전용',
-    genre: '멘사 추천 4목 추상 전략',
-  },
-  {
-    id: 'g-bg-15',
-    title: '라비린스 (Labyrinth)',
-    item_type: 'BOARD_GAME',
-    players: '2-4인',
-    genre: '움직이는 미로 보물찾기',
-  },
-  {
-    id: 'g-bg-16',
-    title: '오델로 클래식 (Othello)',
-    item_type: 'BOARD_GAME',
-    players: '2인 전용',
-    genre: '정통 흑백 뒤집기 리버시',
-  },
-  {
-    id: 'g-bg-17',
-    title: '체스 & 체커 (Chess & Checkers)',
-    item_type: 'BOARD_GAME',
-    players: '2인 전용',
-    genre: '정통 전략 보드게임 세트',
-  },
-  {
-    id: 'g-bg-18',
-    title: '뒤죽박죽 서커스',
-    item_type: 'BOARD_GAME',
-    players: '2-4인',
-    genre: '서커스 캐릭터 균형 쌓기',
-  },
-  {
-    id: 'g-bg-19',
-    title: "루빅스 레이스 (Rubik's Race)",
-    item_type: 'BOARD_GAME',
-    players: '2인 전용',
-    genre: '스피드 슬라이딩 큐브 대결',
-  },
-  {
-    id: 'g-bg-20',
-    title: '요트 다이스 (Yacht Dice)',
-    item_type: 'BOARD_GAME',
-    players: '1-4인',
-    genre: '주사위 조합 족보 게임',
-  },
-  {
-    id: 'g-bg-21',
-    title: '반지의 제왕 보드게임',
-    item_type: 'BOARD_GAME',
-    players: '2-5인',
-    genre: '판타지 테마 협동 모험',
-  },
-  {
-    id: 'g-bg-22',
-    title: 'ACUITY (어큐어티)',
-    item_type: 'BOARD_GAME',
-    players: '2-6인',
-    genre: '시각 패턴 인지 퍼즐',
-  },
-  {
-    id: 'g-bg-23',
-    title: '할리갈리 디럭스 (Halli Galli)',
-    item_type: 'BOARD_GAME',
-    players: '2-6인',
-    genre: '과일 5개 종치기 순발력',
-  },
-  {
-    id: 'g-bg-24',
-    title: '할리갈리 컵스',
-    item_type: 'BOARD_GAME',
-    players: '2-4인',
-    genre: '색상 컵 쌓기 대결',
-  },
-  {
-    id: 'g-bg-25',
-    title: '클루 (Clue)',
-    item_type: 'BOARD_GAME',
-    players: '2-6인',
-    genre: '살인 사건 정통 추리',
-  },
-  {
-    id: 'g-bg-26',
-    title: '치킨 차차차 (Zicke Zacke)',
-    item_type: 'BOARD_GAME',
-    players: '2-4인',
-    genre: '기억력 닭 꼬리잡기',
-  },
-  {
-    id: 'g-bg-27',
-    title: '모노폴리 클래식',
-    item_type: 'BOARD_GAME',
-    players: '2-6인',
-    genre: '세계 부동산 투자 거래',
-  },
-  {
-    id: 'g-bg-28',
-    title: '모노폴리 K-부동산 (서울)',
-    item_type: 'BOARD_GAME',
-    players: '2-6인',
-    genre: '국내 부동산 투자 보드게임',
-  },
-  {
-    id: 'g-bg-29',
-    title: '인생게임 (The Game of Life)',
-    item_type: 'BOARD_GAME',
-    players: '2-6인',
-    genre: '직업/결혼/은퇴 인생 시뮬레이션',
-  },
-  {
-    id: 'g-bg-30',
-    title: '젠가 클래식 (Jenga)',
-    item_type: 'BOARD_GAME',
-    players: '1-8인',
-    genre: '원목 블록 빼기 파티',
-  },
-  {
-    id: 'g-bg-31',
-    title: '상어 아일랜드 (Shark Island)',
-    item_type: 'BOARD_GAME',
-    players: '2-4인',
-    genre: '상어 피해 달아나기 레이스',
-  },
-  {
-    id: 'g-bg-32',
-    title: '도블 (Dobble)',
-    item_type: 'BOARD_GAME',
-    players: '2-8인',
-    genre: '같은 그림 찾기 스피드',
-  },
-];
-
 export function GamesPage() {
   const selectedStoreId = useSelectedStaffStoreId();
+  const { selectedStoreSlug } = useStaffStore();
+  const currentStore =
+    publicStoreList.find((s) => s.slug === selectedStoreSlug) ?? publicStoreList[0];
+
   const [message, setMessage] = useState('');
   const [items, setItems] = useState<Game[]>([]);
   const [currentTab, setCurrentTab] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
   const load = async () => {
-    if (!supabase || !selectedStoreId) return setItems([]);
+    if (!supabase || !selectedStoreId) {
+      setItems(getStaticStoreGames(selectedStoreSlug) as Game[]);
+      return;
+    }
     const { data, error } = await supabase
       .from('entertainment_items')
-      .select('id,title,item_type,players,genre')
+      .select('id,title,item_type,players,genre,quantity')
       .eq('store_id', selectedStoreId)
+      .is('archived_at', null)
       .order('created_at', { ascending: false });
 
-    if (error) setMessage(error.message);
-    else setItems((data ?? []) as Game[]);
+    if (error) {
+      setMessage(error.message);
+      setItems(getStaticStoreGames(selectedStoreSlug) as Game[]);
+    } else if (data && data.length > 0) {
+      setItems(data as Game[]);
+    } else {
+      setItems(getStaticStoreGames(selectedStoreSlug) as Game[]);
+    }
   };
 
   useEffect(() => {
     void load();
-  }, [selectedStoreId]);
+  }, [selectedStoreId, selectedStoreSlug]);
 
   const save = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -490,11 +135,10 @@ export function GamesPage() {
         }}
       >
         <div>
-          <div className="section-kicker">GAME VERIFICATION & INVENTORY</div>
+          <div className="section-kicker">GAME VERIFICATION & INVENTORY · {currentStore.name}</div>
           <h1 className="section-title">게임 실물 검증 및 비치 현황</h1>
           <p style={{ margin: '6px 0 0 0', fontSize: '14px', color: '#6B6354', fontWeight: 600 }}>
-            서울대입구역점 실물 비치 닌텐도 스위치 8종, PS4 12종, 보드게임 40여종의 수량 및 공개
-            상태를 관리합니다.
+            {currentStore.name} 실물 비치 닌텐도 스위치, PlayStation, 보드게임 수량 및 공개 상태를 관리합니다.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>

@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { isKoreanSpeechCancellation, speakKorean, stopKoreanSpeech } from '../../lib/broadcast';
 import { type ScheduledBroadcast } from '../../lib/broadcastSchedule';
 import { supabase } from '../../lib/supabase';
@@ -6,6 +6,8 @@ import { getKoreanFemaleVoices, notifyScheduleUpdated } from '../../lib/broadcas
 import { useSelectedStaffStoreId } from './StaffStoreContext';
 
 type BroadcastPresetPreview = readonly [string, string, string, string?];
+
+const VOICE_STORAGE_KEY = 'cartoonplus_broadcast_voice';
 
 const initialPresets: BroadcastPresetPreview[] = [
   ['기본', '매장 이용 후 퇴실 시 사용하신 담요, 만화책, 식기 등을 모두 반납해 주시고 쓰레기는 쓰레기통에 버려 주시기 바랍니다.', '매장 이용 에티켓 및 기본 안내'],
@@ -15,6 +17,24 @@ const initialPresets: BroadcastPresetPreview[] = [
   ['신분증 검사', '잠시 후 10시부터 신분증 확인을 진행합니다. 계속 이용하실 고객님께서는 실물 신분증을 미리 준비해 주시기 바랍니다.', '오후 10시 이후 신분증 확인 안내'],
   ['음료 픽업 요청', '주문하신 음료가 카운터에 준비되어 있습니다. 카카오톡 알림을 확인해 주시기 바랍니다.', '제조 완료 음료 카운터 수령 안내'],
 ];
+
+const QUICK_TTS_TEMPLATES = [
+  { label: '☕ 음료 픽업', text: '주문하신 음료가 준비되었습니다. 카운터에서 수령해 주시기 바랍니다.' },
+  { label: '🍜 라면 조리완료', text: '주문하신 라면이 나왔습니다. 카운터에서 수령해 주시기 바랍니다.' },
+  { label: '📚 도서 반납 안내', text: '이용을 마치신 고객님께서는 다 읽으신 도서를 반납대로 반납해 주시기 바랍니다.' },
+  { label: '🤫 정숙 권장', text: '모든 고객님의 쾌적한 이용을 위해 통화 및 대화는 작은 목소리로 부탁드립니다.' },
+  { label: '⏰ 마감 15분전', text: '잠시 후 영업이 종료됩니다. 퇴실 준비와 자리 정돈을 부탁드립니다.' },
+];
+
+const STATUS_THEME: Record<
+  '대기' | '재생 중' | '성공' | '실패',
+  { pillBg: string; pillColor: string; dotBg: string; dotPulse: boolean }
+> = {
+  '대기': { pillBg: '#333333', pillColor: '#FFFFFF', dotBg: '#8A8175', dotPulse: false },
+  '재생 중': { pillBg: 'var(--color-yellow, #FED943)', pillColor: '#1E1E1E', dotBg: '#E65100', dotPulse: true },
+  '성공': { pillBg: '#2FA14B', pillColor: '#FFFFFF', dotBg: '#A3E635', dotPulse: false },
+  '실패': { pillBg: '#E03131', pillColor: '#FFFFFF', dotBg: '#FFA8A8', dotPulse: false },
+};
 
 type StoredSchedule = ScheduledBroadcast & { id: string; message_text: string; presetId?: string };
 type MissedRun = { id: string; message_text: string; triggered_at: string };
@@ -52,12 +72,21 @@ const dayLabels: Record<string, string> = {
   SUN: '일',
 };
 
+function formatError(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 export function BroadcastPage() {
   const [presets, setPresets] = useState(initialPresets);
   const storeId = useSelectedStaffStoreId();
   const [text, setText] = useState('');
   const [voiceNames, setVoiceNames] = useState<string[]>([]);
-  const [voiceName, setVoiceName] = useState('');
+  const [voiceName, setVoiceName] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(VOICE_STORAGE_KEY) || '';
+    }
+    return '';
+  });
   const [status, setStatus] = useState<'대기' | '재생 중' | '성공' | '실패'>('대기');
   const [currentPlaying, setCurrentPlaying] = useState<string | null>(null);
   const [schedules, setSchedules] = useState<StoredSchedule[]>([]);
@@ -67,6 +96,16 @@ export function BroadcastPage() {
   const [missedRuns, setMissedRuns] = useState<MissedRun[]>([]);
   const [presetEditor, setPresetEditor] = useState<PresetEditor | null>(null);
   const [isSavingPreset, setIsSavingPreset] = useState(false);
+
+  const scheduleFormRef = useRef<HTMLFormElement>(null);
+  const scheduleTypeSelectRef = useRef<HTMLSelectElement>(null);
+
+  const handleVoiceChange = (newVoice: string) => {
+    setVoiceName(newVoice);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(VOICE_STORAGE_KEY, newVoice);
+    }
+  };
 
   const recordRun = async (message: string, scheduledId?: string) => {
     if (!supabase) return;
@@ -138,11 +177,15 @@ export function BroadcastPage() {
   const loadPresets = async () => {
     if (!supabase) return;
     if (!storeId) return;
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('broadcast_presets')
       .select('id, title, message_text')
       .eq('store_id', storeId)
       .order('created_at');
+    if (error) {
+      setScheduleStatus(`프리셋을 불러오지 못했습니다: ${error.message}`);
+      return;
+    }
     if (data?.length) {
       setPresets(data.map((preset) => [preset.title, preset.message_text, '편집 가능한 TTS 프리셋', preset.id] as const));
     }
@@ -150,14 +193,18 @@ export function BroadcastPage() {
 
   const loadMissedRuns = async (targetStoreId = storeId) => {
     if (!supabase || !targetStoreId) return;
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('broadcast_runs')
       .select('id, message_text, triggered_at')
       .eq('store_id', targetStoreId)
       .eq('status', 'missed')
       .order('triggered_at', { ascending: false })
       .limit(10);
-    setMissedRuns((data ?? []) as MissedRun[]);
+    if (error) {
+      setScheduleStatus(`미실행 기록을 불러오지 못했습니다: ${error.message}`);
+    } else {
+      setMissedRuns((data ?? []) as MissedRun[]);
+    }
   };
 
   const countLinkedSchedules = async (presetId?: string): Promise<number> => {
@@ -189,16 +236,32 @@ export function BroadcastPage() {
     if (!storeId) return;
     setIsSavingPreset(true);
     try {
-      const { error } = presetEditor.id
-        ? await supabase.from('broadcast_presets').update({ title, message_text: message }).eq('id', presetEditor.id)
-        : await supabase.from('broadcast_presets').insert({ store_id: storeId, title, message_text: message });
-      setScheduleStatus(error ? `프리셋을 저장하지 못했습니다: ${error.message}` : '프리셋을 저장했습니다.');
-      if (!error) {
-        await loadPresets();
-        await loadSchedules();
-        notifyScheduleUpdated();
-        setPresetEditor(null);
+      if (presetEditor.id) {
+        const { error: presetErr } = await supabase
+          .from('broadcast_presets')
+          .update({ title, message_text: message })
+          .eq('id', presetEditor.id);
+        if (presetErr) throw presetErr;
+
+        // 연결된 예약 방송 문구도 함께 동기화
+        await supabase
+          .from('scheduled_broadcasts')
+          .update({ message_text: message })
+          .eq('broadcast_preset_id', presetEditor.id);
+      } else {
+        const { error: insertErr } = await supabase
+          .from('broadcast_presets')
+          .insert({ store_id: storeId, title, message_text: message });
+        if (insertErr) throw insertErr;
       }
+
+      setScheduleStatus('프리셋을 저장했습니다.');
+      await loadPresets();
+      await loadSchedules();
+      notifyScheduleUpdated();
+      setPresetEditor(null);
+    } catch (err) {
+      setScheduleStatus(`프리셋을 저장하지 못했습니다: ${formatError(err)}`);
     } finally {
       setIsSavingPreset(false);
     }
@@ -209,15 +272,24 @@ export function BroadcastPage() {
     const linkedScheduleCount = await countLinkedSchedules(presetId);
     if (!window.confirm(`'${title}' 프리셋과 연결 예약 ${linkedScheduleCount}건을 삭제할까요?`)) return;
     if (!storeId) return;
-    const deletion = supabase.from('broadcast_presets').delete();
-    const { error } = presetId
-      ? await deletion.eq('id', presetId)
-      : await deletion.eq('store_id', storeId).eq('title', title);
-    setScheduleStatus(error ? `프리셋을 삭제하지 못했습니다: ${error.message}` : '프리셋과 연결 예약을 삭제했습니다.');
-    if (!error) {
+    try {
+      if (presetId) {
+        // 연결된 예약 방송 먼저 명시적 삭제 (FK 안전 보장)
+        await supabase.from('scheduled_broadcasts').delete().eq('broadcast_preset_id', presetId);
+        const { error } = await supabase.from('broadcast_presets').delete().eq('id', presetId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('broadcast_presets').delete().eq('store_id', storeId).eq('title', title);
+        if (error) throw error;
+        // DB에 없던 로컬 fallback 프리셋인 경우 클라이언트 state에서도 필터링
+        setPresets((prev) => prev.filter(([t]) => t !== title));
+      }
+      setScheduleStatus('프리셋과 연결 예약을 삭제했습니다.');
       await loadPresets();
       await loadSchedules();
       notifyScheduleUpdated();
+    } catch (err) {
+      setScheduleStatus(`프리셋을 삭제하지 못했습니다: ${formatError(err)}`);
     }
   };
 
@@ -242,12 +314,17 @@ export function BroadcastPage() {
     const refreshVoices = () => {
       const names = getKoreanFemaleVoices(window.speechSynthesis.getVoices()).map((voice) => voice.name);
       setVoiceNames(names);
-      setVoiceName((current) => current || names[0] || '');
+      const saved = localStorage.getItem(VOICE_STORAGE_KEY);
+      if (saved && names.includes(saved)) {
+        setVoiceName(saved);
+      } else if (!voiceName && names.length > 0) {
+        setVoiceName(names[0]);
+      }
     };
     refreshVoices();
     window.speechSynthesis.addEventListener('voiceschanged', refreshVoices);
     return () => window.speechSynthesis.removeEventListener('voiceschanged', refreshVoices);
-  }, []);
+  }, [voiceName]);
 
   const saveSchedule = async (event: FormEvent) => {
     event.preventDefault();
@@ -303,21 +380,6 @@ export function BroadcastPage() {
     notifyScheduleUpdated();
   };
 
-  const changeTime = async (item: StoredSchedule, targetTime: string) => {
-    if (!supabase) return;
-    const { error } = await supabase
-      .from('scheduled_broadcasts')
-      .update({ target_time: targetTime })
-      .eq('id', item.id);
-    setScheduleStatus(
-      error ? `시간을 변경하지 못했습니다: ${error.message}` : '예약 시간을 변경했습니다.'
-    );
-    if (!error) {
-      await loadSchedules();
-      notifyScheduleUpdated();
-    }
-  };
-
   const archiveSchedule = async (item: StoredSchedule) => {
     if (!supabase) return;
     const { error } = await supabase.from('scheduled_broadcasts').delete().eq('id', item.id);
@@ -330,213 +392,413 @@ export function BroadcastPage() {
     }
   };
 
-  const statusBg =
-    status === '재생 중'
-      ? '#FED943'
-      : status === '성공'
-        ? '#D6F5E3'
-        : status === '실패'
-          ? '#FFD4D4'
-          : '#FFF9EC';
-  const statusColor =
-    status === '재생 중'
-      ? '#1E1E1E'
-      : status === '성공'
-        ? '#1A7A3E'
-        : status === '실패'
-          ? '#C92A2A'
-          : '#6B6354';
+  const resetScheduleEditing = () => {
+    setSchedule(emptySchedule);
+    setEditingScheduleId(null);
+  };
+
+  const handleEditScheduleClick = (item: StoredSchedule) => {
+    setSchedule({
+      message: item.message_text,
+      presetId: item.presetId ?? '',
+      type: item.scheduleType,
+      time: item.targetTime,
+      date: item.targetDate ?? '',
+      weekdays: item.targetDays ?? [],
+    });
+    setEditingScheduleId(item.id);
+    scheduleFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    scheduleTypeSelectRef.current?.focus();
+  };
+
+  const currentTheme = STATUS_THEME[status];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      {/* 헤더 및 실시간 상태 */}
+    <div className="staff-page-container" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {/* 1. 상단 마스터 헤더 & 실시간 컨트롤 */}
       <div
+        className="staff-section-card"
         style={{
+          background: 'var(--color-dark, #1E1E1E)',
+          color: '#FFF9EC',
+          boxShadow: '5px 5px 0 var(--color-yellow, #FED943)',
+          border: '3px solid var(--color-border, #1E1E1E)',
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          flexWrap: 'wrap',
+          flexDirection: 'column',
           gap: '16px',
         }}
       >
-        <div>
-          <div className="section-kicker">STORE BROADCAST CONSOLE</div>
-          <h1 className="section-title">매장 안내 방송</h1>
-          <p style={{ margin: '6px 0 0 0', fontSize: '14px', color: '#6B6354', fontWeight: 600 }}>
-            PC 브라우저를 열어 두면 등록된 스케줄에 맞춰 매장 스피커로 자동 송출됩니다.
-          </p>
-          <label style={{ display: 'block', marginTop: '10px', fontSize: '13px', fontWeight: 800 }}>
-            여성 한국어 음성
-            <select value={voiceName} onChange={(event) => setVoiceName(event.target.value)} style={{ marginLeft: '8px' }}>
-              <option value="">이 PC 기본 한국어 음성 사용</option>
-              {voiceNames.map((name) => <option key={name} value={name}>{name}</option>)}
-            </select>
-          </label>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {status === '재생 중' && (
-            <button
-              type="button"
-              onClick={() => {
-                stopKoreanSpeech();
-                setStatus('대기');
-                setCurrentPlaying(null);
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: '11px',
+                fontWeight: 900,
+                letterSpacing: '0.15em',
+                color: 'var(--color-yellow, #FED943)',
+                textTransform: 'uppercase',
+                marginBottom: '4px',
               }}
             >
-              방송 중지
-            </button>
-          )}
+              STORE BROADCAST CONSOLE
+            </div>
+            <h1
+              style={{
+                fontSize: '26px',
+                fontWeight: 900,
+                letterSpacing: '-0.03em',
+                color: '#FFFFFF',
+                margin: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+              }}
+            >
+              <span>📢 매장 안내 방송</span>
+            </h1>
+          </div>
+
+          {/* 실시간 상태 뱃지 & 비상 중지 버튼 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            {status === '재생 중' && (
+              <button
+                type="button"
+                aria-label="방송 긴급 중지"
+                onClick={() => {
+                  stopKoreanSpeech();
+                }}
+                style={{
+                  padding: '9px 16px',
+                  borderRadius: 'var(--radius-pill, 999px)',
+                  background: '#E03131',
+                  border: '2px solid #FFFFFF',
+                  color: '#FFFFFF',
+                  fontWeight: 900,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 0 12px rgba(224, 49, 49, 0.6)',
+                }}
+              >
+                <span>⏹ 방송 긴급 중지</span>
+              </button>
+            )}
+
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 18px',
+                borderRadius: 'var(--radius-pill, 999px)',
+                background: currentTheme.pillBg,
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                fontWeight: 900,
+                fontSize: '13px',
+                color: currentTheme.pillColor,
+              }}
+            >
+              <span
+                style={{
+                  width: '9px',
+                  height: '9px',
+                  borderRadius: '50%',
+                  background: currentTheme.dotBg,
+                  display: 'inline-block',
+                  animation: currentTheme.dotPulse ? 'pulse-dot 1s infinite' : 'none',
+                }}
+              />
+              {status === '재생 중'
+                ? `송출 중: ${currentPlaying?.slice(0, 24) ?? '음성'}${currentPlaying && currentPlaying.length > 24 ? '…' : ''}`
+                : `방송 상태: ${status}`}
+            </div>
+          </div>
+        </div>
+
+        {/* 컨트롤 옵션 & 가이드 바 */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px',
+            paddingTop: '12px',
+            borderTop: '1px solid #333333',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '13px', fontWeight: 800, color: '#CFC7B4' }}>
+              🎙️ 송출 음성:
+            </span>
+            <select
+              aria-label="한국어 음성 선택"
+              value={voiceName}
+              onChange={(event) => handleVoiceChange(event.target.value)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                background: '#2A2A2A',
+                border: '1.5px solid #444444',
+                color: '#FFF9EC',
+                fontSize: '12.5px',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              <option value="">이 PC 기본 한국어 음성 (여성 우선)</option>
+              {voiceNames.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div
+            style={{
+              fontSize: '12.5px',
+              color: '#A79E8B',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span style={{ color: 'var(--color-yellow, #FED943)' }}>💡</span> 카운터 PC 탭을 열어 두시면 백그라운드에서도 정시 예약 방송이 자동 송출됩니다.
+          </div>
+        </div>
+      </div>
+
+      {/* 2열 그리드: 자주 쓰는 원클릭 프리셋 & 실시간 커스텀 TTS */}
+      <div className="home-split">
+        {/* 2-1. 자주 쓰는 원클릭 정규 안내 방송 */}
+        <div
+          className="staff-section-card"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+          }}
+        >
           <div
             style={{
               display: 'flex',
+              justifyContent: 'space-between',
               alignItems: 'center',
+              flexWrap: 'wrap',
               gap: '8px',
-              padding: '8px 16px',
-              borderRadius: '999px',
-              background: statusBg,
-              border: '2px solid #1E1E1E',
-              fontWeight: 800,
-              fontSize: '13px',
-              color: statusColor,
             }}
           >
-            <span
+            <div>
+              <div style={{ fontSize: '17px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
+                📻 원클릭 정규 안내 방송
+              </div>
+              <div style={{ fontSize: '12.5px', color: 'var(--color-text-muted, #6B6354)', fontWeight: 600 }}>
+                매장에서 자주 사용하는 안내 멘트를 즉시 송출합니다.
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => void openPresetEditor()}
               style={{
-                width: '10px',
-                height: '10px',
-                borderRadius: '50%',
-                background: status === '재생 중' ? '#E65100' : statusColor,
-                display: 'inline-block',
+                padding: '6px 14px',
+                borderRadius: '10px',
+                background: 'var(--color-yellow, #FED943)',
+                border: '2px solid var(--color-border, #1E1E1E)',
+                fontSize: '12px',
+                fontWeight: 900,
+                color: 'var(--color-dark, #1E1E1E)',
+                cursor: 'pointer',
+                boxShadow: '2px 2px 0 var(--color-border, #1E1E1E)',
+                transition: 'all 0.15s ease',
               }}
-            />
-            {status === '재생 중'
-              ? `송출 중: ${currentPlaying ?? '음성'}`
-              : `방송 시스템 상태: ${status}`}
-          </div>
-        </div>
-      </div>
-
-      {/* 안내 팁 박스 */}
-      <div
-        style={{
-          background: '#FFF3C9',
-          border: '2.5px solid #1E1E1E',
-          borderRadius: '16px',
-          padding: '14px 20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          boxShadow: '3px 3px 0 #1E1E1E',
-        }}
-      >
-        <div style={{ fontSize: '13px', fontWeight: 700, color: '#3D3528', lineHeight: 1.5 }}>
-          <strong>운영 가이드:</strong> 카운터 PC에서 브라우저 볼륨을 매장 앰프에 맞추고 탭을 유지해
-          주세요. 백그라운드 탭에서도 15초 주기로 스케줄을 감지하여 자동 송출합니다.
-        </div>
-      </div>
-
-      {/* 2열 그리드: 자주 쓰는 녹음 방송 & 직접 TTS 송출 */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-          gap: '20px',
-        }}
-      >
-        {/* 1. 자주 쓰는 원클릭 녹음 방송 */}
-        <div
-          style={{
-            background: '#ffffff',
-            border: '3px solid #1E1E1E',
-            borderRadius: '22px',
-            padding: '24px',
-            boxShadow: '4px 4px 0 #1E1E1E',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: 900 }}>📻 원클릭 정규 안내 방송</div>
-            <button type="button" onClick={() => void openPresetEditor()}>+ 프리셋 추가</button>
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#8A8175' }}>
-              편집 가능한 TTS 프리셋
-            </span>
+            >
+              + 새 프리셋 추가
+            </button>
           </div>
 
+          {/* 프리셋 카드 그리드 */}
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
               gap: '12px',
             }}
           >
-            {presets.map(([title, message, desc, id]) => (
-              <div
-                key={title}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-start',
-                  justifyContent: 'space-between',
-                  gap: '8px',
-                  padding: '14px',
-                  background: '#FFF9EC',
-                  border: '2px solid #1E1E1E',
-                  borderRadius: '14px',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease',
-                  opacity: status === '재생 중' ? 0.6 : 1,
-                }}
-              >
+            {presets.map(([title, message, desc, id]) => {
+              const isPlayingThis = currentPlaying === message;
+              return (
                 <div
+                  key={title}
                   style={{
                     display: 'flex',
+                    flexDirection: 'column',
                     justifyContent: 'space-between',
-                    width: '100%',
-                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '14px 16px',
+                    background: isPlayingThis ? 'var(--color-yellow-light, #FFF3C9)' : 'var(--color-panel-cream, #FFF9EC)',
+                    border: isPlayingThis ? '2.5px solid #E65100' : '2px solid var(--color-border, #1E1E1E)',
+                    borderRadius: '16px',
+                    boxShadow: isPlayingThis ? '3px 3px 0 #E65100' : '3px 3px 0 var(--color-border, #1E1E1E)',
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  <span style={{ fontSize: '15px', fontWeight: 900, color: '#1E1E1E' }}>
-                    {title}
-                  </span>
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    <button type="button" onClick={() => void play(message)} disabled={status === '재생 중'}>재생</button>
-                    <button type="button" onClick={() => void openPresetEditor([title, message, desc, id])}>수정</button>
-                    <button type="button" onClick={() => void deletePreset(title, id)}>삭제</button>
+                  <div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '6px',
+                        marginBottom: '6px',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '15px',
+                          fontWeight: 900,
+                          color: 'var(--color-dark, #1E1E1E)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        {title}
+                      </span>
+
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <button
+                          type="button"
+                          className="btn-neo-sub"
+                          aria-label={`${title} 프리셋 수정`}
+                          onClick={() => void openPresetEditor([title, message, desc, id])}
+                        >
+                          수정
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-neo-sub btn-neo-sub-danger"
+                          aria-label={`${title} 프리셋 삭제`}
+                          onClick={() => void deletePreset(title, id)}
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    </div>
+
+                    <p
+                      style={{
+                        fontSize: '12px',
+                        color: 'var(--color-text-muted, #6B6354)',
+                        fontWeight: 600,
+                        lineHeight: 1.4,
+                        margin: 0,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {desc || message}
+                    </p>
                   </div>
+
+                  {/* 즉시 방송 버튼 */}
+                  <button
+                    type="button"
+                    aria-label={`${title} 안내 즉시 방송`}
+                    onClick={() => void play(message)}
+                    disabled={status === '재생 중'}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      borderRadius: '10px',
+                      background: isPlayingThis ? 'var(--color-dark, #1E1E1E)' : 'var(--color-yellow, #FED943)',
+                      color: isPlayingThis ? 'var(--color-yellow, #FED943)' : 'var(--color-dark, #1E1E1E)',
+                      border: '2px solid var(--color-border, #1E1E1E)',
+                      fontWeight: 900,
+                      fontSize: '13px',
+                      cursor: status === '재생 중' ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      boxShadow: isPlayingThis ? 'none' : '2px 2px 0 var(--color-border, #1E1E1E)',
+                    }}
+                  >
+                    <span>{isPlayingThis ? '🔊 송출 중...' : '▶ 즉시 방송'}</span>
+                  </button>
                 </div>
-                <span
-                  style={{ fontSize: '11px', color: '#8A8175', fontWeight: 600, lineHeight: 1.3 }}
-                >
-                  {desc}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* 2. 직접 TTS 입력 방송 */}
+        {/* 2-2. 실시간 커스텀 TTS 방송 */}
         <div
+          className="staff-section-card"
           style={{
-            background: '#ffffff',
-            border: '3px solid #1E1E1E',
-            borderRadius: '22px',
-            padding: '24px',
-            boxShadow: '4px 4px 0 #1E1E1E',
             display: 'flex',
             flexDirection: 'column',
-            gap: '16px',
+            gap: '14px',
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: 900 }}>실시간 커스텀 TTS 방송</div>
-            <span style={{ fontSize: '12px', fontWeight: 800, color: '#8A8175' }}>
+            <div>
+              <div style={{ fontSize: '17px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
+                🎤 실시간 커스텀 TTS 방송
+              </div>
+              <div style={{ fontSize: '12.5px', color: 'var(--color-text-muted, #6B6354)', fontWeight: 600 }}>
+                상황에 맞는 멘트를 직접 입력하여 즉시 매장에 방송합니다.
+              </div>
+            </div>
+            <span
+              style={{
+                padding: '4px 8px',
+                borderRadius: '6px',
+                background: 'var(--color-yellow-light, #FFF3C9)',
+                border: '1.5px solid var(--color-border, #1E1E1E)',
+                fontSize: '11px',
+                fontWeight: 900,
+              }}
+            >
               한국어 음성 합성
             </span>
           </div>
 
+          {/* 퀵 템플릿 상용구 칩 */}
+          <div>
+            <div style={{ fontSize: '11.5px', fontWeight: 800, color: 'var(--color-text-subtle, #8A8175)', marginBottom: '6px' }}>
+              ⚡ 빠른 템플릿 선택
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {QUICK_TTS_TEMPLATES.map((tmpl) => (
+                <button
+                  key={tmpl.label}
+                  type="button"
+                  className="quick-chip-btn"
+                  onClick={() => setText(tmpl.text)}
+                >
+                  {tmpl.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 텍스트 입력창 */}
           <textarea
+            aria-label="즉시 방송할 멘트 입력"
             value={text}
             onChange={(event) => setText(event.target.value)}
             placeholder="매장에 즉시 방송할 멘트를 입력하세요. (예: 12번 테이블 주문하신 라면 나왔습니다.)"
@@ -545,36 +807,41 @@ export function BroadcastPage() {
               width: '100%',
               padding: '14px',
               borderRadius: '14px',
-              border: '2px solid #1E1E1E',
+              border: '2px solid var(--color-border, #1E1E1E)',
               fontSize: '14px',
               fontWeight: 600,
               fontFamily: 'inherit',
+              lineHeight: 1.5,
               resize: 'vertical',
               boxSizing: 'border-box',
-              background: '#FAFAFA',
+              background: '#FFFFFF',
+              boxShadow: 'inset 2px 2px 4px rgba(0,0,0,0.04)',
             }}
           />
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#8A8175' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-subtle, #8A8175)' }}>
               {text.length}자 입력됨
             </span>
             <button
+              type="button"
+              aria-label="매장 전체 즉시 송출"
               onClick={() => void play(text)}
               disabled={!text.trim() || status === '재생 중'}
               style={{
-                padding: '10px 22px',
+                padding: '11px 24px',
                 borderRadius: '12px',
-                background: text.trim() ? '#FED943' : '#E0DCD3',
-                color: '#1E1E1E',
-                border: '2.5px solid #1E1E1E',
+                background: text.trim() ? 'var(--color-yellow, #FED943)' : '#E0DCD3',
+                color: 'var(--color-dark, #1E1E1E)',
+                border: '2.5px solid var(--color-border, #1E1E1E)',
                 fontWeight: 900,
                 fontSize: '14px',
                 cursor: text.trim() && status !== '재생 중' ? 'pointer' : 'not-allowed',
-                boxShadow: text.trim() ? '3px 3px 0 #1E1E1E' : 'none',
+                boxShadow: text.trim() ? '3px 3px 0 var(--color-border, #1E1E1E)' : 'none',
+                transition: 'all 0.15s ease',
               }}
             >
-              매장 전체 즉시 송출
+              매장 전체 즉시 송출 🔊
             </button>
           </div>
         </div>
@@ -582,12 +849,8 @@ export function BroadcastPage() {
 
       {/* 3. 예약 방송 스케줄러 & 등록 폼 */}
       <div
+        className="staff-section-card"
         style={{
-          background: '#ffffff',
-          border: '3px solid #1E1E1E',
-          borderRadius: '22px',
-          padding: '24px',
-          boxShadow: '4px 4px 0 #1E1E1E',
           display: 'flex',
           flexDirection: 'column',
           gap: '20px',
@@ -603,8 +866,10 @@ export function BroadcastPage() {
           }}
         >
           <div>
-            <div style={{ fontSize: '18px', fontWeight: 900 }}>⏰ 자동 예약 방송 스케줄러</div>
-            <div style={{ fontSize: '13px', color: '#6B6354', fontWeight: 600, marginTop: '2px' }}>
+            <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
+              ⏰ 자동 예약 방송 스케줄러
+            </div>
+            <div style={{ fontSize: '13px', color: 'var(--color-text-muted, #6B6354)', fontWeight: 600, marginTop: '2px' }}>
               매일 반복되거나 특정 요일/날짜에 송출할 방송 일정을 등록하고 관리합니다.
             </div>
           </div>
@@ -612,11 +877,12 @@ export function BroadcastPage() {
             <span
               style={{
                 padding: '6px 14px',
-                borderRadius: '999px',
-                background: '#FFF3C9',
-                border: '2px solid #1E1E1E',
+                borderRadius: 'var(--radius-pill, 999px)',
+                background: 'var(--color-yellow-light, #FFF3C9)',
+                border: '2px solid var(--color-border, #1E1E1E)',
                 fontSize: '12px',
                 fontWeight: 800,
+                boxShadow: '2px 2px 0 var(--color-border, #1E1E1E)',
               }}
             >
               {scheduleStatus}
@@ -624,37 +890,43 @@ export function BroadcastPage() {
           )}
         </div>
 
-        {/* 신규 예약 등록 폼 */}
+        {/* 스케줄 등록/수정 폼 (ADR-0008 staff-form-grid 적용) */}
         <form
+          ref={scheduleFormRef}
           onSubmit={(event) => void saveSchedule(event)}
           style={{
-            background: '#FFF9EC',
-            border: '2.5px solid #1E1E1E',
+            background: editingScheduleId ? 'var(--color-yellow-light, #FFF3C9)' : 'var(--color-panel-cream, #FFF9EC)',
+            border: '2.5px solid var(--color-border, #1E1E1E)',
             borderRadius: '16px',
             padding: '20px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '14px',
+            gap: '16px',
+            boxShadow: '3px 3px 0 var(--color-border, #1E1E1E)',
           }}
         >
-          <div style={{ fontSize: '14px', fontWeight: 900, color: '#1E1E1E' }}>
-            + 새 스케줄 등록
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '15px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
+              {editingScheduleId ? '✏️ 예약 방송 스케줄 수정' : '➕ 새 스케줄 등록'}
+            </div>
+            {editingScheduleId && (
+              <button
+                type="button"
+                className="btn-neo-sub"
+                onClick={resetScheduleEditing}
+              >
+                수정 취소
+              </button>
+            )}
           </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '12px',
-            }}
-          >
+          <div className="staff-form-grid">
             <div>
-              <label
-                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
-              >
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}>
                 반복 방식
               </label>
               <select
+                ref={scheduleTypeSelectRef}
                 value={schedule.type}
                 onChange={(event) =>
                   setSchedule({ ...schedule, type: event.target.value as typeof schedule.type })
@@ -663,9 +935,10 @@ export function BroadcastPage() {
                   width: '100%',
                   padding: '10px 12px',
                   borderRadius: '10px',
-                  border: '2px solid #1E1E1E',
+                  border: '2px solid var(--color-border, #1E1E1E)',
                   fontWeight: 800,
                   fontSize: '13px',
+                  background: '#FFFFFF',
                 }}
               >
                 <option value="daily">매일 반복</option>
@@ -675,9 +948,7 @@ export function BroadcastPage() {
             </div>
 
             <div>
-              <label
-                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
-              >
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}>
                 송출 시간
               </label>
               <input
@@ -689,24 +960,18 @@ export function BroadcastPage() {
                   width: '100%',
                   padding: '9px 12px',
                   borderRadius: '10px',
-                  border: '2px solid #1E1E1E',
+                  border: '2px solid var(--color-border, #1E1E1E)',
                   fontWeight: 800,
                   fontSize: '13px',
                   boxSizing: 'border-box',
+                  background: '#FFFFFF',
                 }}
               />
             </div>
 
             {schedule.type === 'once' && (
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '12px',
-                    fontWeight: 800,
-                    marginBottom: '4px',
-                  }}
-                >
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}>
                   지정 일자
                 </label>
                 <input
@@ -718,10 +983,11 @@ export function BroadcastPage() {
                     width: '100%',
                     padding: '9px 12px',
                     borderRadius: '10px',
-                    border: '2px solid #1E1E1E',
+                    border: '2px solid var(--color-border, #1E1E1E)',
                     fontWeight: 800,
                     fontSize: '13px',
                     boxSizing: 'border-box',
+                    background: '#FFFFFF',
                   }}
                 />
               </div>
@@ -730,9 +996,7 @@ export function BroadcastPage() {
 
           {schedule.type === 'weekdays' && (
             <div>
-              <label
-                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}
-              >
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '8px' }}>
                 반복 요일 선택
               </label>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -752,12 +1016,14 @@ export function BroadcastPage() {
                       }
                       style={{
                         padding: '6px 14px',
-                        borderRadius: '999px',
-                        border: '2px solid #1E1E1E',
-                        background: checked ? '#FED943' : '#FFFFFF',
+                        borderRadius: 'var(--radius-pill, 999px)',
+                        border: '2px solid var(--color-border, #1E1E1E)',
+                        background: checked ? 'var(--color-yellow, #FED943)' : '#FFFFFF',
                         fontWeight: 900,
                         fontSize: '12px',
                         cursor: 'pointer',
+                        boxShadow: checked ? '2px 2px 0 var(--color-border, #1E1E1E)' : 'none',
+                        transition: 'all 0.15s ease',
                       }}
                     >
                       {dayLabels[day]}요일
@@ -769,10 +1035,8 @@ export function BroadcastPage() {
           )}
 
           <div>
-            <label
-              style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
-            >
-              방송 문구 (프리셋 이름 또는 TTS 전문)
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}>
+              방송 문구 (프리셋 선택 또는 직접 입력)
             </label>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               <select
@@ -782,121 +1046,121 @@ export function BroadcastPage() {
                   const preset = presets.find(([, , , id]) => id === event.target.value);
                   if (preset) setSchedule({ ...schedule, presetId: event.target.value, message: preset[1] });
                 }}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  border: '2px solid var(--color-border, #1E1E1E)',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  background: '#FFFFFF',
+                  minWidth: '140px',
+                }}
               >
                 <option value="">프리셋 선택</option>
-                {presets.map(([title, , , id]) => <option key={id ?? title} value={id ?? ''}>{title}</option>)}
+                {presets.map(([title, , , id]) => (
+                  <option key={id ?? title} value={id ?? ''}>
+                    {title}
+                  </option>
+                ))}
               </select>
+
               <input
                 required
                 value={schedule.message}
                 onChange={(event) => setSchedule({ ...schedule, message: event.target.value })}
-                placeholder="예: 마감 (프리셋) 또는 매장 내 정숙 부탁드립니다."
+                placeholder="예: 마감 안내 또는 매장 내 정숙 부탁드립니다."
                 style={{
                   flex: 1,
                   minWidth: '220px',
                   padding: '10px 14px',
                   borderRadius: '10px',
-                  border: '2px solid #1E1E1E',
+                  border: '2px solid var(--color-border, #1E1E1E)',
                   fontWeight: 600,
                   fontSize: '13px',
+                  background: '#FFFFFF',
                 }}
               />
+
               <button
                 type="submit"
                 style={{
-                  padding: '10px 20px',
+                  padding: '10px 22px',
                   borderRadius: '10px',
-                  background: '#1E1E1E',
-                  color: '#FED943',
-                  border: '2px solid #1E1E1E',
+                  background: 'var(--color-dark, #1E1E1E)',
+                  color: 'var(--color-yellow, #FED943)',
+                  border: '2px solid var(--color-border, #1E1E1E)',
                   fontWeight: 900,
                   fontSize: '13px',
                   cursor: 'pointer',
+                  boxShadow: '3px 3px 0 var(--color-yellow, #FED943)',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                스케줄 등록 +
+                {editingScheduleId ? '스케줄 수정 완료' : '스케줄 등록 +'}
               </button>
             </div>
           </div>
         </form>
 
-        {/* 저장된 예약 목록 타임라인 */}
+        {/* 저장된 예약 목록 타임라인 (ADR-0008 staff-item-row 적용) */}
         <div>
-          <div style={{ fontSize: '15px', fontWeight: 900, marginBottom: '12px' }}>
-            등록된 방송 스케줄 ({schedules.length}건)
+          <div style={{ fontSize: '15px', fontWeight: 900, marginBottom: '12px', color: 'var(--color-dark, #1E1E1E)' }}>
+            📋 등록된 방송 스케줄 ({schedules.length}건)
           </div>
 
           {schedules.length === 0 ? (
             <div
               style={{
-                padding: '24px',
+                padding: '36px',
                 background: '#FAF9F6',
                 border: '2px dashed #D3CEC4',
-                borderRadius: '14px',
+                borderRadius: '16px',
                 textAlign: 'center',
-                color: '#8A8175',
+                color: 'var(--color-text-subtle, #8A8175)',
                 fontWeight: 700,
-                fontSize: '13px',
+                fontSize: '13.5px',
               }}
             >
-              등록된 예약 방송 스케줄이 없습니다.
+              ⏰ 등록된 예약 방송 스케줄이 없습니다. 상단 폼에서 첫 스케줄을 등록해 보세요!
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {schedules.map((item) => (
                 <div
                   key={item.id}
+                  className="staff-item-row"
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: '12px',
-                    padding: '14px 18px',
                     background: item.isEnabled ? '#FFFFFF' : '#F5F3EF',
-                    border: '2px solid #1E1E1E',
-                    borderRadius: '14px',
-                    opacity: item.isEnabled ? 1 : 0.65,
+                    border: '2px solid var(--color-border, #1E1E1E)',
+                    opacity: item.isEnabled ? 1 : 0.7,
+                    boxShadow: item.isEnabled ? '3px 3px 0 var(--color-border, #1E1E1E)' : 'none',
                   }}
                 >
-                  <div
-                    style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}
-                  >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', flex: 1, minWidth: '220px' }}>
+                    {/* 시간 뱃지 */}
                     <div
                       style={{
-                        padding: '4px 10px',
+                        padding: '6px 12px',
                         borderRadius: '8px',
-                        background: '#1E1E1E',
-                        color: '#FED943',
-                        fontSize: '13px',
+                        background: 'var(--color-dark, #1E1E1E)',
+                        color: 'var(--color-yellow, #FED943)',
+                        fontSize: '14px',
                         fontWeight: 900,
                         fontFamily: 'monospace',
+                        letterSpacing: '0.04em',
                       }}
                     >
                       {item.targetTime}
                     </div>
 
-                    <input
-                      aria-label={`${item.message_text} 예약 시간`}
-                      type="time"
-                      defaultValue={item.targetTime}
-                      onBlur={(event) => void changeTime(item, event.target.value)}
-                      style={{
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        border: '1.5px solid #1E1E1E',
-                        fontSize: '12px',
-                        fontWeight: 800,
-                      }}
-                    />
-
+                    {/* 반복 유형 뱃지 */}
                     <span
                       style={{
-                        padding: '3px 8px',
+                        padding: '4px 10px',
                         borderRadius: '6px',
-                        background: '#FFF3C9',
-                        border: '1.5px solid #1E1E1E',
-                        fontSize: '11px',
+                        background: 'var(--color-yellow-light, #FFF3C9)',
+                        border: '1.5px solid var(--color-border, #1E1E1E)',
+                        fontSize: '11.5px',
                         fontWeight: 900,
                       }}
                     >
@@ -907,54 +1171,46 @@ export function BroadcastPage() {
                           : item.targetDate}
                     </span>
 
-                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#1E1E1E' }}>
+                    {/* 문구 */}
+                    <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--color-dark, #1E1E1E)', wordBreak: 'break-all' }}>
                       {item.message_text}
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  {/* 조작 버튼 그룹 */}
+                  <div className="staff-item-row-actions">
                     <button
-                      onClick={() => {
-                        setSchedule({
-                          message: item.message_text,
-                          presetId: item.presetId ?? '',
-                          type: item.scheduleType,
-                          time: item.targetTime,
-                          date: item.targetDate ?? '',
-                          weekdays: item.targetDays ?? [],
-                        });
-                        setEditingScheduleId(item.id);
-                      }}
+                      type="button"
+                      className="btn-neo-sub"
+                      aria-label={`${item.message_text} 예약 스케줄 수정`}
+                      onClick={() => handleEditScheduleClick(item)}
                     >
                       수정
                     </button>
+
                     <button
+                      type="button"
+                      aria-label={`${item.message_text} 예약 스케줄 ${item.isEnabled ? '비활성화' : '활성화'}`}
                       onClick={() => void toggleSchedule(item)}
                       style={{
                         padding: '6px 14px',
                         borderRadius: '8px',
                         background: item.isEnabled ? '#D6F5E3' : '#E0DCD3',
-                        color: item.isEnabled ? '#1A7A3E' : '#6B6354',
-                        border: '1.5px solid #1E1E1E',
+                        color: item.isEnabled ? '#1A7A3E' : 'var(--color-text-muted, #6B6354)',
+                        border: '1.5px solid var(--color-border, #1E1E1E)',
                         fontSize: '12px',
                         fontWeight: 900,
                         cursor: 'pointer',
                       }}
                     >
-                      {item.isEnabled ? '활성 (ON)' : '비활성 (OFF)'}
+                      {item.isEnabled ? 'ON 활성' : 'OFF 비활성'}
                     </button>
+
                     <button
+                      type="button"
+                      className="btn-neo-sub btn-neo-sub-danger"
+                      aria-label={`${item.message_text} 예약 스케줄 삭제`}
                       onClick={() => void archiveSchedule(item)}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '8px',
-                        background: '#FFF',
-                        color: '#C92A2A',
-                        border: '1.5px solid #1E1E1E',
-                        fontSize: '12px',
-                        fontWeight: 900,
-                        cursor: 'pointer',
-                      }}
                     >
                       삭제
                     </button>
@@ -966,28 +1222,38 @@ export function BroadcastPage() {
         </div>
       </div>
 
+      {/* 4. 미실행 예약 방송 알림 로그 */}
       <div
         style={{
-          background: '#FFF4F4',
-          border: '2px solid #E03131',
+          background: missedRuns.length > 0 ? '#FFF4F4' : '#FAFAFA',
+          border: missedRuns.length > 0 ? '2px solid #E03131' : '2px solid #E5E0D5',
           borderRadius: '16px',
           padding: '16px 20px',
         }}
       >
-        <strong>미실행 예약 방송</strong>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '15px' }}>{missedRuns.length > 0 ? '⚠️' : '✅'}</span>
+          <strong style={{ fontSize: '14px', color: missedRuns.length > 0 ? '#C92A2A' : 'var(--color-dark, #1E1E1E)' }}>
+            미실행 예약 방송 기록
+          </strong>
+        </div>
+
         {missedRuns.length === 0 ? (
-          <span style={{ marginLeft: '8px', fontSize: '13px' }}>최근 미실행 기록이 없습니다.</span>
+          <p style={{ margin: '8px 0 0 0', fontSize: '12.5px', color: 'var(--color-text-muted, #6B6354)', fontWeight: 600 }}>
+            최근 미실행된 예약 방송이 없습니다. 모든 스케줄이 정상 작동 중입니다.
+          </p>
         ) : (
-          <ul style={{ margin: '10px 0 0', paddingLeft: '20px', fontSize: '13px' }}>
+          <ul style={{ margin: '10px 0 0', paddingLeft: '20px', fontSize: '13px', color: '#C92A2A', lineHeight: 1.6 }}>
             {missedRuns.map((run) => (
               <li key={run.id}>
-                {new Date(run.triggered_at).toLocaleString('ko-KR')} · {run.message_text}
+                <strong>{new Date(run.triggered_at).toLocaleString('ko-KR')}</strong> · {run.message_text}
               </li>
             ))}
           </ul>
         )}
       </div>
 
+      {/* 5. 프리셋 생성/수정 모달 */}
       {presetEditor && (
         <div
           role="presentation"
@@ -1001,7 +1267,8 @@ export function BroadcastPage() {
             display: 'grid',
             placeItems: 'center',
             padding: '20px',
-            background: 'rgba(30, 30, 30, 0.55)',
+            background: 'rgba(30, 30, 30, 0.65)',
+            backdropFilter: 'blur(2px)',
           }}
         >
           <form
@@ -1016,17 +1283,19 @@ export function BroadcastPage() {
               width: 'min(100%, 620px)',
               maxHeight: 'calc(100vh - 40px)',
               overflowY: 'auto',
-              padding: '24px',
+              padding: '28px',
               background: '#FFFDF7',
-              border: '2.5px solid #1E1E1E',
-              borderRadius: '18px',
-              boxShadow: '6px 6px 0 #1E1E1E',
+              border: '3px solid var(--color-border, #1E1E1E)',
+              borderRadius: '20px',
+              boxShadow: '7px 7px 0 var(--color-border, #1E1E1E)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'flex-start' }}>
               <div>
-                <div style={{ fontSize: '12px', fontWeight: 900, color: '#7A5C00', marginBottom: '5px' }}>TTS 안내 방송</div>
-                <h2 id="preset-editor-title" style={{ margin: 0, fontSize: '22px', lineHeight: 1.25 }}>
+                <div style={{ fontSize: '12px', fontWeight: 900, color: '#7A5C00', marginBottom: '4px' }}>
+                  TTS 안내 방송
+                </div>
+                <h2 id="preset-editor-title" style={{ margin: 0, fontSize: '22px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
                   {presetEditor.id ? '안내 방송 프리셋 수정' : '새 안내 방송 프리셋'}
                 </h2>
               </div>
@@ -1036,13 +1305,14 @@ export function BroadcastPage() {
                 onClick={() => setPresetEditor(null)}
                 disabled={isSavingPreset}
                 style={{
-                  width: '34px',
-                  height: '34px',
+                  width: '36px',
+                  height: '36px',
                   padding: 0,
-                  border: '1.5px solid #1E1E1E',
+                  border: '2px solid var(--color-border, #1E1E1E)',
                   borderRadius: '50%',
                   background: '#FFF',
                   fontSize: '20px',
+                  fontWeight: 900,
                   cursor: 'pointer',
                 }}
               >
@@ -1069,7 +1339,7 @@ export function BroadcastPage() {
                   boxSizing: 'border-box',
                   marginTop: '7px',
                   padding: '12px 14px',
-                  border: '2px solid #1E1E1E',
+                  border: '2px solid var(--color-border, #1E1E1E)',
                   borderRadius: '10px',
                   background: '#FFF',
                   fontSize: '14px',
@@ -1083,7 +1353,7 @@ export function BroadcastPage() {
               <textarea
                 required
                 maxLength={1000}
-                rows={7}
+                rows={6}
                 value={presetEditor.message}
                 onChange={(event) => setPresetEditor({ ...presetEditor, message: event.target.value })}
                 placeholder="고객에게 들려줄 안내 문구를 입력하세요."
@@ -1093,7 +1363,7 @@ export function BroadcastPage() {
                   boxSizing: 'border-box',
                   marginTop: '7px',
                   padding: '12px 14px',
-                  border: '2px solid #1E1E1E',
+                  border: '2px solid var(--color-border, #1E1E1E)',
                   borderRadius: '10px',
                   background: '#FFF',
                   resize: 'vertical',
@@ -1102,8 +1372,18 @@ export function BroadcastPage() {
                 }}
               />
             </label>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '7px', color: '#756D60', fontSize: '12px', fontWeight: 700 }}>
-              <span>문장이 길면 자연스러운 호흡을 위해 문장 부호를 넣어 주세요.</span>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginTop: '7px',
+                color: 'var(--color-text-subtle, #8A8175)',
+                fontSize: '12px',
+                fontWeight: 700,
+              }}
+            >
+              <span>문장이 길면 자연스러운 호흡을 위해 쉼표와 마침표를 넣어 주세요.</span>
               <span>{presetEditor.message.length} / 1000자</span>
             </div>
 
@@ -1114,7 +1394,7 @@ export function BroadcastPage() {
                   padding: '12px 14px',
                   border: '1.5px solid #D79000',
                   borderRadius: '10px',
-                  background: '#FFF3C9',
+                  background: 'var(--color-yellow-light, #FFF3C9)',
                   color: '#5A4300',
                   fontSize: '13px',
                   fontWeight: 700,
@@ -1131,38 +1411,57 @@ export function BroadcastPage() {
                 onClick={() => void play(presetEditor.message)}
                 disabled={!presetEditor.message.trim() || status === '재생 중' || isSavingPreset}
                 style={{
-                  padding: '10px 14px',
-                  border: '2px solid #1E1E1E',
+                  padding: '10px 16px',
+                  border: '2px solid var(--color-border, #1E1E1E)',
                   borderRadius: '10px',
                   background: '#FFF',
                   fontWeight: 900,
+                  fontSize: '13px',
                   cursor: 'pointer',
                 }}
               >
-                {status === '재생 중' ? '재생 중…' : '음성 미리 듣기'}
+                {status === '재생 중' ? '🔊 재생 중…' : '🔊 음성 미리 듣기'}
               </button>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   type="button"
                   onClick={() => setPresetEditor(null)}
                   disabled={isSavingPreset}
-                  style={{ padding: '10px 14px', border: '2px solid #1E1E1E', borderRadius: '10px', background: '#FFF', fontWeight: 900, cursor: 'pointer' }}
+                  style={{
+                    padding: '10px 16px',
+                    border: '2px solid var(--color-border, #1E1E1E)',
+                    borderRadius: '10px',
+                    background: '#FFF',
+                    fontWeight: 900,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                  }}
                 >
                   취소
                 </button>
                 <button
                   type="submit"
                   disabled={isSavingPreset}
-                  style={{ padding: '10px 18px', border: '2px solid #1E1E1E', borderRadius: '10px', background: '#FED943', fontWeight: 900, cursor: 'pointer' }}
+                  style={{
+                    padding: '10px 20px',
+                    border: '2px solid var(--color-border, #1E1E1E)',
+                    borderRadius: '10px',
+                    background: 'var(--color-yellow, #FED943)',
+                    fontWeight: 900,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    boxShadow: '2px 2px 0 var(--color-border, #1E1E1E)',
+                  }}
                 >
-                  {isSavingPreset ? '저장 중…' : '저장'}
+                  {isSavingPreset ? '저장 중…' : '프리셋 저장'}
                 </button>
               </div>
             </div>
           </form>
         </div>
       )}
-
     </div>
   );
 }
+
+
