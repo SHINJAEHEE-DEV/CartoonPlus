@@ -103,11 +103,12 @@ export function BroadcastPage() {
     }
   };
 
-  const loadSchedules = async () => {
-    if (!supabase) return;
+  const loadSchedules = async (targetStoreId = storeId) => {
+    if (!supabase || !targetStoreId) return;
     const { data, error } = await supabase
       .from('scheduled_broadcasts')
       .select('id, message_text, broadcast_preset_id, schedule_type, target_time, target_days, target_date, is_enabled')
+      .eq('store_id', targetStoreId)
       .order('target_time');
     if (error) {
       setScheduleStatus(`예약을 불러오지 못했습니다: ${error.message}`);
@@ -139,17 +140,20 @@ export function BroadcastPage() {
     }
   };
 
-  const loadStoreId = async () => {
-    if (!supabase) return;
+  const loadStoreId = async (): Promise<string | null> => {
+    if (!supabase) return null;
     const { data } = await supabase.from('stores').select('id').eq('slug', 'snu').single();
-    setStoreId(data?.id ?? null);
+    const id = data?.id ?? null;
+    setStoreId(id);
+    return id;
   };
 
-  const loadMissedRuns = async () => {
-    if (!supabase) return;
+  const loadMissedRuns = async (targetStoreId = storeId) => {
+    if (!supabase || !targetStoreId) return;
     const { data } = await supabase
       .from('broadcast_runs')
       .select('id, message_text, triggered_at')
+      .eq('store_id', targetStoreId)
       .eq('status', 'missed')
       .order('triggered_at', { ascending: false })
       .limit(10);
@@ -223,10 +227,10 @@ export function BroadcastPage() {
 
   useEffect(() => {
     const setup = async () => {
-      await loadStoreId();
-      await loadSchedules();
+      const targetStoreId = await loadStoreId();
+      await loadSchedules(targetStoreId);
       await loadPresets();
-      await loadMissedRuns();
+      await loadMissedRuns(targetStoreId);
     };
     void setup();
   }, []);
@@ -267,7 +271,10 @@ export function BroadcastPage() {
     const values = {
       store_id: store.id,
       message_text: schedule.message.trim(),
-      broadcast_preset_id: schedule.presetId || null,
+      broadcast_preset_id:
+        presets.find((preset) => preset[3] === schedule.presetId)?.[1] === schedule.message.trim()
+          ? schedule.presetId
+          : null,
       schedule_type: schedule.type,
       target_time: schedule.time,
       target_days: schedule.type === 'weekdays' ? schedule.weekdays : null,
