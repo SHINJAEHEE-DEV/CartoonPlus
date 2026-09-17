@@ -1505,3 +1505,381 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   Book Request Modal & Floating Action Button (FAB) & CTA Banner
+   ========================================================================== */
+
+.book-request-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background-color: rgba(30, 30, 30, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.book-request-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: 8px 8px 0 var(--color-border);
+  padding: 28px 24px;
+  animation: modalScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalScaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.book-request-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f4f0e6;
+  border: 2px solid var(--color-border);
+  display: grid;
+  place-items: center;
+  color: var(--color-dark);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.book-request-modal-close:hover {
+  background: var(--color-yellow);
+  transform: scale(1.08);
+}
+
+.book-request-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-right: 36px;
+}
+
+.book-request-modal-mascot {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.book-request-modal-title {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.book-request-modal-subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+.book-request-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.book-request-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.book-request-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-dark);
+  letter-spacing: -0.01em;
+}
+
+.book-request-input,
+.book-request-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 2px solid var(--color-border);
+  background: #faf7ee;
+  color: var(--color-text-main);
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.book-request-input:focus,
+.book-request-textarea:focus {
+  background: #ffffff;
+  border-color: var(--color-border);
+  box-shadow: 3px 3px 0 var(--color-border);
+}
+
+.book-request-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.book-request-notice {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: #f7f3e8;
+  padding: 10px 12px;
+  border-radius: 10px;
+  line-height: 1.4;
+}
+
+.book-request-error-alert {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #ffe3e3;
+  border: 1.5px solid #e03e3e;
+  color: #c92a2a;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.book-request-footer {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* Modal Success State */
+.book-request-success-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px 10px;
+  gap: 12px;
+}
+
+.book-request-success-mascot {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+}
+
+.book-request-success-badge {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: var(--color-gold);
+  background: var(--color-yellow-light);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.book-request-success-title {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.book-request-success-desc {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.book-request-success-actions {
+  margin-top: 8px;
+  width: 100%;
+  max-width: 240px;
+}
+
+/* CTA Banner in Book Search Page */
+.book-request-cta-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #FFF9EC 0%, #FFF3C9 100%);
+  border: 2.5px solid var(--color-border);
+  border-radius: var(--radius-card-sm);
+  box-shadow: var(--shadow-brutal-sm);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.book-request-cta-banner:hover {
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0 var(--color-border);
+}
+
+.book-request-cta-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.book-request-cta-banner-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.book-request-cta-banner-title {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--color-dark);
+}
+
+.book-request-cta-banner-desc {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.book-request-cta-banner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--color-dark);
+  color: var(--color-yellow);
+  font-size: 13px;
+  font-weight: 900;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--color-dark);
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.book-request-cta-banner-btn:hover {
+  background: var(--color-yellow);
+  color: var(--color-dark);
+  box-shadow: 2px 2px 0 var(--color-dark);
+}
+
+/* Floating Action Button (FAB) */
+.book-request-fab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 90;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: var(--color-yellow);
+  color: var(--color-dark);
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  box-shadow: 4px 4px 0 var(--color-border);
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.book-request-fab:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 6px 6px 0 var(--color-border);
+}
+
+.book-request-fab:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 2px 2px 0 var(--color-border);
+}
+
+.book-request-fab-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 640px) {
+  .book-request-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .book-request-cta-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  
+  .book-request-cta-banner-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .book-request-fab {
+    bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    right: 16px;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
+
+/* Header Book Request Button */
+.header-book-request-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--color-dark);
+  color: var(--color-yellow);
+  font-size: 13px;
+  font-weight: 900;
+  border: 2px solid var(--color-dark);
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+
+.header-book-request-btn:hover {
+  background: #ffffff;
+  color: var(--color-dark);
+  box-shadow: 2px 2px 0 var(--color-dark);
+}
+
+@media (max-width: 900px) {
+  .header-book-request-btn {
+    display: none;
+  }
+}
+
+

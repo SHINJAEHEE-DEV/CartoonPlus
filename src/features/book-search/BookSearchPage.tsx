@@ -9,6 +9,7 @@ import {
 import { Pagination } from '../common/Pagination';
 import { usePageTitle } from '../../lib/usePageTitle';
 import { storePath, usePublicStore } from '../../lib/storeContext';
+import { BookRequestModal } from '../book-request/BookRequestModal';
 
 type BookSearchPageProps = {
   books: SearchableBook[];
@@ -24,6 +25,13 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
   const [selectedGenre, setSelectedGenre] = useState('전체');
   const [currentPage, setCurrentPage] = useState(1);
   const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [requestInitialTitle, setRequestInitialTitle] = useState('');
+
+  const openRequestModal = (initialTitle?: string) => {
+    setRequestInitialTitle(initialTitle ?? query);
+    setIsRequestModalOpen(true);
+  };
 
   // 검색어 또는 장르 변경 시 첫 페이지로 리셋
   useEffect(() => {
@@ -219,6 +227,45 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
             </span>
           </button>
         </div>
+      </section>
+
+      {/* 입고 신청 퀵 배너 카드 (가시성 강화) */}
+      <section className="book-request-cta-banner" aria-label="도서 입고 신청 안내">
+        <div className="book-request-cta-banner-content">
+          <img
+            src={MASCOT_ASSETS.thinking}
+            alt=""
+            className="book-request-cta-banner-icon"
+          />
+          <div>
+            <div className="book-request-cta-banner-title">
+              찾으시는 도서가 없으신가요? 1분만에 입고 신청하기
+            </div>
+            <div className="book-request-cta-banner-desc">
+              신간이나 원하시는 만화·웹툰을 신청해 주시면 정기 도서 입고 시 우선 검토합니다.
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          className="book-request-cta-banner-btn"
+          onClick={() => openRequestModal(query)}
+        >
+          <span>입고 신청하기</span>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
       </section>
 
       {/* 모바일 장르 바텀시트 모달 */}
@@ -513,21 +560,36 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
             개인정보 없이 도서명만 남겨 주시면 직원이 입고를 적극 검토합니다. 처리 상태는 카운터에서
             확인하실 수 있어요.
           </p>
-          <a
+          <button
+            type="button"
             className="primary-btn"
-            href={
-              hasSearch
-                ? `${scoped ? storePath(store, '/book-request') : '/book-request'}?title=${encodeURIComponent(query)}`
-                : scoped
-                  ? storePath(store, '/book-request')
-                  : '/book-request'
-            }
+            onClick={() => openRequestModal(query)}
             style={{ marginTop: '8px' }}
           >
-            {hasSearch ? `${query} 입고 신청하기` : '도서 입고 신청하기'}
-          </a>
+            {hasSearch ? `“${query}” 입고 신청하기` : '도서 입고 신청하기'}
+          </button>
         </section>
       )}
+
+      {/* 우측 하단 플로팅 입고 신청 버튼 (FAB) */}
+      <button
+        type="button"
+        className="book-request-fab"
+        onClick={() => openRequestModal(query)}
+        aria-label="도서 입고 신청"
+      >
+        <img src={MASCOT_ASSETS.thinking} alt="" className="book-request-fab-icon" />
+        <span>입고 신청</span>
+      </button>
+
+      {/* 도서 입고 신청 모달 */}
+      <BookRequestModal
+        isOpen={isRequestModalOpen}
+        onClose={() => setIsRequestModalOpen(false)}
+        initialTitle={requestInitialTitle}
+        storeSlug={store.slug}
+      />
     </div>
   );
 }
+

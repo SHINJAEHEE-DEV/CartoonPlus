@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { MASCOT_ASSETS } from '../../lib/brandAssets';
 import { usePageTitle } from '../../lib/usePageTitle';
-import type { StoreSlug } from '../../lib/storeContext';
+import { storePath, usePublicStore, type StoreSlug } from '../../lib/storeContext';
 
 export function BookRequestForm({
   title = '',
@@ -11,30 +11,45 @@ export function BookRequestForm({
   title?: string;
   storeSlug?: StoreSlug;
 }) {
+  const { store, scoped } = usePublicStore();
   usePageTitle('도서 입고 신청');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    const form = new FormData(e.currentTarget);
-    const { data: store } = await supabase!
-      .from('stores')
-      .select('id')
-      .eq('slug', storeSlug)
-      .single();
-    const { error } = await supabase!.from('book_requests').insert({
-      store_id: store?.id,
-      title: String(form.get('title')),
-      author: String(form.get('author')) || null,
-      desired_volume: String(form.get('volume')) || null,
-      customer_comment: String(form.get('comment')) || null,
-    });
-    setIsSubmitting(false);
-    setMessage(
-      error?.message ?? '도서 입고 신청이 정상 접수되었습니다. 직원이 확인 후 검토합니다!'
-    );
+    setMessage('');
+    try {
+      const form = new FormData(e.currentTarget);
+      let storeId: string | null = null;
+      if (supabase) {
+        const { data: storeData } = await supabase
+          .from('stores')
+          .select('id')
+          .eq('slug', storeSlug)
+          .single();
+        storeId = storeData?.id ?? null;
+
+        const { error } = await supabase.from('book_requests').insert({
+          store_id: storeId,
+          title: String(form.get('title')),
+          author: String(form.get('author')) || null,
+          desired_volume: String(form.get('volume')) || null,
+          customer_comment: String(form.get('comment')) || null,
+        });
+
+        if (error) throw error;
+      }
+      setIsSuccess(true);
+      setMessage('도서 입고 신청이 정상 접수되었습니다. 직원이 확인 후 검토합니다!');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '접수 중 오류가 발생했습니다.';
+      setMessage(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -68,45 +83,49 @@ export function BookRequestForm({
           </div>
         </div>
 
-        <form onSubmit={submit} style={{ display: 'grid', gap: '12px' }}>
-          <div>
-            <label
-              style={{
-                display: 'block',
-                fontSize: '12px',
-                fontWeight: 800,
-                color: '#FED943',
-                marginBottom: '4px',
-              }}
-            >
-              도서명 (필수)
-            </label>
-            <input
-              name="title"
-              defaultValue={title}
-              placeholder="예: 원피스, 체인소맨"
-              required
-              style={{
-                width: '100%',
-                padding: '14px 16px',
-                borderRadius: '14px',
-                border: '2px solid #5C5344',
-                background: '#2A2A2A',
-                color: '#FFF9EC',
-                fontSize: '14px',
-                fontWeight: 700,
-                outline: 'none',
-              }}
+        {isSuccess ? (
+          <div style={{ textAlign: 'center', padding: '24px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+            <img
+              src={MASCOT_ASSETS.reading}
+              alt=""
+              style={{ width: '80px', height: '80px', objectFit: 'contain' }}
             />
+            <div style={{ fontSize: '20px', fontWeight: 900, color: '#FED943' }}>
+              입고 신청이 완료되었습니다!
+            </div>
+            <p style={{ fontSize: '14px', fontWeight: 600, color: '#FFF9EC', maxWidth: '440px', lineHeight: 1.6 }}>
+              {message}
+              <br />
+              개인정보는 보관되지 않으며, 매장 직원이 도서 발주 시 우선적으로 확인합니다.
+            </p>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setIsSuccess(false)}
+                style={{
+                  padding: '12px 20px',
+                  borderRadius: '999px',
+                  background: '#2A2A2A',
+                  color: '#FFF9EC',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  border: '2px solid #5C5344',
+                  cursor: 'pointer',
+                }}
+              >
+                추가 신청하기
+              </button>
+              <a
+                href={scoped ? storePath(store, '/books') : '/books'}
+                className="primary-btn"
+                style={{ padding: '12px 24px', fontSize: '13px' }}
+              >
+                도서 검색으로 이동 →
+              </a>
+            </div>
           </div>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '12px',
-            }}
-          >
+        ) : (
+          <form onSubmit={submit} style={{ display: 'grid', gap: '12px' }}>
             <div>
               <label
                 style={{
@@ -117,11 +136,13 @@ export function BookRequestForm({
                   marginBottom: '4px',
                 }}
               >
-                작가 / 출판사 (선택)
+                도서명 (필수)
               </label>
               <input
-                name="author"
-                placeholder="예: 오다 에이이치로"
+                name="title"
+                defaultValue={title}
+                placeholder="예: 원피스, 체인소맨"
+                required
                 style={{
                   width: '100%',
                   padding: '14px 16px',
@@ -135,6 +156,72 @@ export function BookRequestForm({
                 }}
               />
             </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '12px',
+              }}
+            >
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    color: '#FED943',
+                    marginBottom: '4px',
+                  }}
+                >
+                  작가 / 출판사 (선택)
+                </label>
+                <input
+                  name="author"
+                  placeholder="예: 오다 에이이치로"
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    border: '2px solid #5C5344',
+                    background: '#2A2A2A',
+                    color: '#FFF9EC',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    outline: 'none',
+                  }}
+                />
+              </div>
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    color: '#FED943',
+                    marginBottom: '4px',
+                  }}
+                >
+                  희망 권수 (선택)
+                </label>
+                <input
+                  name="volume"
+                  placeholder="예: 1~10권, 최신권"
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    borderRadius: '14px',
+                    border: '2px solid #5C5344',
+                    background: '#2A2A2A',
+                    color: '#FFF9EC',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    outline: 'none',
+                  }}
+                />
+              </div>
+            </div>
+
             <div>
               <label
                 style={{
@@ -145,11 +232,12 @@ export function BookRequestForm({
                   marginBottom: '4px',
                 }}
               >
-                희망 권수 (선택)
+                손님 한마디 (선택)
               </label>
-              <input
-                name="volume"
-                placeholder="예: 1~10권, 최신권"
+              <textarea
+                name="comment"
+                rows={3}
+                placeholder="직원에게 전하고 싶은 요청 사항이 있다면 적어주세요."
                 style={{
                   width: '100%',
                   padding: '14px 16px',
@@ -160,62 +248,32 @@ export function BookRequestForm({
                   fontSize: '14px',
                   fontWeight: 700,
                   outline: 'none',
+                  resize: 'none',
                 }}
               />
             </div>
-          </div>
 
-          <div>
-            <label
+            <button
+              type="submit"
+              disabled={isSubmitting}
               style={{
-                display: 'block',
-                fontSize: '12px',
-                fontWeight: 800,
-                color: '#FED943',
-                marginBottom: '4px',
+                marginTop: '6px',
+                padding: '14px 24px',
+                borderRadius: '999px',
+                background: '#FED943',
+                color: '#1E1E1E',
+                fontSize: '14px',
+                fontWeight: 900,
+                border: 'none',
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
               }}
             >
-              손님 한마디 (선택)
-            </label>
-            <textarea
-              name="comment"
-              rows={3}
-              placeholder="직원에게 전하고 싶은 요청 사항이 있다면 적어주세요."
-              style={{
-                width: '100%',
-                padding: '14px 16px',
-                borderRadius: '14px',
-                border: '2px solid #5C5344',
-                background: '#2A2A2A',
-                color: '#FFF9EC',
-                fontSize: '14px',
-                fontWeight: 700,
-                outline: 'none',
-                resize: 'none',
-              }}
-            />
-          </div>
+              {isSubmitting ? '접수 중...' : '도서 입고 신청 접수 →'}
+            </button>
+          </form>
+        )}
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            style={{
-              marginTop: '6px',
-              padding: '14px 24px',
-              borderRadius: '999px',
-              background: '#FED943',
-              color: '#1E1E1E',
-              fontSize: '14px',
-              fontWeight: 900,
-              border: 'none',
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {isSubmitting ? '접수 중...' : '도서 입고 신청 접수 →'}
-          </button>
-        </form>
-
-        {message && (
+        {!isSuccess && message && (
           <div
             style={{
               padding: '12px 16px',
@@ -234,7 +292,7 @@ export function BookRequestForm({
 
       <div style={{ textAlign: 'center', marginTop: '16px' }}>
         <a
-          href="/books"
+          href={scoped ? storePath(store, '/books') : '/books'}
           style={{
             fontSize: '13px',
             fontWeight: 800,
@@ -248,3 +306,4 @@ export function BookRequestForm({
     </div>
   );
 }
+

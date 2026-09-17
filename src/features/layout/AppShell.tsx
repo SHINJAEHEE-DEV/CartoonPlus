@@ -346,6 +346,12 @@ export function CustomerShell({
             currentPath={currentPath}
           />
           <div className="header-actions">
+            <a
+              href={scoped ? storePath(store, '/book-request') : '/book-request'}
+              className="header-book-request-btn"
+            >
+              📖 도서 입고 신청
+            </a>
             <div className="store-status">
               <span
                 className="status-dot"
@@ -365,6 +371,7 @@ export function CustomerShell({
               </a>
             )}
           </div>
+
         </div>
       </header>
 

@@ -47,13 +47,30 @@ describe('BookSearchPage', () => {
     expect(screen.getByText('나츠메 우인장')).toBeTruthy();
   });
 
-  it('offers a book request with the entered title when there are no results', () => {
+  it('offers a book request modal with the entered title when there are no results', () => {
     render(<BookSearchPage books={books} />);
 
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: '없는 책' } });
 
-    expect(screen.getByRole('link', { name: '없는 책 입고 신청하기' }).getAttribute('href')).toBe(
-      '/book-request?title=%EC%97%86%EB%8A%94%20%EC%B1%85'
-    );
+    const requestBtn = screen.getByRole('button', { name: '“없는 책” 입고 신청하기' });
+    expect(requestBtn).toBeTruthy();
+
+    fireEvent.click(requestBtn);
+
+    // 모달이 열리고 제목 input에 '없는 책'이 채워져 있어야 함
+    const titleInput = screen.getByLabelText(/도서명/) as HTMLInputElement;
+    expect(titleInput).toBeTruthy();
+    expect(titleInput.value).toBe('없는 책');
+  });
+
+  it('opens request modal when clicking the top CTA banner or floating action button', () => {
+    render(<BookSearchPage books={books} />);
+
+    const fabBtn = screen.getByRole('button', { name: '도서 입고 신청' });
+    expect(fabBtn).toBeTruthy();
+    fireEvent.click(fabBtn);
+
+    expect(screen.getByRole('dialog', { name: '도서 입고 신청' })).toBeTruthy();
   });
 });
+
