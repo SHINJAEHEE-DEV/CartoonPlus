@@ -155,22 +155,6 @@ export function EventsPage() {
     setTimeout(() => setMessage(''), 3000);
   };
 
-  // 보관(아카이브) / 복구
-  const handleArchiveToggle = (id: string) => {
-    const updated = events.map((ev) =>
-      ev.id === id ? { ...ev, archivedAt: ev.archivedAt ? null : new Date().toISOString() } : ev
-    );
-    setEvents(updated);
-    saveManagedEvents(updated);
-    const target = events.find((ev) => ev.id === id);
-    setMessage(
-      target?.archivedAt
-        ? `'${target.title}' 이벤트를 공개 목록으로 복구했습니다.`
-        : `'${target?.title}' 이벤트를 보관 처리했습니다.`
-    );
-    setTimeout(() => setMessage(''), 3000);
-  };
-
   // 이벤트 복사 (종료된 이벤트를 새 초안으로 복제)
   const handleCopy = (source: ManagedEvent) => {
     const copy: ManagedEvent = {
@@ -179,7 +163,6 @@ export function EventsPage() {
       title: source.title + ' (사본)',
       isPublic: false,
       isFeatured: false,
-      archivedAt: null,
       startDate: '',
       endDate: '',
       createdAt: new Date().toISOString(),
@@ -695,21 +678,6 @@ export function EventsPage() {
                   >
                     {ev.isPublic ? '공개 중' : '비공개(숨김)'}
                   </span>
-                  {ev.archivedAt && (
-                    <span
-                      style={{
-                        padding: '2px 8px',
-                        borderRadius: '6px',
-                        background: '#FFF3E0',
-                        color: '#E65100',
-                        fontSize: '11px',
-                        fontWeight: 900,
-                        border: '1px solid #E65100',
-                      }}
-                    >
-                      보관됨
-                    </span>
-                  )}
                   <span
                     style={{
                       padding: '2px 8px',
@@ -832,22 +800,6 @@ export function EventsPage() {
                   }}
                 >
                   삭제
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleArchiveToggle(ev.id)}
-                  style={{
-                    padding: '6px 14px',
-                    borderRadius: '8px',
-                    border: '1.5px solid #1E1E1E',
-                    background: ev.archivedAt ? '#D6F5E3' : '#F5F3EF',
-                    fontSize: '12px',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {ev.archivedAt ? '복구 ⟲' : '보관'}
                 </button>
                 <button
                   type="button"

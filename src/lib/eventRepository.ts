@@ -13,7 +13,6 @@ export interface ManagedEvent {
   isAlwaysOn: boolean;
   isPublic: boolean;
   isFeatured?: boolean;
-  archivedAt?: string | null;
   createdAt: string;
   storeSlug?: 'snu' | 'jamsil' | 'hongdae';
 }
@@ -104,7 +103,9 @@ export function loadManagedEvents(): ManagedEvent[] {
     if (stored) {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        return parsed
+          .filter((event) => !event.archivedAt)
+          .map(({ archivedAt: _archivedAt, ...event }) => event as ManagedEvent);
       }
     }
   } catch {
@@ -129,7 +130,7 @@ export function getFeaturedEvent(events?: ManagedEvent[]): ManagedEvent {
   const today = new Date().toISOString().split('T')[0];
 
   const isEventActive = (ev: ManagedEvent) => {
-    if (!ev.isPublic || ev.archivedAt) return false;
+    if (!ev.isPublic) return false;
     if (ev.isAlwaysOn) return true;
     if (ev.endDate && ev.endDate < today) return false;
     return true;
@@ -141,5 +142,5 @@ export function getFeaturedEvent(events?: ManagedEvent[]): ManagedEvent {
   const firstActive = list.find(isEventActive);
   if (firstActive) return firstActive;
 
-  return list.find((ev) => ev.isPublic && !ev.archivedAt) || INITIAL_EVENTS[2];
+  return list.find((ev) => ev.isPublic) || INITIAL_EVENTS[2];
 }

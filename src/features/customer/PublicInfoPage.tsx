@@ -336,7 +336,7 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
       });
     } else {
       publicEvents = loadManagedEvents().filter((ev) => {
-        if (!ev.isPublic || ev.archivedAt) return false;
+        if (!ev.isPublic) return false;
         if (ev.storeSlug && ev.storeSlug !== selectedStore.slug) return false;
         if (selectedStore.slug !== 'snu' && ev.bannerType === 'snu') return false;
         return true;

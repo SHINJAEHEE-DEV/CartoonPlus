@@ -453,7 +453,7 @@ export function GamesPage() {
     if (!supabase || !selectedStoreId) return setItems([]);
     const { data, error } = await supabase
       .from('entertainment_items')
-      .select('id,title,item_type,players,genre,archived_at')
+      .select('id,title,item_type,players,genre')
       .eq('store_id', selectedStoreId)
       .order('created_at', { ascending: false });
 
@@ -505,26 +505,20 @@ export function GamesPage() {
     e.currentTarget.reset();
   };
 
-  const archive = async (item: Game) => {
-    const nextArchivedAt = item.archived_at ? null : new Date().toISOString();
+  const removeGame = async (item: Game) => {
+    if (!window.confirm(`'${item.title}' 게임을 영구 삭제합니다. 복구할 수 없습니다.`)) return;
     if (supabase && !item.id.startsWith('g-') && !item.id.startsWith('custom-')) {
-      await supabase
-        .from('entertainment_items')
-        .update({ archived_at: nextArchivedAt })
-        .eq('id', item.id);
+      const { error } = await supabase.from('entertainment_items').delete().eq('id', item.id);
+      if (error) {
+        setMessage(error.message);
+        return;
+      }
     }
-    setItems((prev) =>
-      prev.map((i) => (i.id === item.id ? { ...i, archived_at: nextArchivedAt } : i))
-    );
-    setMessage(
-      item.archived_at
-        ? `'${item.title}' 게임을 공개로 복구했습니다.`
-        : `'${item.title}' 게임을 보관 처리했습니다.`
-    );
+    setItems((prev) => prev.filter((candidate) => candidate.id !== item.id));
+    setMessage(`'${item.title}' 게임을 삭제했습니다.`);
   };
 
-  const activeCount = items.filter((x) => !x.archived_at).length;
-  const archivedCount = items.filter((x) => x.archived_at).length;
+  const activeCount = items.length;
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
@@ -570,19 +564,6 @@ export function GamesPage() {
             }}
           >
             ● 공개 중 {activeCount}건
-          </div>
-          <div
-            style={{
-              padding: '8px 16px',
-              borderRadius: '999px',
-              background: '#FFF9EC',
-              border: '2px solid #1E1E1E',
-              fontSize: '13px',
-              fontWeight: 800,
-              color: '#6B6354',
-            }}
-          >
-            보관 {archivedCount}건
           </div>
         </div>
       </div>
@@ -852,7 +833,6 @@ export function GamesPage() {
             }}
           >
             {filteredItems.map((item) => {
-              const isArchived = Boolean(item.archived_at);
               return (
                 <div
                   key={item.id}
@@ -864,8 +844,7 @@ export function GamesPage() {
                     padding: '16px',
                     borderRadius: '16px',
                     border: '2.5px solid #1E1E1E',
-                    background: isArchived ? '#F5F3EF' : '#FFF9EC',
-                    opacity: isArchived ? 0.7 : 1,
+                    background: '#FFF9EC',
                   }}
                 >
                   <div>
@@ -893,13 +872,13 @@ export function GamesPage() {
                         style={{
                           padding: '2px 7px',
                           borderRadius: '6px',
-                          background: isArchived ? '#E0DCD3' : '#D6F5E3',
-                          color: isArchived ? '#6B6354' : '#1A7A3E',
+                          background: '#D6F5E3',
+                          color: '#1A7A3E',
                           fontSize: '11px',
                           fontWeight: 800,
                         }}
                       >
-                        {isArchived ? '보관됨' : '고객 화면 공개'}
+                        고객 화면 공개
                       </span>
                     </div>
 
@@ -959,18 +938,18 @@ export function GamesPage() {
                     }}
                   >
                     <button
-                      onClick={() => void archive(item)}
+                      onClick={() => void removeGame(item)}
                       style={{
                         padding: '6px 14px',
                         borderRadius: '8px',
-                        background: isArchived ? '#FED943' : '#FFFFFF',
+                        background: '#FFFFFF',
                         border: '1.5px solid #1E1E1E',
                         fontSize: '12px',
                         fontWeight: 900,
                         cursor: 'pointer',
                       }}
                     >
-                      {isArchived ? '공개 복구 ⟲' : '비치 보관 처리'}
+                      삭제
                     </button>
                   </div>
                 </div>
