@@ -59,3 +59,4 @@ coverage/
 supabase/.branches/
 output/
 tmp/
+docs/*.pdf
