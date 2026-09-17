@@ -21,6 +21,30 @@ export type StoredSchedule = ScheduledBroadcast & {
   message_text: string;
 };
 
+/** Returns schedules due in fully elapsed minutes after the previous scheduler check. */
+export function getSchedulesDueBetween(
+  schedules: readonly StoredSchedule[],
+  previousCheck: Date,
+  currentCheck: Date
+): StoredSchedule[] {
+  const due: StoredSchedule[] = [];
+  const cursor = new Date(previousCheck);
+  cursor.setSeconds(0, 0);
+  cursor.setMinutes(cursor.getMinutes() + 1);
+
+  const currentMinute = new Date(currentCheck);
+  currentMinute.setSeconds(0, 0);
+
+  while (cursor < currentMinute) {
+    for (const schedule of schedules) {
+      if (isDue(schedule, cursor)) due.push(schedule);
+    }
+    cursor.setMinutes(cursor.getMinutes() + 1);
+  }
+
+  return due;
+}
+
 export const NOTIFY_SCHEDULE_UPDATE_EVENT = 'cartoonplus_broadcast_schedules_updated';
 let playbackQueue = Promise.resolve();
 
@@ -57,7 +81,8 @@ export async function fetchActiveSchedules(): Promise<StoredSchedule[]> {
 
 async function recordBroadcastRun(
   message: string,
-  scheduledId?: string
+  scheduledId?: string,
+  status: 'pending' | 'missed' = 'pending'
 ): Promise<string | undefined> {
   if (!supabase) return undefined;
   try {
@@ -66,7 +91,7 @@ async function recordBroadcastRun(
       .insert({
         scheduled_broadcast_id: scheduledId ?? null,
         message_text: message,
-        status: 'pending',
+        status,
       })
       .select('id')
       .single();
@@ -154,6 +179,7 @@ export function createBroadcastTimerWorker(onTick: () => void): () => void {
 export function useGlobalBroadcastScheduler(): void {
   const schedulesRef = useRef<StoredSchedule[]>([]);
   const executedKeysRef = useRef<Set<string>>(new Set());
+  const lastCheckedAtRef = useRef<Date | null>(null);
 
   const reloadSchedules = async () => {
     const data = await fetchActiveSchedules();
@@ -174,6 +200,18 @@ export function useGlobalBroadcastScheduler(): void {
     const stopWorker = createBroadcastTimerWorker(() => {
       const now = new Date();
       const currentMinuteKey = now.toISOString().slice(0, 16);
+
+      const previousCheck = lastCheckedAtRef.current;
+      if (previousCheck && now.getTime() - previousCheck.getTime() > 70_000) {
+        for (const item of getSchedulesDueBetween(schedulesRef.current, previousCheck, now)) {
+          const executionKey = `${item.id}:${now.toISOString().slice(0, 16)}`;
+          if (!executedKeysRef.current.has(executionKey)) {
+            executedKeysRef.current.add(executionKey);
+            void recordBroadcastRun(item.message_text, item.id, 'missed');
+          }
+        }
+      }
+      lastCheckedAtRef.current = now;
 
       for (const item of schedulesRef.current) {
         const executionKey = `${item.id}:${currentMinuteKey}`;
