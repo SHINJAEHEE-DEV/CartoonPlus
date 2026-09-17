@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 import { MASCOT_ASSETS } from '../../lib/brandAssets';
 import type { StoreSlug } from '../../lib/storeContext';
+import { submitBookRequest } from './bookRequestRepository';
 
 export type BookRequestModalProps = {
   isOpen: boolean;
@@ -54,41 +54,26 @@ export function BookRequestModal({
     setIsSubmitting(true);
     setErrorMessage('');
 
-    try {
-      let storeId: string | null = null;
-      if (supabase) {
-        const { data: store } = await supabase
-          .from('stores')
-          .select('id')
-          .eq('slug', storeSlug)
-          .single();
-        storeId = store?.id ?? null;
+    const res = await submitBookRequest(storeSlug, {
+      title,
+      author,
+      desiredVolume: volume,
+      customerComment: comment,
+    });
 
-        const { error } = await supabase.from('book_requests').insert({
-          store_id: storeId,
-          title: title.trim(),
-          author: author.trim() || null,
-          desired_volume: volume.trim() || null,
-          customer_comment: comment.trim() || null,
-        });
+    setIsSubmitting(false);
 
-        if (error) {
-          throw error;
-        }
-      }
-
+    if (res.success) {
       setIsSuccess(true);
       setTitle('');
       setAuthor('');
       setVolume('');
       setComment('');
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '신청 중 오류가 발생했습니다.';
-      setErrorMessage(msg);
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      setErrorMessage(res.error ?? '신청 중 오류가 발생했습니다.');
     }
   };
+
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {

@@ -79,4 +79,17 @@ describe('customer routes', () => {
 
     await waitFor(() => expect(screen.getByText(new RegExp(expectedContent))).toBeTruthy());
   });
+
+  it.each([
+    ['/book-request', '도서 입고 신청'],
+    ['/stores/jamsil/book-request', '도서 입고 신청'],
+  ])('renders standalone book request form at %s', async (path, expectedHeading) => {
+    window.history.pushState({}, '', path);
+
+    render(<App />);
+
+    await waitFor(() => expect(screen.getByText(expectedHeading)).toBeTruthy());
+    expect(screen.getByLabelText(/도서명/)).toBeTruthy();
+  });
 });
+

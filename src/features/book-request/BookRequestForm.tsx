@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { supabase } from '../../lib/supabase';
 import { MASCOT_ASSETS } from '../../lib/brandAssets';
 import { usePageTitle } from '../../lib/usePageTitle';
 import { storePath, usePublicStore, type StoreSlug } from '../../lib/storeContext';
+import { submitBookRequest } from './bookRequestRepository';
 
 export function BookRequestForm({
   title = '',
@@ -21,34 +21,19 @@ export function BookRequestForm({
     e.preventDefault();
     setIsSubmitting(true);
     setMessage('');
-    try {
-      const form = new FormData(e.currentTarget);
-      let storeId: string | null = null;
-      if (supabase) {
-        const { data: storeData } = await supabase
-          .from('stores')
-          .select('id')
-          .eq('slug', storeSlug)
-          .single();
-        storeId = storeData?.id ?? null;
-
-        const { error } = await supabase.from('book_requests').insert({
-          store_id: storeId,
-          title: String(form.get('title')),
-          author: String(form.get('author')) || null,
-          desired_volume: String(form.get('volume')) || null,
-          customer_comment: String(form.get('comment')) || null,
-        });
-
-        if (error) throw error;
-      }
+    const form = new FormData(e.currentTarget);
+    const res = await submitBookRequest(storeSlug, {
+      title: String(form.get('title')),
+      author: String(form.get('author')) || undefined,
+      desiredVolume: String(form.get('volume')) || undefined,
+      customerComment: String(form.get('comment')) || undefined,
+    });
+    setIsSubmitting(false);
+    if (res.success) {
       setIsSuccess(true);
       setMessage('도서 입고 신청이 정상 접수되었습니다. 직원이 확인 후 검토합니다!');
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '접수 중 오류가 발생했습니다.';
-      setMessage(msg);
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      setMessage(res.error ?? '접수 중 오류가 발생했습니다.');
     }
   };
 
@@ -128,6 +113,7 @@ export function BookRequestForm({
           <form onSubmit={submit} style={{ display: 'grid', gap: '12px' }}>
             <div>
               <label
+                htmlFor="form-req-title"
                 style={{
                   display: 'block',
                   fontSize: '12px',
@@ -139,6 +125,7 @@ export function BookRequestForm({
                 도서명 (필수)
               </label>
               <input
+                id="form-req-title"
                 name="title"
                 defaultValue={title}
                 placeholder="예: 원피스, 체인소맨"
@@ -166,6 +153,7 @@ export function BookRequestForm({
             >
               <div>
                 <label
+                  htmlFor="form-req-author"
                   style={{
                     display: 'block',
                     fontSize: '12px',
@@ -177,6 +165,7 @@ export function BookRequestForm({
                   작가 / 출판사 (선택)
                 </label>
                 <input
+                  id="form-req-author"
                   name="author"
                   placeholder="예: 오다 에이이치로"
                   style={{
@@ -194,6 +183,7 @@ export function BookRequestForm({
               </div>
               <div>
                 <label
+                  htmlFor="form-req-volume"
                   style={{
                     display: 'block',
                     fontSize: '12px',
@@ -205,6 +195,7 @@ export function BookRequestForm({
                   희망 권수 (선택)
                 </label>
                 <input
+                  id="form-req-volume"
                   name="volume"
                   placeholder="예: 1~10권, 최신권"
                   style={{
@@ -224,6 +215,7 @@ export function BookRequestForm({
 
             <div>
               <label
+                htmlFor="form-req-comment"
                 style={{
                   display: 'block',
                   fontSize: '12px',
@@ -235,6 +227,7 @@ export function BookRequestForm({
                 손님 한마디 (선택)
               </label>
               <textarea
+                id="form-req-comment"
                 name="comment"
                 rows={3}
                 placeholder="직원에게 전하고 싶은 요청 사항이 있다면 적어주세요."
@@ -252,6 +245,7 @@ export function BookRequestForm({
                 }}
               />
             </div>
+
 
             <button
               type="submit"

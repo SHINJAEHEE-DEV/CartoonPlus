@@ -8,7 +8,6 @@ export type Game = {
   item_type: string;
   players?: string;
   genre?: string;
-  archived_at: string | null;
 };
 
 const labels: Record<string, string> = {
@@ -26,7 +25,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'NINTENDO',
     players: '1-4인',
     genre: '파티/보드',
-    archived_at: null,
   },
   {
     id: 'g-nsw-02',
@@ -34,7 +32,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'NINTENDO',
     players: '1-4인',
     genre: '협동 요리',
-    archived_at: null,
   },
   {
     id: 'g-nsw-03',
@@ -42,7 +39,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'NINTENDO',
     players: '1-4인',
     genre: '배틀로얄 파티',
-    archived_at: null,
   },
   {
     id: 'g-nsw-04',
@@ -50,7 +46,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'NINTENDO',
     players: '2인 전용',
     genre: '협동 액션',
-    archived_at: null,
   },
   {
     id: 'g-nsw-05',
@@ -58,7 +53,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'NINTENDO',
     players: '1-2인',
     genre: '리듬 액션 (북 컨트롤러)',
-    archived_at: null,
   },
   {
     id: 'g-nsw-06',
@@ -66,7 +60,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'NINTENDO',
     players: '1-4인',
     genre: '액션 RPG',
-    archived_at: null,
   },
   {
     id: 'g-nsw-07',
@@ -74,7 +67,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'NINTENDO',
     players: '1-2인',
     genre: '배틀/어드벤처',
-    archived_at: null,
   },
   {
     id: 'g-nsw-08',
@@ -82,7 +74,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'NINTENDO',
     players: '1-4인',
     genre: '리듬 게임',
-    archived_at: null,
   },
 
   // 2. PlayStation 4 / 5 (12종)
@@ -92,7 +83,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'PLAYSTATION_4',
     players: '2인 전용',
     genre: '협동 어드벤처 (최고인기)',
-    archived_at: null,
   },
   {
     id: 'g-ps4-02',
@@ -100,7 +90,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'PLAYSTATION_4',
     players: '1-2인',
     genre: '물리 퍼즐/액션',
-    archived_at: null,
   },
   {
     id: 'g-ps4-03',
@@ -108,7 +97,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'PLAYSTATION_4',
     players: '1-4인',
     genre: '협동 요리',
-    archived_at: null,
   },
   {
     id: 'g-ps4-04',
@@ -116,7 +104,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'PLAYSTATION_4',
     players: '1-4인',
     genre: '협동 이사 액션',
-    archived_at: null,
   },
   {
     id: 'g-ps4-05',
@@ -124,7 +111,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'PLAYSTATION_4',
     players: '1인',
     genre: '서스펜스 어드벤처',
-    archived_at: null,
   },
   {
     id: 'g-ps4-06',
@@ -132,7 +118,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'PLAYSTATION_4',
     players: '1-2인',
     genre: '액션 RPG',
-    archived_at: null,
   },
   {
     id: 'g-ps4-07',
@@ -140,7 +125,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'PLAYSTATION_4',
     players: '1-2인',
     genre: '리듬 액션',
-    archived_at: null,
   },
   {
     id: 'g-ps4-08',
@@ -148,7 +132,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'PLAYSTATION_4',
     players: '1-4인',
     genre: '난투 대전 액션',
-    archived_at: null,
   },
   {
     id: 'g-ps4-09',
@@ -156,7 +139,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'PLAYSTATION_4',
     players: '1-2인',
     genre: '격투 액션',
-    archived_at: null,
   },
   {
     id: 'g-ps4-10',
@@ -164,7 +146,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'PLAYSTATION_4',
     players: '1-4인',
     genre: '샌드박스 파티',
-    archived_at: null,
   },
   {
     id: 'g-ps4-11',
@@ -172,7 +153,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'PLAYSTATION_4',
     players: '1-4인',
     genre: '배틀로얄/슈팅',
-    archived_at: null,
   },
   {
     id: 'g-ps4-12',
@@ -180,7 +160,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'PLAYSTATION_4',
     players: '1-2인',
     genre: '축구 스포츠',
-    archived_at: null,
   },
 
   // 3. 실물 보드게임 (40여종)
@@ -190,7 +169,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-4인',
     genre: '숫자 추리 (3세트 보유)',
-    archived_at: null,
   },
   {
     id: 'g-bg-02',
@@ -198,7 +176,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-4인',
     genre: '숫자 조합 전략 (스테디셀러)',
-    archived_at: null,
   },
   {
     id: 'g-bg-03',
@@ -206,7 +183,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-4인',
     genre: '보석 자원 엔진빌딩 (2세트 보유)',
-    archived_at: null,
   },
   {
     id: 'g-bg-04',
@@ -214,7 +190,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-4인',
     genre: '스플렌더 공식 확장판',
-    archived_at: null,
   },
   {
     id: 'g-bg-05',
@@ -222,7 +197,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-8인',
     genre: '직업 블러핑/도시 건설 (2세트)',
-    archived_at: null,
   },
   {
     id: 'g-bg-06',
@@ -230,7 +204,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-5인',
     genre: '카지노 주사위 베팅',
-    archived_at: null,
   },
   {
     id: 'g-bg-07',
@@ -238,7 +211,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '3-4인',
     genre: '자원 채취 & 무역 영토확장',
-    archived_at: null,
   },
   {
     id: 'g-bg-08',
@@ -246,7 +218,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '4-7인',
     genre: '서부 총잡이 마피아 게임',
-    archived_at: null,
   },
   {
     id: 'g-bg-09',
@@ -254,7 +225,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2인 전용',
     genre: '2인 카드 탐험 (2세트)',
-    archived_at: null,
   },
   {
     id: 'g-bg-10',
@@ -262,7 +232,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '4-8인',
     genre: '릴레이 스케치 파티 게임',
-    archived_at: null,
   },
   {
     id: 'g-bg-11',
@@ -270,7 +239,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-4인',
     genre: '순발력 비행기 튕기기',
-    archived_at: null,
   },
   {
     id: 'g-bg-12',
@@ -278,7 +246,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '1-4인',
     genre: '스피드 도형 퍼즐 맞추기',
-    archived_at: null,
   },
   {
     id: 'g-bg-13',
@@ -286,7 +253,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '1-6인',
     genre: '육각형 보석 영역 확장',
-    archived_at: null,
   },
   {
     id: 'g-bg-14',
@@ -294,7 +260,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2인 전용',
     genre: '멘사 추천 4목 추상 전략',
-    archived_at: null,
   },
   {
     id: 'g-bg-15',
@@ -302,7 +267,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-4인',
     genre: '움직이는 미로 보물찾기',
-    archived_at: null,
   },
   {
     id: 'g-bg-16',
@@ -310,7 +274,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2인 전용',
     genre: '정통 흑백 뒤집기 리버시',
-    archived_at: null,
   },
   {
     id: 'g-bg-17',
@@ -318,7 +281,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2인 전용',
     genre: '정통 전략 보드게임 세트',
-    archived_at: null,
   },
   {
     id: 'g-bg-18',
@@ -326,7 +288,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-4인',
     genre: '서커스 캐릭터 균형 쌓기',
-    archived_at: null,
   },
   {
     id: 'g-bg-19',
@@ -334,7 +295,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2인 전용',
     genre: '스피드 슬라이딩 큐브 대결',
-    archived_at: null,
   },
   {
     id: 'g-bg-20',
@@ -342,7 +302,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '1-4인',
     genre: '주사위 조합 족보 게임',
-    archived_at: null,
   },
   {
     id: 'g-bg-21',
@@ -350,7 +309,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-5인',
     genre: '판타지 테마 협동 모험',
-    archived_at: null,
   },
   {
     id: 'g-bg-22',
@@ -358,7 +316,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-6인',
     genre: '시각 패턴 인지 퍼즐',
-    archived_at: null,
   },
   {
     id: 'g-bg-23',
@@ -366,7 +323,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-6인',
     genre: '과일 5개 종치기 순발력',
-    archived_at: null,
   },
   {
     id: 'g-bg-24',
@@ -374,7 +330,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-4인',
     genre: '색상 컵 쌓기 대결',
-    archived_at: null,
   },
   {
     id: 'g-bg-25',
@@ -382,7 +337,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-6인',
     genre: '살인 사건 정통 추리',
-    archived_at: null,
   },
   {
     id: 'g-bg-26',
@@ -390,7 +344,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-4인',
     genre: '기억력 닭 꼬리잡기',
-    archived_at: null,
   },
   {
     id: 'g-bg-27',
@@ -398,7 +351,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-6인',
     genre: '세계 부동산 투자 거래',
-    archived_at: null,
   },
   {
     id: 'g-bg-28',
@@ -406,7 +358,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-6인',
     genre: '국내 부동산 투자 보드게임',
-    archived_at: null,
   },
   {
     id: 'g-bg-29',
@@ -414,7 +365,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-6인',
     genre: '직업/결혼/은퇴 인생 시뮬레이션',
-    archived_at: null,
   },
   {
     id: 'g-bg-30',
@@ -422,7 +372,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '1-8인',
     genre: '원목 블록 빼기 파티',
-    archived_at: null,
   },
   {
     id: 'g-bg-31',
@@ -430,7 +379,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-4인',
     genre: '상어 피해 달아나기 레이스',
-    archived_at: null,
   },
   {
     id: 'g-bg-32',
@@ -438,7 +386,6 @@ const INITIAL_GAMES: Game[] = [
     item_type: 'BOARD_GAME',
     players: '2-8인',
     genre: '같은 그림 찾기 스피드',
-    archived_at: null,
   },
 ];
 
@@ -498,8 +445,7 @@ export function GamesPage() {
       item_type: newType,
       players: newPlayers,
       genre: newGenre,
-      archived_at: null,
-    };
+      };
     setItems((prev) => [newItem, ...prev]);
     setMessage(`'${newTitle}' 게임을 검증 목록에 추가했습니다.`);
     e.currentTarget.reset();
