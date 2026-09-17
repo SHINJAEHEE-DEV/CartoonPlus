@@ -57,3 +57,5 @@ generate_report.py
 coverage/
 .cache/
 supabase/.branches/
+output/
+tmp/
