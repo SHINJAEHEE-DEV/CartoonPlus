@@ -411,16 +411,10 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
                 >
                   분류
                 </span>
-                <span
-                  className="badge-new"
-                  style={{ width: '40px', background: '#e0d8c8', color: 'transparent' }}
-                >
-                  보유중
-                </span>
               </div>
               <h2
                 style={{
-                  fontSize: '17px',
+                  fontSize: '15px',
                   fontWeight: 900,
                   background: '#e0d8c8',
                   color: 'transparent',
@@ -433,25 +427,24 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
               </h2>
               <p
                 style={{
-                  fontSize: '13px',
+                  fontSize: '12px',
                   fontWeight: 600,
                   background: '#e0d8c8',
                   color: 'transparent',
                   width: '50%',
                   borderRadius: '4px',
-                  marginTop: '4px',
                 }}
               >
                 작가 미표기
               </p>
-              <div style={{ height: '1px', background: '#E6DFCF', margin: '4px 0' }} />
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  gap: '8px',
-                  fontSize: '13px',
+                  gap: '6px',
+                  fontSize: '12px',
                   fontWeight: 800,
+                  marginTop: '4px',
                 }}
               >
                 <span style={{ background: '#e0d8c8', color: 'transparent', borderRadius: '4px' }}>
@@ -469,46 +462,44 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
           <section aria-label="검색 결과" className="search-results-grid">
             {paginatedBooks.map((book) => (
               <div key={book.id} className="search-result-card">
-                <div className="book-badges">
-                  <span className="badge-genre">
-                    {normalizeBookCategory(book.category) || '기타'}
-                  </span>
-                  <span className="badge-new">보유중</span>
+                <div>
+                  <div className="book-badges" style={{ marginBottom: '4px' }}>
+                    <span className="badge-genre">
+                      {normalizeBookCategory(book.category) || '기타'}
+                    </span>
+                  </div>
+                  <h2
+                    style={{
+                      fontSize: '15px',
+                      fontWeight: 900,
+                      letterSpacing: '-0.02em',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {book.title}
+                  </h2>
+                  <p style={{ fontSize: '12px', fontWeight: 600, color: '#6B6354', marginTop: '2px' }}>
+                    {book.author || '작가 미표기'}
+                  </p>
                 </div>
-                <h2
-                  style={{
-                    fontSize: '17px',
-                    fontWeight: 900,
-                    letterSpacing: '-0.02em',
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {book.title}
-                </h2>
-                <p style={{ fontSize: '13px', fontWeight: 600, color: '#6B6354' }}>
-                  {book.author || '작가 미표기'}
-                </p>
-                <div
-                  style={{
-                    height: '1px',
-                    background: '#E6DFCF',
-                    margin: '8px 0',
-                  }}
-                />
+
                 <div
                   style={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    gap: '8px',
-                    fontSize: '13px',
+                    gap: '6px',
+                    fontSize: '12px',
                     fontWeight: 800,
+                    marginTop: '4px',
+                    paddingTop: '6px',
+                    borderTop: '1px dashed #E6DFCF',
                   }}
                 >
                   <span
                     style={{
                       background: '#F4F0E6',
-                      padding: '4px 8px',
+                      padding: '2px 7px',
                       borderRadius: '4px',
                       color: '#6B6354',
                     }}
@@ -518,7 +509,7 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
                   <span
                     style={{
                       background: '#FFF6D6',
-                      padding: '4px 8px',
+                      padding: '2px 7px',
                       borderRadius: '4px',
                       color: '#8A6A00',
                     }}

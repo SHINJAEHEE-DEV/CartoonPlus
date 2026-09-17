@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MASCOT_ASSETS, STORE_PHOTOS } from '../../lib/brandAssets';
+import { MASCOT_ASSETS, getStorePhotos } from '../../lib/brandAssets';
 import { loadNewArrivals } from '../book-search/catalogueRepository';
 import type { SearchableBook } from '../../lib/bookSearch';
 import { getFeaturedEvent, getBannerImageUrl, type ManagedEvent } from '../../lib/eventRepository';
@@ -10,7 +10,7 @@ export function StoreIntroductionPage() {
   const { store, scoped } = usePublicStore();
   usePageTitle(`${store.name} 소개`);
   const [newBooks, setNewBooks] = useState<SearchableBook[]>([]);
-  const [featured, setFeatured] = useState<ManagedEvent>(() => getFeaturedEvent());
+  const [featured, setFeatured] = useState<ManagedEvent>(() => getFeaturedEvent(store.slug));
 
   const enjoyPoints = [
     {
@@ -51,14 +51,15 @@ export function StoreIntroductionPage() {
 
   useEffect(() => {
     void loadNewArrivals().then((books) => setNewBooks(books.slice(0, 3)));
-    const syncFeatured = () => setFeatured(getFeaturedEvent());
+    const syncFeatured = () => setFeatured(getFeaturedEvent(store.slug));
+    syncFeatured();
     window.addEventListener('events_updated', syncFeatured);
     window.addEventListener('storage', syncFeatured);
     return () => {
       window.removeEventListener('events_updated', syncFeatured);
       window.removeEventListener('storage', syncFeatured);
     };
-  }, []);
+  }, [store.slug]);
 
   const badgeText =
     store.slug === 'snu'
@@ -283,17 +284,22 @@ export function StoreIntroductionPage() {
             매장 안내 →
           </a>
         </div>
-        <div className="photo-grid">
-          <div className="photo-card">
-            <img src={STORE_PHOTOS.photo1} alt="카툰플러스 내부 서가 전경" />
-          </div>
-          <div className="photo-card">
-            <img src={STORE_PHOTOS.photo2} alt="복층 아늑한 토굴방 및 힐링 좌석" />
-          </div>
-          <div className="photo-card">
-            <img src={STORE_PHOTOS.photo3} alt="은은한 조명의 편안한 독서 공간" />
-          </div>
-        </div>
+        {(() => {
+          const photos = getStorePhotos(store.slug);
+          return (
+            <div className="photo-grid">
+              <div className="photo-card">
+                <img src={photos.photo1} alt={`${store.name} 내부 서가 전경`} />
+              </div>
+              <div className="photo-card">
+                <img src={photos.photo2} alt={`${store.name} 복층 아늑한 토굴방 및 힐링 좌석`} />
+              </div>
+              <div className="photo-card">
+                <img src={photos.photo3} alt={`${store.name} 은은한 조명의 편안한 독서 공간`} />
+              </div>
+            </div>
+          );
+        })()}
       </section>
     </>
   );

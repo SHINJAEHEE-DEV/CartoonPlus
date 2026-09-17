@@ -21,11 +21,43 @@ export const STORE_PHOTOS = {
   photo02: '/assets/store_photos/store_photo_02.jpg',
 } as const;
 
+export type StorePhotoSet = {
+  photo1: string;
+  photo2: string;
+  photo3: string;
+};
+
+export const STORE_PHOTOS_BY_SLUG: Record<string, StorePhotoSet> = {
+  snu: {
+    photo1: '/assets/store_photos/store_photo_043.jpg',
+    photo2: '/assets/store_photos/store_photo_049.jpg',
+    photo3: '/assets/store_photos/store_photo_03.jpg',
+  },
+  jamsil: {
+    photo1: '/assets/store_photos/store_photo_01.jpg',
+    photo2: '/assets/store_photos/store_photo_02.jpg',
+    photo3: '/assets/store_photos/store_photo_03.jpg',
+  },
+  hongdae: {
+    photo1: '/assets/store_photos/store_photo_043.jpg',
+    photo2: '/assets/store_photos/store_photo_01.jpg',
+    photo3: '/assets/store_photos/store_photo_049.jpg',
+  },
+};
+
+export function getStorePhotos(storeSlug?: string): StorePhotoSet {
+  if (storeSlug && STORE_PHOTOS_BY_SLUG[storeSlug]) {
+    return STORE_PHOTOS_BY_SLUG[storeSlug];
+  }
+  return STORE_PHOTOS_BY_SLUG.snu;
+}
+
 export const EVENT_BANNERS = {
   weekday: '/assets/events/event_weekday_pass.svg',
   naverRamen: '/assets/events/event_naver_ramen_coupon.svg',
   naverReview: '/assets/events/naver_review_banner.svg',
   snu: '/assets/banners/snu_partnership_banner.png',
+  placeholder: '/assets/events/placeholder.svg',
 } as const;
 
 export type StaticGameItem = {

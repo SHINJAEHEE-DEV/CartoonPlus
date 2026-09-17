@@ -4,6 +4,8 @@ import {
   PRICE_PACKAGES as INITIAL_PRICE_PACKAGES,
   BEVERAGE_ITEMS as INITIAL_BEVERAGE_ITEMS,
   FOOD_ITEMS as INITIAL_FOOD_ITEMS,
+  BEVERAGE_CATEGORIES,
+  normalizeBeverageCategory,
   BeverageItem,
   MenuItem,
   PricePackage,
@@ -15,47 +17,40 @@ import { usePublicStore } from '../../lib/storeContext';
 
 type MenuTab = 'all' | 'beverage' | 'meal' | 'dessert' | 'snack';
 
+function loadStoredMenu<T>(key: string, slug: string | undefined, fallback: T): T {
+  try {
+    const raw =
+      localStorage.getItem(`cp_${key}_${slug || 'snu'}`) ||
+      localStorage.getItem(`cp_${key}`);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export function MenuPage() {
   const { store } = usePublicStore();
   usePageTitle(store ? `${store.name} 메뉴 안내` : '메뉴 안내');
   const [activeTab, setActiveTab] = useState<MenuTab>('all');
   const [beverageSubFilter, setBeverageSubFilter] = useState<string>('전체');
 
-  const [packages, setPackages] = useState<PricePackage[]>(() => {
-    const saved =
-      localStorage.getItem(`cp_price_packages_${store?.slug || 'snu'}`) ||
-      localStorage.getItem('cp_price_packages');
-    return saved ? JSON.parse(saved) : INITIAL_PRICE_PACKAGES;
-  });
+  const [packages, setPackages] = useState<PricePackage[]>(() =>
+    loadStoredMenu('price_packages', store?.slug, INITIAL_PRICE_PACKAGES)
+  );
 
-  const [beverages, setBeverages] = useState<BeverageItem[]>(() => {
-    const saved =
-      localStorage.getItem(`cp_beverage_items_${store?.slug || 'snu'}`) ||
-      localStorage.getItem('cp_beverage_items');
-    return saved ? JSON.parse(saved) : INITIAL_BEVERAGE_ITEMS;
-  });
+  const [beverages, setBeverages] = useState<BeverageItem[]>(() =>
+    loadStoredMenu('beverage_items', store?.slug, INITIAL_BEVERAGE_ITEMS)
+  );
 
-  const [foods, setFoods] = useState<MenuItem[]>(() => {
-    const saved =
-      localStorage.getItem(`cp_food_items_${store?.slug || 'snu'}`) ||
-      localStorage.getItem('cp_food_items');
-    return saved ? JSON.parse(saved) : INITIAL_FOOD_ITEMS;
-  });
+  const [foods, setFoods] = useState<MenuItem[]>(() =>
+    loadStoredMenu('food_items', store?.slug, INITIAL_FOOD_ITEMS)
+  );
 
   useEffect(() => {
     const handleStorage = () => {
-      const p =
-        localStorage.getItem(`cp_price_packages_${store?.slug || 'snu'}`) ||
-        localStorage.getItem('cp_price_packages');
-      if (p) setPackages(JSON.parse(p));
-      const b =
-        localStorage.getItem(`cp_beverage_items_${store?.slug || 'snu'}`) ||
-        localStorage.getItem('cp_beverage_items');
-      if (b) setBeverages(JSON.parse(b));
-      const f =
-        localStorage.getItem(`cp_food_items_${store?.slug || 'snu'}`) ||
-        localStorage.getItem('cp_food_items');
-      if (f) setFoods(JSON.parse(f));
+      setPackages(loadStoredMenu('price_packages', store?.slug, INITIAL_PRICE_PACKAGES));
+      setBeverages(loadStoredMenu('beverage_items', store?.slug, INITIAL_BEVERAGE_ITEMS));
+      setFoods(loadStoredMenu('food_items', store?.slug, INITIAL_FOOD_ITEMS));
     };
     window.addEventListener('storage', handleStorage);
 
@@ -100,22 +95,6 @@ export function MenuPage() {
 
     return () => window.removeEventListener('storage', handleStorage);
   }, [store?.slug]);
-
-  const subCategories = [
-    '전체',
-    '커피/라떼',
-    '아이스티/티',
-    '콤부차',
-    '라떼/음료',
-    '에이드',
-    '스무디/생과일',
-    '쉐이크',
-  ];
-
-  const filteredBeverages = beverages.filter((b) => {
-    if (beverageSubFilter === '전체') return true;
-    return b.subCategory === beverageSubFilter;
-  });
 
   const mealItems = foods.filter((f) => f.category === 'meal');
   const dessertItems = foods.filter((f) => f.category === 'dessert');
@@ -304,7 +283,7 @@ export function MenuPage() {
                 marginTop: '4px',
               }}
             >
-              음료 단품 4,000원 · 패키지 차액 업그레이드
+              음료 단품 4,000원부터 · 패키지 차액 업그레이드
             </div>
             <div
               style={{
@@ -361,7 +340,7 @@ export function MenuPage() {
           ))}
         </div>
 
-        {/* --- [A. 음료 섹션] --- */}
+        {/* --- [A. 음료 섹션: 8대 카테고리 실물 메뉴판 스타일] --- */}
         {(activeTab === 'all' || activeTab === 'beverage') && (
           <div style={{ marginTop: '28px' }}>
             <div
@@ -371,51 +350,196 @@ export function MenuPage() {
                 justifyContent: 'space-between',
                 flexWrap: 'wrap',
                 gap: '12px',
-                marginBottom: '14px',
+                marginBottom: '18px',
               }}
             >
               <div>
                 <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A6A00' }}>
-                  BEVERAGES & CAFE
+                  BEVERAGES MENU BOARD (8 CATEGORIES)
                 </div>
-                <h3 style={{ fontSize: '20px', fontWeight: 900, marginTop: '2px' }}>음료 라인업</h3>
+                <h3 style={{ fontSize: '22px', fontWeight: 900, marginTop: '2px' }}>
+                  음료 메뉴판
+                </h3>
               </div>
 
-              {/* 음료 서브 필터 칩 */}
+              {/* 음료 8대 카테고리 필터 칩 */}
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {subCategories.map((sub) => (
-                  <button
-                    key={sub}
-                    onClick={() => setBeverageSubFilter(sub)}
-                    type="button"
-                    style={{
-                      padding: '6px 12px',
-                      borderRadius: '999px',
-                      border:
-                        beverageSubFilter === sub ? '1.5px solid #1E1E1E' : '1px solid #D1C9BC',
-                      background: beverageSubFilter === sub ? '#FED943' : '#FFFFFF',
-                      color: '#1E1E1E',
-                      fontSize: '12px',
-                      fontWeight: beverageSubFilter === sub ? 800 : 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {sub}
-                  </button>
-                ))}
+                <button
+                  type="button"
+                  onClick={() => setBeverageSubFilter('전체')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '999px',
+                    border: beverageSubFilter === '전체' ? '2px solid #1E1E1E' : '1px solid #D1C9BC',
+                    background: beverageSubFilter === '전체' ? '#FED943' : '#FFFFFF',
+                    color: '#1E1E1E',
+                    fontSize: '12px',
+                    fontWeight: beverageSubFilter === '전체' ? 900 : 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  전체 ({beverages.length})
+                </button>
+                {BEVERAGE_CATEGORIES.map((cat) => {
+                  const count = beverages.filter(
+                    (b) => normalizeBeverageCategory(b.subCategory) === cat.key
+                  ).length;
+                  const isSelected = beverageSubFilter === cat.key;
+                  return (
+                    <button
+                      key={cat.key}
+                      onClick={() => setBeverageSubFilter(cat.key)}
+                      type="button"
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '999px',
+                        border: isSelected ? '2px solid #1E1E1E' : '1px solid #D1C9BC',
+                        background: isSelected ? '#1E1E1E' : '#FFFFFF',
+                        color: isSelected ? '#FED943' : '#1E1E1E',
+                        fontSize: '12px',
+                        fontWeight: isSelected ? 900 : 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {cat.nameEn} ({count})
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
+            {/* 음료 8대 카테고리 그룹 렌더링 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+              {BEVERAGE_CATEGORIES.filter((cat) => {
+                if (beverageSubFilter === '전체') return true;
+                return cat.key === beverageSubFilter;
+              }).map((cat) => {
+                const categoryBeverages = beverages.filter(
+                  (b) => normalizeBeverageCategory(b.subCategory) === cat.key
+                );
+                if (categoryBeverages.length === 0) return null;
+
+                return (
+                  <div
+                    key={cat.key}
+                    style={{
+                      background: '#FFFFFF',
+                      border: '2.5px solid #1E1E1E',
+                      borderRadius: '20px',
+                      padding: '20px 22px',
+                      boxShadow: '4px 4px 0 #1E1E1E',
+                    }}
+                  >
+                    {/* 카테고리 헤더 */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        borderBottom: '2px solid #1E1E1E',
+                        paddingBottom: '12px',
+                        marginBottom: '16px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span
+                          style={{
+                            fontSize: '18px',
+                            fontWeight: 900,
+                            letterSpacing: '-0.02em',
+                            color: '#1E1E1E',
+                          }}
+                        >
+                          {cat.nameEn}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            color: '#8A8175',
+                          }}
+                        >
+                          · {cat.nameKo}
+                        </span>
+                      </div>
+                      {cat.badgeLabel && (
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 900,
+                            background: '#E1F5FE',
+                            color: '#0288D1',
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            border: '1px solid #B3E5FC',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          {cat.badgeLabel} 전용
+                        </span>
+                      )}
+                    </div>
+
+                    {/* 음료 카드 그리드 */}
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                        gap: '10px',
+                      }}
+                    >
+                      {categoryBeverages.map((bev) => (
+                        <BeverageCard key={bev.id} item={bev} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 실물 메뉴판 하단 마스코트 & 안내 푸터 */}
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                marginTop: '20px',
+                background: '#FFF9EC',
+                border: '2px solid #1E1E1E',
+                borderRadius: '16px',
+                padding: '16px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
                 gap: '12px',
               }}
             >
-              {filteredBeverages.map((bev) => (
-                <BeverageCard key={bev.id} item={bev} />
-              ))}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <img
+                  src={MASCOT_ASSETS.logoCircle}
+                  alt="카툰플러스 마스코트"
+                  style={{ width: '44px', height: '44px', objectFit: 'contain' }}
+                />
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 900, color: '#1E1E1E' }}>
+                    {store?.name || '카툰플러스'} 현장 키오스크 주문 안내
+                  </div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#6B6354', marginTop: '2px' }}>
+                    {store?.address || '서울 관악구 관악로 155, 3층'} · 연락처:{' '}
+                    {store?.phone || '02-882-9588'}
+                  </div>
+                </div>
+              </div>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  color: '#8A6A00',
+                  background: '#FFF0BA',
+                  padding: '4px 10px',
+                  borderRadius: '999px',
+                }}
+              >
+                전 음료 테이크아웃 가능
+              </span>
             </div>
           </div>
         )}
@@ -508,14 +632,15 @@ function BeverageCard({ item }: { item: BeverageItem }) {
   return (
     <div
       style={{
-        background: '#FFFFFF',
-        border: '2px solid #1E1E1E',
-        borderRadius: '14px',
-        padding: '14px 16px',
+        background: '#FAF8F5',
+        border: '1.5px solid #1E1E1E',
+        borderRadius: '12px',
+        padding: '11px 13px',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        gap: '10px',
+        gap: '8px',
+        transition: 'transform 0.1s ease, box-shadow 0.1s ease',
       }}
     >
       <div>
@@ -524,15 +649,15 @@ function BeverageCard({ item }: { item: BeverageItem }) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: '8px',
+            gap: '6px',
           }}
         >
           <span
             style={{
-              fontSize: '11px',
+              fontSize: '10px',
               fontWeight: 800,
-              padding: '2px 7px',
-              borderRadius: '6px',
+              padding: '2px 6px',
+              borderRadius: '4px',
               background: badge.bg,
               color: badge.text,
             }}
@@ -541,22 +666,25 @@ function BeverageCard({ item }: { item: BeverageItem }) {
           </span>
           <span
             style={{
-              fontSize: '11px',
+              fontSize: '10px',
               fontWeight: 800,
               color: item.temp === 'HOT' ? '#D32F2F' : item.temp === 'ICED' ? '#1976D2' : '#6B6354',
+              background: item.temp === 'HOT' ? '#FFEBEE' : item.temp === 'ICED' ? '#E3F2FD' : '#F0ECE1',
+              padding: '2px 6px',
+              borderRadius: '4px',
             }}
           >
-            {item.temp === 'HOT' ? 'HOT 전용' : item.temp === 'ICED' ? 'ICE 전용' : 'HOT / ICE'}
+            {item.temp === 'HOT' ? 'HOT' : item.temp === 'ICED' ? 'ICE' : 'HOT / ICE'}
           </span>
         </div>
 
         <div
-          style={{ fontSize: '15px', fontWeight: 900, marginTop: '8px', letterSpacing: '-0.02em' }}
+          style={{ fontSize: '14px', fontWeight: 900, marginTop: '6px', letterSpacing: '-0.02em', color: '#1E1E1E' }}
         >
           {item.nameKo}
         </div>
         {item.nameEn && (
-          <div style={{ fontSize: '11px', fontWeight: 600, color: '#8A8175', marginTop: '2px' }}>
+          <div style={{ fontSize: '10.5px', fontWeight: 600, color: '#8A8175', marginTop: '1px' }}>
             {item.nameEn}
           </div>
         )}
@@ -567,12 +695,12 @@ function BeverageCard({ item }: { item: BeverageItem }) {
           display: 'flex',
           alignItems: 'baseline',
           justifyContent: 'space-between',
-          borderTop: '1px dashed #E5E0D5',
-          paddingTop: '8px',
+          borderTop: '1px dashed #DDD7CD',
+          paddingTop: '6px',
         }}
       >
-        <span style={{ fontSize: '12px', fontWeight: 600, color: '#6B6354' }}>단품 구매 시</span>
-        <span style={{ fontSize: '16px', fontWeight: 900, color: '#1E1E1E' }}>
+        <span style={{ fontSize: '11px', fontWeight: 600, color: '#6B6354' }}>단품 구매 시</span>
+        <span style={{ fontSize: '15px', fontWeight: 900, color: '#1E1E1E' }}>
           {item.singlePrice.toLocaleString()}원
         </span>
       </div>
@@ -629,3 +757,4 @@ function FoodCard({ item }: { item: MenuItem }) {
     </div>
   );
 }
+

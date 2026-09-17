@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { MASCOT_ASSETS, STORE_PHOTOS, getStaticStoreGames } from '../../lib/brandAssets';
+import { MASCOT_ASSETS, getStorePhotos, getStaticStoreGames } from '../../lib/brandAssets';
 import { usePublicStore } from '../../lib/storeContext';
 import {
   ManagedEvent,
@@ -151,8 +151,8 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
         } else if (kind === 'events') {
           const { data } = await client
             .from('store_events')
-            .select('id,title,content,is_always_on')
-            .eq('store_id', store.id)
+            .select('id,title,content,is_always_on,store_id')
+            .or(`store_id.eq.${store.id},store_id.is.null`)
             .eq('is_public', true)
             .is('archived_at', null)
             .or(
@@ -335,12 +335,7 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
         };
       });
     } else {
-      publicEvents = loadManagedEvents().filter((ev) => {
-        if (!ev.isPublic) return false;
-        if (ev.storeSlug && ev.storeSlug !== selectedStore.slug) return false;
-        if (selectedStore.slug !== 'snu' && ev.bannerType === 'snu') return false;
-        return true;
-      });
+      publicEvents = loadManagedEvents(selectedStore.slug).filter((ev) => ev.isPublic);
     }
 
     return (
@@ -652,17 +647,22 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
       </div>
 
       {/* 매장 실물 사진 갤러리 (3장 그리드) */}
-      <div className="photo-grid">
-        <div className="photo-card">
-          <img src={STORE_PHOTOS.photo1} alt="카툰플러스 입구 및 서가" />
-        </div>
-        <div className="photo-card">
-          <img src={STORE_PHOTOS.photo2} alt="카툰플러스 복층 룸" />
-        </div>
-        <div className="photo-card">
-          <img src={STORE_PHOTOS.photo3} alt="카툰플러스 은은한 독서 공간" />
-        </div>
-      </div>
+      {(() => {
+        const photos = getStorePhotos(selectedStore.slug);
+        return (
+          <div className="photo-grid">
+            <div className="photo-card">
+              <img src={photos.photo1} alt={`${selectedStore.name} 입구 및 서가`} />
+            </div>
+            <div className="photo-card">
+              <img src={photos.photo2} alt={`${selectedStore.name} 아늑한 좌석 공간`} />
+            </div>
+            <div className="photo-card">
+              <img src={photos.photo3} alt={`${selectedStore.name} 독서 및 힐링 공간`} />
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

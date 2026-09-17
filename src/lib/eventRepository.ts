@@ -1,5 +1,7 @@
 import { EVENT_BANNERS } from './brandAssets';
 
+export type EventStoreSlug = 'snu' | 'jamsil' | 'hongdae' | 'all';
+
 export interface ManagedEvent {
   id: string;
   title: string;
@@ -14,7 +16,7 @@ export interface ManagedEvent {
   isPublic: boolean;
   isFeatured?: boolean;
   createdAt: string;
-  storeSlug?: 'snu' | 'jamsil' | 'hongdae';
+  storeSlug?: EventStoreSlug;
 }
 
 export const STORAGE_KEY = 'cartoonplus_managed_events';
@@ -32,6 +34,7 @@ export const INITIAL_EVENTS: ManagedEvent[] = [
     isAlwaysOn: false,
     isPublic: true,
     isFeatured: false,
+    storeSlug: 'all',
     createdAt: '2026-09-01T00:00:00.000Z',
   },
   {
@@ -44,6 +47,7 @@ export const INITIAL_EVENTS: ManagedEvent[] = [
     isAlwaysOn: true,
     isPublic: true,
     isFeatured: true,
+    storeSlug: 'all',
     createdAt: '2026-09-01T00:00:00.000Z',
   },
   {
@@ -57,6 +61,7 @@ export const INITIAL_EVENTS: ManagedEvent[] = [
     isAlwaysOn: true,
     isPublic: true,
     isFeatured: false,
+    storeSlug: 'all',
     createdAt: '2026-09-01T00:00:00.000Z',
   },
   {
@@ -69,7 +74,7 @@ export const INITIAL_EVENTS: ManagedEvent[] = [
     bannerType: 'weekday',
     isAlwaysOn: true,
     isPublic: true,
-    isFeatured: false,
+    isFeatured: true,
     storeSlug: 'jamsil',
     createdAt: '2026-09-01T00:00:00.000Z',
   },
@@ -84,7 +89,7 @@ export const INITIAL_EVENTS: ManagedEvent[] = [
     endDate: '2026-12-31',
     isAlwaysOn: true,
     isPublic: true,
-    isFeatured: false,
+    isFeatured: true,
     storeSlug: 'snu',
     createdAt: '2026-01-01T00:00:00.000Z',
   },
@@ -94,16 +99,27 @@ export function getBannerImageUrl(type: ManagedEvent['bannerType'], customUrl?: 
   if (type === 'weekday') return EVENT_BANNERS.weekday;
   if (type === 'naver_ramen') return EVENT_BANNERS.naverRamen;
   if (type === 'snu') return EVENT_BANNERS.snu;
-  return customUrl || EVENT_BANNERS.weekday;
+  if (type === 'custom' && customUrl) return customUrl;
+  return EVENT_BANNERS.placeholder;
 }
 
-export function loadManagedEvents(): ManagedEvent[] {
+export function isEventMatchingStore(event: ManagedEvent, storeSlug?: string): boolean {
+  if (!storeSlug || storeSlug === 'all') return true;
+  if (!event.storeSlug || event.storeSlug === 'all') {
+    if (storeSlug !== 'snu' && event.bannerType === 'snu') return false;
+    return true;
+  }
+  return event.storeSlug === storeSlug;
+}
+
+export function loadManagedEvents(storeSlug?: string): ManagedEvent[] {
+  let allEvents: ManagedEvent[] = INITIAL_EVENTS;
   try {
     const stored = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
     if (stored) {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed
+        allEvents = parsed
           .filter((event) => !event.archivedAt)
           .map(({ archivedAt: _archivedAt, ...event }) => event as ManagedEvent);
       }
@@ -111,7 +127,11 @@ export function loadManagedEvents(): ManagedEvent[] {
   } catch {
     // fallback
   }
-  return INITIAL_EVENTS;
+
+  if (storeSlug && storeSlug !== 'all') {
+    return allEvents.filter((ev) => isEventMatchingStore(ev, storeSlug));
+  }
+  return allEvents;
 }
 
 export function saveManagedEvents(events: ManagedEvent[]): void {
@@ -125,22 +145,51 @@ export function saveManagedEvents(events: ManagedEvent[]): void {
   }
 }
 
-export function getFeaturedEvent(events?: ManagedEvent[]): ManagedEvent {
-  const list = events ?? loadManagedEvents();
+export function getFeaturedEvent(
+  storeSlugOrEvents?: string | ManagedEvent[],
+  explicitEvents?: ManagedEvent[]
+): ManagedEvent {
+  let storeSlug: string | undefined;
+  let list: ManagedEvent[];
+
+  if (typeof storeSlugOrEvents === 'string') {
+    storeSlug = storeSlugOrEvents;
+    list = explicitEvents ?? loadManagedEvents();
+  } else if (Array.isArray(storeSlugOrEvents)) {
+    list = storeSlugOrEvents;
+    storeSlug = undefined;
+  } else {
+    list = loadManagedEvents();
+    storeSlug = undefined;
+  }
+
   const today = new Date().toISOString().split('T')[0];
 
   const isEventActive = (ev: ManagedEvent) => {
     if (!ev.isPublic) return false;
+    if (storeSlug && !isEventMatchingStore(ev, storeSlug)) return false;
     if (ev.isAlwaysOn) return true;
     if (ev.endDate && ev.endDate < today) return false;
     return true;
   };
 
+  // 1. 해당 지점 전용 featured 우선 검색
+  if (storeSlug && storeSlug !== 'all') {
+    const storeSpecificFeatured = list.find(
+      (ev) => ev.isFeatured && ev.storeSlug === storeSlug && isEventActive(ev)
+    );
+    if (storeSpecificFeatured) return storeSpecificFeatured;
+  }
+
+  // 2. 전체 중 featured 검색
   const featured = list.find((ev) => ev.isFeatured && isEventActive(ev));
   if (featured) return featured;
 
+  // 3. 첫 번째 활성 이벤트
   const firstActive = list.find(isEventActive);
   if (firstActive) return firstActive;
 
-  return list.find((ev) => ev.isPublic) || INITIAL_EVENTS[2];
+  // 4. 공개 이벤트 중 fallback
+  const firstPublic = list.find((ev) => ev.isPublic && (!storeSlug || isEventMatchingStore(ev, storeSlug)));
+  return firstPublic || INITIAL_EVENTS[1] || INITIAL_EVENTS[0];
 }

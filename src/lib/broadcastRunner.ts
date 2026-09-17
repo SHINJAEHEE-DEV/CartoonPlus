@@ -253,7 +253,13 @@ export function useGlobalBroadcastScheduler(): void {
         }
       }
       lastCheckedAtRef.current = now;
-      window.localStorage.setItem(LAST_BROADCAST_CHECK_KEY, now.toISOString());
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.setItem(LAST_BROADCAST_CHECK_KEY, now.toISOString());
+        }
+      } catch {
+        // Ignore storage errors in restricted/test environments
+      }
 
       for (const item of schedulesRef.current) {
         const executionKey = `${item.id}:${currentMinuteKey}`;
