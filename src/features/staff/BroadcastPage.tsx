@@ -15,7 +15,7 @@ const initialPresets: BroadcastPresetPreview[] = [
   ['음료 픽업 요청', '주문하신 음료가 카운터에 준비되어 있습니다. 카카오톡 알림을 확인해 주시기 바랍니다.', '제조 완료 음료 카운터 수령 안내'],
 ];
 
-type StoredSchedule = ScheduledBroadcast & { id: string; message_text: string };
+type StoredSchedule = ScheduledBroadcast & { id: string; message_text: string; presetId?: string };
 type FailedRun = { id: string; message_text: string; triggered_at: string };
 type ScheduleForm = {
   message: string;
@@ -54,6 +54,7 @@ export function BroadcastPage() {
   const [currentPlaying, setCurrentPlaying] = useState<string | null>(null);
   const [schedules, setSchedules] = useState<StoredSchedule[]>([]);
   const [schedule, setSchedule] = useState<ScheduleForm>(emptySchedule);
+  const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
   const [scheduleStatus, setScheduleStatus] = useState('');
   const [failedRuns, setFailedRuns] = useState<FailedRun[]>([]);
 
@@ -117,7 +118,7 @@ export function BroadcastPage() {
     if (!supabase) return;
     const { data, error } = await supabase
       .from('scheduled_broadcasts')
-      .select('id, message_text, schedule_type, target_time, target_days, target_date, is_enabled')
+      .select('id, message_text, broadcast_preset_id, schedule_type, target_time, target_days, target_date, is_enabled')
       .order('target_time');
     if (error) {
       setScheduleStatus(`예약을 불러오지 못했습니다: ${error.message}`);
@@ -127,6 +128,7 @@ export function BroadcastPage() {
       (data ?? []).map((item) => ({
         id: item.id,
         message_text: item.message_text,
+        presetId: item.broadcast_preset_id ?? undefined,
         scheduleType: item.schedule_type,
         targetTime: item.target_time.slice(0, 5),
         targetDays: item.target_days ?? [],
@@ -231,7 +233,7 @@ export function BroadcastPage() {
       setScheduleStatus('서울대입구역점 정보를 찾을 수 없습니다.');
       return;
     }
-    const { error } = await supabase.from('scheduled_broadcasts').insert({
+    const values = {
       store_id: store.id,
       message_text: schedule.message.trim(),
       broadcast_preset_id: schedule.presetId || null,
@@ -240,13 +242,17 @@ export function BroadcastPage() {
       target_days: schedule.type === 'weekdays' ? schedule.weekdays : null,
       target_date: schedule.type === 'once' ? schedule.date : null,
       is_enabled: true,
-    });
+    };
+    const { error } = editingScheduleId
+      ? await supabase.from('scheduled_broadcasts').update(values).eq('id', editingScheduleId)
+      : await supabase.from('scheduled_broadcasts').insert(values);
     if (error) {
       setScheduleStatus(`저장하지 못했습니다: ${error.message}`);
       return;
     }
     setSchedule(emptySchedule);
-    setScheduleStatus('예약 방송을 저장했습니다.');
+    setEditingScheduleId(null);
+    setScheduleStatus(editingScheduleId ? '예약 방송을 수정했습니다.' : '예약 방송을 저장했습니다.');
     await loadSchedules();
     notifyScheduleUpdated();
   };
@@ -875,6 +881,21 @@ export function BroadcastPage() {
                   </div>
 
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <button
+                      onClick={() => {
+                        setSchedule({
+                          message: item.message_text,
+                          presetId: item.presetId ?? '',
+                          type: item.scheduleType,
+                          time: item.targetTime,
+                          date: item.targetDate ?? '',
+                          weekdays: item.targetDays ?? [],
+                        });
+                        setEditingScheduleId(item.id);
+                      }}
+                    >
+                      수정
+                    </button>
                     <button
                       onClick={() => void toggleSchedule(item)}
                       style={{
