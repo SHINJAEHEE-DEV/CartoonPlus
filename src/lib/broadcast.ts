@@ -1,7 +1,13 @@
 let speechQueue = Promise.resolve();
+let speechGeneration = 0;
 
 export function speakKorean(text: string, voiceName?: string, rate = 0.95): Promise<void> {
+  const generation = speechGeneration;
   const speak = () => new Promise<void>((resolve, reject) => {
+    if (generation !== speechGeneration) {
+      reject(new Error('대기 중인 방송이 취소되었습니다.'));
+      return;
+    }
     if (!('speechSynthesis' in window))
       return reject(new Error('이 브라우저는 방송을 지원하지 않습니다.'));
     const utterance = new SpeechSynthesisUtterance(text);
@@ -24,5 +30,6 @@ export function speakKorean(text: string, voiceName?: string, rate = 0.95): Prom
 }
 
 export function stopKoreanSpeech(): void {
+  speechGeneration += 1;
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 }
