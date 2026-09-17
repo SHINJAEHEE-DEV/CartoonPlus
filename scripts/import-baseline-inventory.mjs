@@ -72,7 +72,7 @@ const request = async (path, options = {}) => {
   return response.status === 204 ? null : response.json();
 };
 
-const [header, ...lines] = (await readFile('docs/assets/seoul_univ_2026-Sep-04_1021.csv', 'utf8'))
+const [header, ...lines] = (await readFile('public/data/cleaned-inventory.csv', 'utf8'))
   .trim()
   .split(/\r?\n/);
 const columns = csvLine(header);
@@ -88,10 +88,25 @@ const store = (
 const parsed = [
   ...new Map(
     rows
-      .filter((r) => r.title?.trim())
+      .filter((r) => r['도서명']?.trim())
       .map((r) => {
-        const parsed = { ...r, ...titleParts(r.title) };
-        return [`${parsed.title}\u0000${parsed.author?.trim() ?? ''}`, parsed];
+        const title = r['도서명'].trim();
+        const author = r['작가']?.trim() ?? '';
+        const category = r['목표장르']?.trim() ?? r['기존장르']?.trim() ?? '';
+        const volumeRange = r['보유권수']?.trim() ?? '확인 중';
+        const shelfLocation = `책장 ${r['기존서가']?.trim() ?? ''}번`;
+        const m = /(\d+)[^0-9]*$/u.exec(volumeRange);
+        const lastVolume = m ? parseInt(m[1], 10) : null;
+
+        const parsedRow = {
+          title,
+          author,
+          category,
+          volumeRange,
+          lastVolume,
+          shelfLocation,
+        };
+        return [`${title}\u0000${author}`, parsedRow];
       })
   ).values(),
 ];
@@ -100,11 +115,11 @@ const books = await request('books?on_conflict=title,author', {
   body: JSON.stringify(
     parsed.map((r) => ({
       title: r.title,
-      author: r.author?.trim() ?? '',
-      category: r.genre?.trim() ?? '',
+      author: r.author,
+      category: r.category,
       normalized_title: normalise(r.title),
-      normalized_author: normalise(r.author ?? ''),
-      initial_consonants: initial(normalise(`${r.title}${r.author ?? ''}`)),
+      normalized_author: normalise(r.author),
+      initial_consonants: initial(normalise(`${r.title}${r.author}`)),
     }))
   ),
 });
@@ -114,10 +129,12 @@ await request('book_inventories?on_conflict=store_id,book_id', {
   body: JSON.stringify(
     parsed.map((r) => ({
       store_id: store.id,
-      book_id: byKey.get(`${r.title}\u0000${r.author?.trim() ?? ''}`),
-      volume_range: r.volume || '확인 중',
-      shelf_location: `책장 ${r.number.trim()}번`,
+      book_id: byKey.get(`${r.title}\u0000${r.author}`),
+      volume_range: r.volumeRange,
+      last_volume: r.lastVolume,
+      shelf_location: r.shelfLocation,
     }))
   ),
 });
-console.log(`Imported ${parsed.length} inventory records for 서울대입구역점.`);
+console.log(`Imported ${parsed.length} cleaned inventory records for 서울대입구역점.`);
+

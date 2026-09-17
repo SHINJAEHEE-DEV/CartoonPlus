@@ -22,6 +22,20 @@ describe('parseBaselineInventory', () => {
       }),
     ]);
   });
+
+  it('parses cleaned inventory CSV with Korean headers accurately', () => {
+    const csv = '"도서명","보유권수","작가","목표장르","목표구역","기존서가","기존장르"\n"26년","1~3권","강풀","웹툰","A","5","웹툰"';
+    expect(parseBaselineInventory(csv)).toEqual([
+      {
+        id: 'baseline-0-26년',
+        title: '26년',
+        author: '강풀',
+        category: '웹툰',
+        volumeRange: '1~3권',
+        shelfLocation: '책장 5번',
+      },
+    ]);
+  });
 });
 
 describe('parseHongdaeInventoryCsv', () => {

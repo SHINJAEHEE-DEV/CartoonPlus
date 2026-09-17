@@ -20,4 +20,28 @@ begin
   return v_inventory;
 end $$;
 
+-- Recreate policies and views before dropping archived_at
+drop policy if exists "public can read active SNU inventory" on public.book_inventories;
+create policy "public can read active SNU inventory" on public.book_inventories for select using (
+  exists (
+    select 1 from public.stores where stores.id = book_inventories.store_id and stores.slug = 'snu'
+  )
+);
+
+create or replace view public.customer_book_catalogue
+with (security_invoker = true) as
+select
+  inventories.id as inventory_id,
+  stores.slug as store_slug,
+  books.title,
+  books.author,
+  books.category,
+  inventories.volume_range,
+  inventories.shelf_location,
+  inventories.first_registered_at
+from public.book_inventories as inventories
+join public.books on books.id = inventories.book_id
+join public.stores on stores.id = inventories.store_id
+where books.archived_at is null;
+
 alter table public.book_inventories drop column if exists archived_at;

@@ -144,22 +144,46 @@ export function parseBaselineInventory(csv: string): SearchableBook[] {
   const { columns, lines } = getCsvRows(csv);
   if (!columns.length) return [];
 
+  const isCleanedFormat = columns.includes('도서명') && columns.includes('기존서가');
+
   return lines.flatMap((line, index) => {
     const values = parseCsvLine(line);
     const row = Object.fromEntries(
       columns.map((column, columnIndex) => [column, values[columnIndex] ?? ''])
-    ) as InventoryCsvRow;
-    if (!row.title?.trim() || !row.number?.trim()) return [];
-    const book = splitTitleAndLastVolume(row.title);
+    );
+
+    if (isCleanedFormat) {
+      const title = row['도서명']?.trim() ?? '';
+      const shelf = row['기존서가']?.trim() ?? '';
+      if (!title || !shelf) return [];
+      const volumeRange = row['보유권수']?.trim() ?? '';
+      const author = row['작가']?.trim() ?? '';
+      const genre = row['목표장르']?.trim() ?? row['기존장르']?.trim() ?? '';
+      return [
+        {
+          id: `baseline-${index}-${title}`,
+          title,
+          author,
+          category: normalizeBookCategory(genre),
+          volumeRange: volumeRange || '확인 중',
+          shelfLocation: `책장 ${shelf}번`,
+        },
+      ];
+    }
+
+    const legacyRow = row as InventoryCsvRow;
+    if (!legacyRow.title?.trim() || !legacyRow.number?.trim()) return [];
+    const book = splitTitleAndLastVolume(legacyRow.title);
     return [
       {
         id: `baseline-${index}-${book.title}`,
         title: book.title,
-        author: row.author?.trim() ?? '',
-        category: normalizeBookCategory(row.genre ?? ''),
+        author: legacyRow.author?.trim() ?? '',
+        category: normalizeBookCategory(legacyRow.genre ?? ''),
         volumeRange: book.volumeRange,
-        shelfLocation: `책장 ${row.number.trim()}번`,
+        shelfLocation: `책장 ${legacyRow.number.trim()}번`,
       },
     ];
   });
 }
+
