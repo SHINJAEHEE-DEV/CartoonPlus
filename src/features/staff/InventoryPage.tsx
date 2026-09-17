@@ -21,7 +21,6 @@ interface InventoryItem {
   last_volume: number | null;
   volume_range: string;
   shelf_location: string;
-  archived_at: string | null;
   books: InventoryBook | InventoryBook[] | null;
 }
 
@@ -51,7 +50,7 @@ export function InventoryPage() {
     }
     const { data, error } = await supabase
       .from('book_inventories')
-      .select('id,last_volume,volume_range,shelf_location,archived_at,books(title,author,category)')
+      .select('id,last_volume,volume_range,shelf_location,books(title,author,category)')
       .eq('store_id', selectedStoreId)
       .order('updated_at', { ascending: false });
 
@@ -140,13 +139,11 @@ export function InventoryPage() {
     await load();
   };
 
-  const archive = async (id: string, archived: boolean) => {
+  const removeInventory = async (id: string) => {
     if (!supabase) return;
-    const { error } = await supabase.rpc('set_inventory_archive', {
-      p_inventory_id: id,
-      p_archived: archived,
-    });
-    setMessage(error?.message ?? (archived ? '재고를 보관 처리했습니다.' : '재고를 복구했습니다.'));
+    if (!window.confirm('이 지점의 재고만 영구 삭제합니다. 복구할 수 없습니다.')) return;
+    const { error } = await supabase.from('book_inventories').delete().eq('id', id);
+    setMessage(error?.message ?? '재고를 삭제했습니다.');
     if (!error) await load();
   };
 
@@ -460,7 +457,7 @@ export function InventoryPage() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '12px 16px',
-                  background: item.archived_at ? '#ECEFF1' : '#FFFDF5',
+                  background: '#FFFDF5',
                   border: '1.5px solid #1E1E1E',
                   borderRadius: '12px',
                   gap: '12px',
@@ -500,18 +497,9 @@ export function InventoryPage() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      color: item.archived_at ? '#D32F2F' : '#2E7D32',
-                    }}
-                  >
-                    {item.archived_at ? '보관됨' : '공개 중'}
-                  </span>
                   <button
                     type="button"
-                    onClick={() => void archive(item.id, !item.archived_at)}
+                    onClick={() => void removeInventory(item.id)}
                     style={{
                       padding: '4px 10px',
                       borderRadius: '6px',
@@ -522,7 +510,7 @@ export function InventoryPage() {
                       cursor: 'pointer',
                     }}
                   >
-                    {item.archived_at ? '복구' : '보관'}
+                    삭제
                   </button>
                 </div>
               </div>
