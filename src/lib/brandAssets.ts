@@ -14,11 +14,11 @@ export const MASCOT_ASSETS = {
 } as const;
 
 export const STORE_PHOTOS = {
-  photo1: '/assets/store_photos/store_photo_043.jpg',
-  photo2: '/assets/store_photos/store_photo_049.jpg',
-  photo3: '/assets/store_photos/store_photo_03.jpg',
-  photo01: '/assets/store_photos/store_photo_01.jpg',
-  photo02: '/assets/store_photos/store_photo_02.jpg',
+  photo1: '/assets/store_photos/snu/snu_01.jpg',
+  photo2: '/assets/store_photos/snu/snu_02.jpg',
+  photo3: '/assets/store_photos/snu/snu_03.jpg',
+  photo01: '/assets/store_photos/jamsil/jamsil_01.jpg',
+  photo02: '/assets/store_photos/hongdae/hongdae_01.jpg',
 } as const;
 
 export type StorePhotoSet = {
@@ -29,19 +29,19 @@ export type StorePhotoSet = {
 
 export const STORE_PHOTOS_BY_SLUG: Record<string, StorePhotoSet> = {
   snu: {
-    photo1: '/assets/store_photos/store_photo_043.jpg',
-    photo2: '/assets/store_photos/store_photo_049.jpg',
-    photo3: '/assets/store_photos/store_photo_03.jpg',
+    photo1: '/assets/store_photos/snu/snu_01.jpg',
+    photo2: '/assets/store_photos/snu/snu_02.jpg',
+    photo3: '/assets/store_photos/snu/snu_03.jpg',
   },
   jamsil: {
-    photo1: '/assets/store_photos/store_photo_01.jpg',
-    photo2: '/assets/store_photos/store_photo_02.jpg',
-    photo3: '/assets/store_photos/store_photo_03.jpg',
+    photo1: '/assets/store_photos/jamsil/jamsil_01.jpg',
+    photo2: '/assets/store_photos/jamsil/jamsil_02.png',
+    photo3: '/assets/store_photos/jamsil/jamsil_03.jpg',
   },
   hongdae: {
-    photo1: '/assets/store_photos/store_photo_043.jpg',
-    photo2: '/assets/store_photos/store_photo_01.jpg',
-    photo3: '/assets/store_photos/store_photo_049.jpg',
+    photo1: '/assets/store_photos/hongdae/hongdae_01.jpg',
+    photo2: '/assets/store_photos/hongdae/hongdae_02.jpg',
+    photo3: '/assets/store_photos/hongdae/hongdae_03.jpg',
   },
 };
 

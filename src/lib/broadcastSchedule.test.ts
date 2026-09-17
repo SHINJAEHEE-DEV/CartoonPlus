@@ -54,3 +54,36 @@ describe('isDue', () => {
     );
   });
 });
+
+describe('isScheduledForDate', () => {
+  const tuesday = new Date('2026-09-08T10:00:00');
+
+  it('matches daily schedules on any date', () => {
+    expect(isDue({ scheduleType: 'daily', targetTime: '10:00', isEnabled: true }, tuesday)).toBe(true);
+  });
+
+  it('matches weekday schedules based on local weekday', () => {
+    expect(
+      isDue(
+        { scheduleType: 'weekdays', targetTime: '10:00', targetDays: ['TUE'], isEnabled: true },
+        tuesday
+      )
+    ).toBe(true);
+    expect(
+      isDue(
+        { scheduleType: 'weekdays', targetTime: '10:00', targetDays: ['WED'], isEnabled: true },
+        tuesday
+      )
+    ).toBe(false);
+  });
+
+  it('matches once schedules on exact local date', () => {
+    expect(
+      isDue(
+        { scheduleType: 'once', targetTime: '10:00', targetDate: '2026-09-08', isEnabled: true },
+        tuesday
+      )
+    ).toBe(true);
+  });
+});
+

@@ -97,8 +97,8 @@
     margin-bottom: 5mm;
   }
   .cover-subtitle {
-    font-size: 12.5pt;
-    font-weight: 700;
+    font-size: 13pt;
+    font-weight: 800;
     color: #6B6354;
     line-height: 1.5;
     margin-bottom: 12mm;
@@ -108,7 +108,7 @@
     border: 2.5px solid #1E1E1E;
     border-radius: 18px;
     box-shadow: 6px 6px 0 #1E1E1E;
-    padding: 6mm 8mm;
+    padding: 6.5mm 8mm;
     text-align: left;
     max-width: 155mm;
     margin-bottom: 10mm;
@@ -174,11 +174,15 @@
   }
 
   .intro-text {
-    font-size: 9pt;
-    font-weight: 600;
-    color: #4A443A;
-    line-height: 1.48;
+    font-size: 9.2pt;
+    font-weight: 700;
+    color: #332F28;
+    line-height: 1.5;
     margin-bottom: 3mm;
+    background: #FFF9EC;
+    border: 1.5px solid #1E1E1E;
+    padding: 2.5mm 3.5mm;
+    border-radius: 8px;
   }
 
   /* Screenshot Frame */
@@ -188,7 +192,7 @@
     border-radius: 12px;
     box-shadow: 4px 4px 0 #1E1E1E;
     overflow: hidden;
-    margin-bottom: 3.5mm;
+    margin-bottom: 3mm;
   }
   .screenshot-header {
     background: #F3EFE5;
@@ -213,7 +217,7 @@
   }
   .screenshot-img-wrap {
     width: 100%;
-    max-height: 65mm;
+    max-height: 52mm;
     overflow: hidden;
     display: flex;
     align-items: flex-start;
@@ -226,6 +230,47 @@
     display: block;
     object-fit: cover;
     object-position: top left;
+  }
+
+  /* Page 2 visual cards (PWA & Longpress) */
+  .page2-visual-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3.5mm;
+    margin-bottom: 3.5mm;
+  }
+  .mini-visual-card {
+    background: #ffffff;
+    border: 1.8px solid #1E1E1E;
+    border-radius: 10px;
+    box-shadow: 3px 3px 0 #1E1E1E;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .mini-visual-header {
+    background: #F3EFE5;
+    border-bottom: 1.2px solid #1E1E1E;
+    padding: 1.5mm 3mm;
+    font-size: 7.5pt;
+    font-weight: 900;
+    color: #1E1E1E;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .mini-visual-img {
+    height: 38mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #FAF8F5;
+    overflow: hidden;
+  }
+  .mini-visual-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
   /* Split Screenshots (for 2 images) */
@@ -343,12 +388,12 @@
     display: inline-block;
     background: #FED943;
     border: 1.2px solid #1E1E1E;
-    padding: 1px 5px;
-    border-radius: 4px;
+    padding: 2px 7px;
+    border-radius: 5px;
     font-weight: 900;
-    font-size: 7.5pt;
+    font-size: 8.5pt;
     color: #1E1E1E;
-    margin-right: 2px;
+    text-align: center;
   }
 
   /* Checklist Design */
@@ -403,72 +448,90 @@
     <img src="{{mascotReading}}" alt="Mascot Reading">
   </div>
   <h1 class="cover-title">직원 콘솔 운영 매뉴얼</h1>
-  <div class="cover-subtitle">신입 직원 교육과 카운터 현장 실무 운영을 위한 단계별 가이드</div>
+  <div class="cover-subtitle">직원 콘솔 사용과 운영을 위한 지침서</div>
   
   <div class="cover-box">
     <div class="cover-box-title">📖 이 매뉴얼의 활용 안내</div>
     <div class="cover-box-desc">
-      본 문서는 카툰플러스 매장 카운터 및 전용 PC에서 사용하는 <strong>직원 콘솔(Staff Console)</strong>의 공식 실무 운영 지침서입니다.<br/>
-      <strong>11대 표준 장르(A~X) 서가 재배치 기준</strong>, 도서 재고 관리, 입고 신청 처리, 매장 콘텐츠/이벤트 등록, TTS 안내 방송 및 예약 송출 절차를 다룹니다.
+      본 문서는 카툰플러스 매장 카운터 및 전용 PC에서 사용하는 <strong>직원 콘솔(Staff Console)</strong>의 실무 운영 지침서입니다.<br/>
+      각 화면에 대한 설명, 알파벳 단일 문자(A~X) 서가 분류 체계, 도서 재고 관리, 입고 신청 처리, 매장 콘텐츠/이벤트 등록, TTS 안내 방송 및 예약 송출 절차를 다룹니다.
     </div>
   </div>
 
   <div class="cover-meta">
-    문서 버전 1.2 · 2026-09-17 갱신 · 기준 매장: 카툰플러스 전 지점 (서울대입구/잠실/홍대)
+    문서 버전 1.4 · 2026-09-17 갱신 · 기준 매장: 카툰플러스 전 지점 (서울대입구/잠실/홍대)
   </div>
 </div>
 
-<!-- 2. 시작 전: 카운터 PC 운영 및 로그인 -->
+<!-- 2. 시작 전: 카운터 PC 환경 및 직원 로그인 -->
 <div class="page">
   <div class="section-header">
     <div class="section-title-wrap">
       <div class="section-category">CHAPTER 01</div>
-      <h2 class="section-title">카운터 PC 환경 및 직원 로그인</h2>
+      <h2 class="section-title">직원 로그인</h2>
     </div>
-    <div class="section-badge">현장 필수 점검</div>
+    <div class="section-badge">접속 및 로그인</div>
   </div>
+  
   <div class="intro-text">
-    안내 방송과 예약 송출이 끊김 없이 동작하려면 카운터 PC에서 항상 직원 콘솔 창을 열어 두어야 합니다. 고객 공용 기기에서는 직원 계정으로 로그인하지 않습니다.
+    직원 콘솔은 매장 운영 PC에서(스피커 및 도서검색용) 실행합니다.
   </div>
 
-  <div class="screenshot-card">
-    <div class="screenshot-header">
-      <div class="screenshot-dots"><div class="screenshot-dot"></div><div class="screenshot-dot"></div><div class="screenshot-dot"></div></div>
-      <span>직원 콘솔 접속 & 로그인 화면 (/staff)</span>
-      <span>Chrome Browser</span>
+  <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 3.5mm; margin-bottom: 3.5mm;">
+    <div style="display: flex; flex-direction: column; gap: 3mm;">
+      <div class="mini-visual-card">
+        <div class="mini-visual-header">
+          <span>PC: 바탕화면/작업표시줄 고정 앱</span>
+          <span style="color:#D97706;">PWA 실행</span>
+        </div>
+        <div class="mini-visual-img" style="height: 27mm;">
+          <img src="{{img01_pwa}}" alt="바탕화면 바로가기">
+        </div>
+      </div>
+      <div class="mini-visual-card">
+        <div class="mini-visual-header">
+          <span>모바일 접속: 로고 3초 꾹!</span>
+          <span style="color:#D97706;">히든 진입</span>
+        </div>
+        <div class="mini-visual-img" style="height: 27mm;">
+          <img src="{{img01_logo}}" alt="로고 롱프레스">
+        </div>
+      </div>
     </div>
-    <div class="screenshot-img-wrap">
-      <img src="{{img01}}" alt="로그인 화면">
+    
+    <div class="mini-visual-card" style="display: flex; flex-direction: column;">
+      <div class="mini-visual-header">
+        <span>직원 로그인 & 신청 화면 (/staff)</span>
+        <span style="color:#D97706;">보안 접속</span>
+      </div>
+      <div class="mini-visual-img" style="height: 60mm; padding: 2mm; background: #F3EFE5;">
+        <img src="{{img01}}" alt="로그인 화면" style="object-fit: contain;">
+      </div>
     </div>
   </div>
 
   <div class="steps-grid">
     <div class="step-item">
+      <div class="step-num">0</div>
+      <div class="step-content">
+        <div class="step-title">PWA 앱 실행 후 전체 화면(F11) 설정</div>
+        <div class="step-desc">바탕화면이나 하단 작업표시줄(Bottom Bar)에 고정된 <strong>카툰플러스 앱(PWA)</strong>을 실행한 뒤, 키보드의 <strong>F11</strong>을 누르면 주소창 없이 깔끔한 전체 화면으로 전환됩니다. (⚠️ 창을 완전히 닫으면 자동 예약 방송이 멈추므로 영업 중 항상 켜둡니다)</div>
+      </div>
+    </div>
+    <div class="step-item">
       <div class="step-num">1</div>
       <div class="step-content">
-        <div class="step-title">직원 화면 진입 (히든 제스처 & 북마크)</div>
-        <div class="step-desc">고객 화면 상단 브랜드 로고를 <strong>3초간 길게 누르거나</strong>, 주소창에 <code>/staff</code>를 직접 입력하여 진입합니다.</div>
+        <div class="step-title">직원 콘솔 접속 방법 (PC / 모바일)</div>
+        <div class="step-desc">PC는 고정된 앱 아이콘으로 즉시 실행하며, 모바일 기기에서는 메인 화면 상단 브랜드 로고를 <strong>3초간 길게 누르면</strong> 직원 로그인 화면으로 이동합니다.</div>
       </div>
     </div>
     <div class="step-item">
       <div class="step-num">2</div>
       <div class="step-content">
-        <div class="step-title">Chrome 전체 화면 모드 (F11) 설정</div>
-        <div class="step-desc">콘솔 창을 연 뒤 키보드의 <strong>F11</strong>을 눌러 상단 주소창과 탭을 숨깁니다. (전체 화면으로 깔끔한 카운터 뷰 유지)</div>
+        <div class="step-title">직원 로그인 및 신규 가입 신청</div>
+        <div class="step-desc">부여받은 아이디와 비밀번호로 로그인합니다. 첫 출근 직원은 <strong>[가입 신청]</strong> 탭에서 이름/아이디/비밀번호/전화번호 뒤 4자리를 입력하여 접수한 뒤, 점장(관리자)에게 승인을 요청합니다.</div>
       </div>
     </div>
-    <div class="step-item">
-      <div class="step-num">3</div>
-      <div class="step-content">
-        <div class="step-title">승인된 직원 계정으로 로그인</div>
-        <div class="step-desc">부여받은 로그인 ID와 비밀번호로 로그인합니다. 신규 직원은 <strong>[가입 신청]</strong> 탭에서 먼저 승인을 요청합니다.</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="callout-box red">
-    <div class="callout-icon">⚠️</div>
-    <div><strong>보안 및 백그라운드 유지 수칙:</strong> 고객이 사용하는 검색용 태블릿/PC에서는 절대 직원 계정으로 로그인하지 마세요. 카운터 전용 PC에서만 로그인 상태를 유지합니다.</div>
   </div>
 
   <div class="page-footer">
@@ -486,7 +549,7 @@
     </div>
     <div class="section-badge">메뉴 구성 안내</div>
   </div>
-  <div class="intro-text">
+  <div class="intro-text" style="background:#FFFDF9; border:none; padding:0; margin-bottom:3mm;">
     로그인 후 첫 화면인 대시보드에서 오늘의 대기 업무 현황과 예약 방송, 지점 상태를 한눈에 파악합니다.
   </div>
 
@@ -496,7 +559,7 @@
       <span>직원 콘솔 메인 대시보드 (/staff/dashboard)</span>
       <span>지점: 서울대입구역점</span>
     </div>
-    <div class="screenshot-img-wrap">
+    <div class="screenshot-img-wrap" style="max-height: 60mm;">
       <img src="{{img02}}" alt="대시보드 화면">
     </div>
   </div>
@@ -518,7 +581,7 @@
       <tr>
         <td><strong>도서·입고</strong></td>
         <td>단권 도서 등록/수정, CSV 업로드</td>
-        <td>보유 권수 및 ABC 표준 서가 위치(A-01 등) 저장</td>
+        <td>보유 권수 및 알파벳 단일 서가(A, B 등) 저장</td>
       </tr>
       <tr>
         <td><strong>입고 신청</strong></td>
@@ -554,82 +617,69 @@
   </div>
 </div>
 
-<!-- 4. 도서 재고 관리 & ABC 표준 서가 재배치 -->
+<!-- 4. 도서 재고 관리 & 장르 선택 시 알파벳 자동 매핑 -->
 <div class="page">
   <div class="section-header">
     <div class="section-title-wrap">
       <div class="section-category">CHAPTER 03</div>
-      <h2 class="section-title">도서 재고 등록 & 11대 표준 서가(ABC) 관리</h2>
+      <h2 class="section-title">도서 입고 등록 & 장르별 자동 서가 매핑</h2>
     </div>
-    <div class="section-badge">핵심 재배치 기준</div>
+    <div class="section-badge">장르 선택 ➜ 알파벳 자동저장</div>
   </div>
-  <div class="intro-text">
-    고객이 매장에서 책을 즉시 찾을 수 있도록 **11대 표준 장르(A~X)와 가나다순 배열 규칙**에 맞춰 서가 위치를 관리합니다.
+  
+  <div class="intro-text" style="background:#FFFDF9; border:none; padding:0; margin-bottom:2.5mm;">
+    도서 등록 시 <strong>장르를 선택(드롭다운/태그)</strong>하면 프론트엔드에서 해당 장르에 맞는 <strong>단일 알파벳 서가(A, B, C...)로 자동 변환하여 저장</strong>합니다.
   </div>
 
-  <table class="manual-table" style="margin-bottom: 3mm;">
+  <div class="screenshot-card" style="margin-bottom: 2.8mm;">
+    <div class="screenshot-header">
+      <div class="screenshot-dots"><div class="screenshot-dot"></div><div class="screenshot-dot"></div></div>
+      <span>신규 도서 등록 & 입고 폼 (/staff/inventory)</span>
+      <span style="color:#D97706;">장르 선택 시 서가 자동 지정</span>
+    </div>
+    <div class="screenshot-img-wrap" style="max-height: 48mm;">
+      <img src="{{img03_form}}" alt="도서 입고 등록 폼">
+    </div>
+  </div>
+
+  <table class="manual-table" style="margin-bottom: 2.5mm;">
     <thead>
       <tr>
-        <th style="width: 15%;">구역</th>
-        <th style="width: 30%;">11대 표준 장르</th>
-        <th style="width: 30%;">배정 서가 범위</th>
-        <th style="width: 25%;">대표 도서 예시</th>
+        <th style="width: 15%; text-align:center;">자동 서가</th>
+        <th style="width: 35%;">선택 장르 명칭</th>
+        <th style="width: 50%;">대표 도서 및 비치 기준</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td><span class="zone-tag">A</span></td>
-        <td><strong>웹툰</strong></td>
-        <td><code>A-01-1 ~ A-05-6</code></td>
-        <td>나 혼자만 레벨업, 화산귀환</td>
+        <td style="text-align:center;"><span class="zone-tag">A</span></td>
+        <td><strong>웹툰</strong> (카툰플러스 메인)</td>
+        <td>나 혼자만 레벨업, 화산귀환, 재혼황후, 전지적 독자 시점</td>
       </tr>
       <tr>
-        <td><span class="zone-tag">B</span></td>
-        <td><strong>액션/모험</strong></td>
-        <td><code>B-01-1 ~ B-08-6</code></td>
-        <td>원피스, 나루토, 주술회전</td>
+        <td style="text-align:center;"><span class="zone-tag">B</span></td>
+        <td><strong>액션/모험</strong> (소년 만화)</td>
+        <td>원피스, 나루토, 블리치, 귀멸의 칼날, 주술회전</td>
       </tr>
       <tr>
-        <td><span class="zone-tag">C</span></td>
-        <td><strong>로맨스/로판</strong></td>
-        <td><code>C-01-1 ~ C-04-6</code></td>
-        <td>너에게 닿기를, 궁, 낮에 뜨는 달</td>
+        <td style="text-align:center;"><span class="zone-tag">C</span></td>
+        <td><strong>로맨스/로판</strong> (순정 만화)</td>
+        <td>너에게 닿기를, 궁, 낮에 뜨는 달, 사와코</td>
       </tr>
       <tr>
-        <td><span class="zone-tag">D</span></td>
+        <td style="text-align:center;"><span class="zone-tag">D</span></td>
         <td><strong>판타지/무협</strong></td>
-        <td><code>D-01-1 ~ D-04-6</code></td>
-        <td>강철의 연금술사, 열혈강호</td>
+        <td>강철의 연금술사, 열혈강호, 드래곤볼, 헌터x헌터</td>
       </tr>
       <tr>
-        <td><span class="zone-tag">E</span></td>
-        <td><strong>일상/개그</strong></td>
-        <td><code>E-01-1 ~ E-02-6</code></td>
-        <td>마음의 소리, 요츠바랑</td>
+        <td style="text-align:center;"><span class="zone-tag">E~G</span></td>
+        <td><strong>일상/개그 · 스릴러 · 드라마/스포츠</strong></td>
+        <td>마음의 소리(E), 명탐정 코난(F), 슬램덩크(G)</td>
       </tr>
       <tr>
-        <td><span class="zone-tag">F</span></td>
-        <td><strong>스릴러/추리/호러</strong></td>
-        <td><code>F-01-1 ~ F-03-6</code></td>
-        <td>명탐정 코난, 데스노트, 몬스터</td>
-      </tr>
-      <tr>
-        <td><span class="zone-tag">G</span></td>
-        <td><strong>드라마/스포츠/SF</strong></td>
-        <td><code>G-01-1 ~ G-03-6</code></td>
-        <td>슬램덩크, 하이큐, 우주형제</td>
-      </tr>
-      <tr>
-        <td><span class="zone-tag">H~J</span></td>
-        <td><strong>BL/GL / 일반소설 / 코믹스</strong></td>
-        <td><code>H-01 / I-01 / J-01</code></td>
-        <td>시맨틱 에러, 마블/DC 그래픽노블</td>
-      </tr>
-      <tr>
-        <td><span class="zone-tag" style="background:#FFCDD2;">X</span></td>
-        <td><strong>성인 (19금)</strong></td>
-        <td><code>X-01-1 ~ X-01-6</code></td>
-        <td>성인 전용 비치 구역</td>
+        <td style="text-align:center;"><span class="zone-tag">H~X</span></td>
+        <td><strong>BL/GL · 소설 · 코믹스 · 성인(19)</strong></td>
+        <td>시맨틱 에러(H), 베스트 소설(I), 마블/DC(J), 성인(X)</td>
       </tr>
     </tbody>
   </table>
@@ -638,29 +688,22 @@
     <div class="step-item">
       <div class="step-num">1</div>
       <div class="step-content">
-        <div class="step-title">서가 위치 코드 포맷: [구역]-[책장]-[단]</div>
-        <div class="step-desc">반드시 <strong><code>A-01-3</code></strong> 형식(A구역 1번 책장, 위에서 3번째 칸)으로 입력합니다.</div>
+        <div class="step-title">도서명, 작가, 장르 선택 ➜ 서가 자동 매핑</div>
+        <div class="step-desc">도서명을 입력하고 장르 버튼(또는 드롭다운)을 선택하면, 해당 장르의 **대표 서가 알파벳(A~X)**이 시스템에 자동 저장됩니다.</div>
       </div>
     </div>
     <div class="step-item">
       <div class="step-num">2</div>
       <div class="step-content">
-        <div class="step-title">서가 내 도서 정렬 원칙</div>
-        <div class="step-desc">구역 내에서는 무조건 <strong>도서명 가나다순(ㄱ~ㅎ)</strong>으로 정렬하며, 시리즈물은 1권부터 좌측→우측 순으로 꽂습니다.</div>
-      </div>
-    </div>
-    <div class="step-item">
-      <div class="step-num">3</div>
-      <div class="step-content">
-        <div class="step-title">현장 4단계 행동 수칙</div>
-        <div class="step-desc"><code>[1단계 시트확인]</code> ➜ <code>[2단계 물리이동]</code> ➜ <code>[3단계 라벨부착]</code> ➜ <code>[4단계 DB동기화]</code> 순서를 엄수합니다.</div>
+        <div class="step-title">구역 내 가나다순(ㄱ~ㅎ) 정렬 및 시리즈물 배치</div>
+        <div class="step-desc">실물 책장에 꽂을 때는 해당 알파벳 구역 내에서 **도서명 가나다순**으로 배치하며, 시리즈물은 1권부터 좌측→우측 순서로 진열합니다.</div>
       </div>
     </div>
   </div>
 
-  <div class="callout-box red">
+  <div class="callout-box red" style="margin-bottom:0;">
     <div class="callout-icon">🚨</div>
-    <div><strong>삭제 주의:</strong> 재고 삭제는 해당 지점의 비치 정보만 영구 삭제되며 복구되지 않습니다. 도서가 매장에서 완전히 파기/제외된 경우에만 신중히 삭제하세요.</div>
+    <div><strong>재고 삭제 주의:</strong> 재고 삭제는 해당 지점의 비치 정보만 영구 삭제되며 복구되지 않습니다. 매장에서 완전히 파기/제외된 경우에만 신중히 삭제하세요.</div>
   </div>
 
   <div class="page-footer">
@@ -678,7 +721,7 @@
     </div>
     <div class="section-badge">고객 만족 관리</div>
   </div>
-  <div class="intro-text">
+  <div class="intro-text" style="background:#FFFDF9; border:none; padding:0; margin-bottom:3mm;">
     고객이 웹사이트에서 신청한 희망도서를 검토하고, 발주 및 입고 완료까지 단계별 상태를 갱신합니다.
   </div>
 
@@ -715,7 +758,7 @@
       <tr>
         <td><strong>3단계 (입고)</strong></td>
         <td><span style="background:#E8F5E9; color:#2E7D32; padding:2px 6px; border-radius:4px; font-weight:800;">입고 완료</span></td>
-        <td>실물이 매장에 도착하면 <strong>도서 재고(서가 위치: A-01-3 등)를 먼저 등록</strong>한 뒤 최종 입고 완료로 변경합니다.</td>
+        <td>실물이 매장에 도착하면 <strong>도서 재고(서가 위치: A, B 등)를 먼저 등록</strong>한 뒤 최종 입고 완료로 변경합니다.</td>
       </tr>
       <tr>
         <td><strong>예외 처리</strong></td>
@@ -727,7 +770,7 @@
 
   <div class="callout-box green">
     <div class="callout-icon">✅</div>
-    <div><strong>'입고 완료'의 진정한 완료 기준:</strong> 도서가 택배로 도착했다고 바로 완료를 누르지 마세요. 도서·입고 화면에서 <u>ABC 표준 서가 위치와 권수를 등록해야</u> 손님이 검색할 수 있습니다!</div>
+    <div><strong>'입고 완료'의 진정한 완료 기준:</strong> 도서가 택배로 도착했다고 바로 완료를 누르지 마세요. 도서·입고 화면에서 <u>단일 알파벳 서가 위치(A, B 등)와 권수를 등록해야</u> 손님이 검색할 수 있습니다!</div>
   </div>
 
   <div class="page-footer">
@@ -745,7 +788,7 @@
     </div>
     <div class="section-badge">실물 데이터 일치</div>
   </div>
-  <div class="intro-text">
+  <div class="intro-text" style="background:#FFFDF9; border:none; padding:0; margin-bottom:3mm;">
     고객 모바일 화면에 공개되는 메뉴, 가격, 베스트 상품 및 품절 여부를 실물 카운터 판매 기준과 일치시킵니다.
   </div>
 
@@ -804,7 +847,7 @@
     </div>
     <div class="section-badge">즐길거리 운영</div>
   </div>
-  <div class="intro-text">
+  <div class="intro-text" style="background:#FFFDF9; border:none; padding:0; margin-bottom:3mm;">
     닌텐도/PS4/보드게임 보유 현황과 매장 프로모션 이벤트를 관리하여 고객의 체류 경험을 극대화합니다.
   </div>
 
@@ -866,8 +909,8 @@
     </div>
     <div class="section-badge">카운터 음향 관리</div>
   </div>
-  <div class="intro-text">
-    고음질 Web Speech TTS 엔진을 활용하여 카운터에서 원클릭으로 매장 안내 방송을 즉시 송출합니다.
+  <div class="intro-text" style="background:#FFFDF9; border:none; padding:0; margin-bottom:3mm;">
+    원클릭으로 매장 안내 방송을 즉시 송출하거나 예약방송을 설정 할 수 있습니다.
   </div>
 
   <div class="screenshot-card">
@@ -925,7 +968,7 @@
     </div>
     <div class="section-badge">자동화 & 트러블슈팅</div>
   </div>
-  <div class="intro-text">
+  <div class="intro-text" style="background:#FFFDF9; border:none; padding:0; margin-bottom:3mm;">
     지정된 시간에 자동으로 송출되는 예약 방송 스케줄을 운영하고, 음향/네트워크 오류 발생 시 신속히 조치합니다.
   </div>
 
@@ -967,8 +1010,8 @@
     <tbody>
       <tr>
         <td><strong>예약 방송이 안 나옴</strong></td>
-        <td>카운터 PC 브라우저 창이 닫혔거나 백그라운드 절전</td>
-        <td>Chrome 탭이 열려 있는지 확인하고 F5 새로고침 후 방송 콘솔 유지</td>
+        <td>카운터 PC 브라우저 창이 완전히 닫혔거나 PC 절전</td>
+        <td>Chrome 창을 켜두고 F5 새로고침 후 방송 콘솔 탭 유지</td>
       </tr>
       <tr>
         <td><strong>소리가 전혀 안 들림</strong></td>
@@ -1003,7 +1046,7 @@
     </div>
     <div class="section-badge" style="background:#FFEEEE; border-color:#D32F2F; color:#D32F2F;">점장/관리자 전용</div>
   </div>
-  <div class="intro-text">
+  <div class="intro-text" style="background:#FFFDF9; border:none; padding:0; margin-bottom:3mm;">
     이 기능은 관리자(Admin) 권한 계정에만 노출됩니다. 신규 직원의 가입 신청을 승인하고 계정 보안을 유지합니다.
   </div>
 
@@ -1062,7 +1105,7 @@
     </div>
     <div class="section-badge">카운터 부착용</div>
   </div>
-  <div class="intro-text">
+  <div class="intro-text" style="background:#FFFDF9; border:none; padding:0; margin-bottom:3mm;">
     카운터 PC 옆에 부착하여 출근(오픈) 및 퇴근(마감) 시 매일 체크하는 현장 운영 점검표입니다.
   </div>
 
@@ -1072,13 +1115,13 @@
   <div class="checklist-grid" style="margin-bottom: 5mm;">
     <div class="checklist-row">
       <div class="chk-box"></div>
-      <div class="chk-text">카운터 전용 PC에서 Chrome을 실행하고 직원 콘솔에 로그인했다.</div>
-      <div class="chk-tag">로그인 확인</div>
+      <div class="chk-text">바탕화면 또는 작업표시줄(하단 바)에 고정된 카툰플러스 앱(PWA)을 실행했다.</div>
+      <div class="chk-tag">PWA 앱 실행</div>
     </div>
     <div class="checklist-row">
       <div class="chk-box"></div>
-      <div class="chk-text">키보드의 F11을 눌러 주소창을 숨기고 깔끔한 전체 화면 뷰를 켰다.</div>
-      <div class="chk-tag">F11 전체화면</div>
+      <div class="chk-text">키보드의 F11을 눌러 주소창을 숨기고 깔끔한 전체 화면으로 전환한 뒤 직원 로그인했다.</div>
+      <div class="chk-tag">F11 & 로그인</div>
     </div>
     <div class="checklist-row">
       <div class="chk-box"></div>
@@ -1108,7 +1151,7 @@
     </div>
     <div class="checklist-row">
       <div class="chk-box"></div>
-      <div class="chk-text">오늘 입고된 신간 도서를 11대 표준 장르(A~X) 서가에 가나다순으로 배치하고 재고 등록했다.</div>
+      <div class="chk-text">오늘 입고된 신간 도서를 해당 알파벳(A~X) 서가에 가나다순으로 꽂고 재고를 등록했다.</div>
       <div class="chk-tag">신간 서가 등록</div>
     </div>
     <div class="checklist-row">

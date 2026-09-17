@@ -19,8 +19,11 @@ function imgBase64(filePath) {
 
 const mascotReading = imgBase64(path.join(MASCOT_DIR, "mascot_reading.png"));
 const img01 = imgBase64(path.join(SCREENSHOTS_DIR, "01_login_page.png"));
+const img01_pwa = imgBase64(path.join(SCREENSHOTS_DIR, "01_pwa_desktop_shortcut.png"));
+const img01_logo = imgBase64(path.join(SCREENSHOTS_DIR, "01_logo_longpress.png"));
 const img02 = imgBase64(path.join(SCREENSHOTS_DIR, "02_dashboard.png"));
 const img03 = imgBase64(path.join(SCREENSHOTS_DIR, "03_inventory.png"));
+const img03_form = imgBase64(path.join(SCREENSHOTS_DIR, "03_inventory_form.png"));
 const img04 = imgBase64(path.join(SCREENSHOTS_DIR, "04_book_requests.png"));
 const img05 = imgBase64(path.join(SCREENSHOTS_DIR, "05_store_content.png"));
 const img06 = imgBase64(path.join(SCREENSHOTS_DIR, "06_games.png"));
@@ -31,8 +34,11 @@ const img09 = imgBase64(path.join(SCREENSHOTS_DIR, "09_admin_accounts.png"));
 let html = fs.readFileSync(TEMPLATE_FILE, "utf-8");
 html = html.replaceAll("{{mascotReading}}", mascotReading);
 html = html.replaceAll("{{img01}}", img01);
+html = html.replaceAll("{{img01_pwa}}", img01_pwa);
+html = html.replaceAll("{{img01_logo}}", img01_logo);
 html = html.replaceAll("{{img02}}", img02);
 html = html.replaceAll("{{img03}}", img03);
+html = html.replaceAll("{{img03_form}}", img03_form);
 html = html.replaceAll("{{img04}}", img04);
 html = html.replaceAll("{{img05}}", img05);
 html = html.replaceAll("{{img06}}", img06);

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useSelectedStaffStoreId, useStaffStore } from './StaffStoreContext';
 import { publicStoreList } from '../../lib/storeContext';
+import { isScheduledForDate } from '../../lib/broadcastSchedule';
 
 type Counts = {
   requests: number;
@@ -23,8 +24,6 @@ export function DashboardPage() {
       setCounts({ requests: 0, broadcasts: 0, recentInventory: [] });
       return;
     }
-    const today = new Date().toISOString().slice(0, 10);
-    const weekday = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][new Date().getDay()];
     setError(false);
     void Promise.all([
       supabase
@@ -48,11 +47,16 @@ export function DashboardPage() {
         setError(true);
         return;
       }
-      const todayBroadcasts = (broadcasts.data ?? []).filter(
-        (item) =>
-          item.schedule_type === 'daily' ||
-          (item.schedule_type === 'once' && item.target_date === today) ||
-          (item.schedule_type === 'weekdays' && item.target_days?.includes(weekday))
+      const now = new Date();
+      const todayBroadcasts = (broadcasts.data ?? []).filter((item) =>
+        isScheduledForDate(
+          {
+            scheduleType: item.schedule_type,
+            targetDate: item.target_date,
+            targetDays: item.target_days,
+          },
+          now
+        )
       ).length;
       setCounts({
         requests: requests.count ?? 0,
