@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { speakKorean, stopKoreanSpeech } from '../../lib/broadcast';
+import { isKoreanSpeechCancellation, speakKorean, stopKoreanSpeech } from '../../lib/broadcast';
 import { type ScheduledBroadcast } from '../../lib/broadcastSchedule';
 import { supabase } from '../../lib/supabase';
 import { getKoreanFemaleVoices, notifyScheduleUpdated } from '../../lib/broadcastRunner';
@@ -16,7 +16,6 @@ const initialPresets: BroadcastPresetPreview[] = [
 ];
 
 type StoredSchedule = ScheduledBroadcast & { id: string; message_text: string; presetId?: string };
-type FailedRun = { id: string; message_text: string; triggered_at: string };
 type ScheduleForm = {
   message: string;
   presetId: string;
@@ -56,7 +55,6 @@ export function BroadcastPage() {
   const [schedule, setSchedule] = useState<ScheduleForm>(emptySchedule);
   const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
   const [scheduleStatus, setScheduleStatus] = useState('');
-  const [failedRuns, setFailedRuns] = useState<FailedRun[]>([]);
 
   const recordRun = async (message: string, scheduledId?: string) => {
     if (!supabase) return;
@@ -85,17 +83,6 @@ export function BroadcastPage() {
     }
   };
 
-  const loadFailedRuns = async () => {
-    if (!supabase) return;
-    const { data } = await supabase
-      .from('broadcast_runs')
-      .select('id, message_text, triggered_at')
-      .eq('status', 'failure')
-      .order('triggered_at', { ascending: false })
-      .limit(10);
-    setFailedRuns((data ?? []) as FailedRun[]);
-  };
-
   const play = async (value: string, scheduledId?: string) => {
     setStatus('재생 중');
     setCurrentPlaying(value);
@@ -105,12 +92,10 @@ export function BroadcastPage() {
       await finishRun(runId, true);
       setStatus('성공');
       setCurrentPlaying(null);
-      await loadFailedRuns();
-    } catch {
+    } catch (error) {
       await finishRun(runId, false);
-      setStatus('실패');
+      setStatus(isKoreanSpeechCancellation(error) ? '대기' : '실패');
       setCurrentPlaying(null);
-      await loadFailedRuns();
     }
   };
 
@@ -200,7 +185,6 @@ export function BroadcastPage() {
     const setup = async () => {
       await loadSchedules();
       await loadPresets();
-      void loadFailedRuns();
     };
     void setup();
   }, []);
@@ -241,7 +225,9 @@ export function BroadcastPage() {
       target_time: schedule.time,
       target_days: schedule.type === 'weekdays' ? schedule.weekdays : null,
       target_date: schedule.type === 'once' ? schedule.date : null,
-      is_enabled: true,
+      is_enabled: editingScheduleId
+        ? schedules.find((item) => item.id === editingScheduleId)?.isEnabled ?? true
+        : true,
     };
     const { error } = editingScheduleId
       ? await supabase.from('scheduled_broadcasts').update(values).eq('id', editingScheduleId)
@@ -934,91 +920,6 @@ export function BroadcastPage() {
         </div>
       </div>
 
-      {/* 4. 실패 이력 & 재시도 큐 */}
-      <div
-        style={{
-          background: '#ffffff',
-          border: '3px solid #1E1E1E',
-          borderRadius: '22px',
-          padding: '24px',
-          boxShadow: '4px 4px 0 #1E1E1E',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '14px',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: '16px', fontWeight: 900 }}>최근 송출 실패 로그 (최근 10건)</div>
-          <button
-            onClick={() => void loadFailedRuns()}
-            style={{
-              padding: '4px 10px',
-              borderRadius: '6px',
-              border: '1.5px solid #1E1E1E',
-              background: '#FFF9EC',
-              fontSize: '11px',
-              fontWeight: 800,
-              cursor: 'pointer',
-            }}
-          >
-            새로고침 ⟳
-          </button>
-        </div>
-
-        {failedRuns.length === 0 ? (
-          <div style={{ fontSize: '13px', color: '#1A7A3E', fontWeight: 700 }}>
-            최근 실패한 방송 기록이 없습니다. 정상 운영 중입니다.
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {failedRuns.map((run) => (
-              <div
-                key={run.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '10px 14px',
-                  background: '#FFF4F4',
-                  border: '1.5px solid #E03131',
-                  borderRadius: '10px',
-                }}
-              >
-                <div>
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      color: '#C92A2A',
-                      fontWeight: 800,
-                      marginRight: '8px',
-                    }}
-                  >
-                    [실패]
-                  </span>
-                  <strong style={{ fontSize: '13px', color: '#1E1E1E' }}>{run.message_text}</strong>
-                  <span style={{ fontSize: '11px', color: '#8A8175', marginLeft: '10px' }}>
-                    {new Date(run.triggered_at).toLocaleTimeString('ko-KR')}
-                  </span>
-                </div>
-                <button
-                  onClick={() => void play(run.message_text)}
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: '6px',
-                    background: '#FED943',
-                    border: '1.5px solid #1E1E1E',
-                    fontSize: '11px',
-                    fontWeight: 900,
-                    cursor: 'pointer',
-                  }}
-                >
-                  재시도 ↺
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 }

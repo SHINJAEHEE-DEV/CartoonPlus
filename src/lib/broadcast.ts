@@ -1,11 +1,16 @@
 let speechQueue = Promise.resolve();
 let speechGeneration = 0;
+const cancelledMessage = '대기 중인 방송이 취소되었습니다.';
+
+export function isKoreanSpeechCancellation(error: unknown): boolean {
+  return error instanceof Error && error.message === cancelledMessage;
+}
 
 export function speakKorean(text: string, voiceName?: string, rate = 0.95): Promise<void> {
   const generation = speechGeneration;
   const speak = () => new Promise<void>((resolve, reject) => {
     if (generation !== speechGeneration) {
-      reject(new Error('대기 중인 방송이 취소되었습니다.'));
+      reject(new Error(cancelledMessage));
       return;
     }
     if (!('speechSynthesis' in window))
