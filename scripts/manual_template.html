@@ -28,7 +28,7 @@
     page-break-after: always;
     page-break-inside: avoid;
     background: #FFFDF9;
-    padding: 16mm 18mm 16mm 18mm;
+    padding: 15mm 18mm 15mm 18mm;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -38,7 +38,7 @@
   /* Footer */
   .page-footer {
     position: absolute;
-    bottom: 10mm;
+    bottom: 9mm;
     left: 18mm;
     right: 18mm;
     display: flex;
@@ -48,7 +48,7 @@
     color: #8A8175;
     font-weight: 600;
     border-top: 1px solid #E5DEC9;
-    padding-top: 3mm;
+    padding-top: 2.5mm;
   }
 
   /* Cover Page */
@@ -57,7 +57,7 @@
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 24mm 20mm;
+    padding: 22mm 20mm;
   }
   .cover-badge {
     display: inline-block;
@@ -68,23 +68,24 @@
     padding: 5px 16px;
     border-radius: 999px;
     letter-spacing: 0.05em;
-    margin-bottom: 12mm;
+    margin-bottom: 10mm;
   }
   .cover-logo-circle {
-    width: 90px;
-    height: 90px;
+    width: 110px;
+    height: 110px;
     background: #FED943;
-    border: 3px solid #1E1E1E;
+    border: 3.5px solid #1E1E1E;
     border-radius: 50%;
     box-shadow: 5px 5px 0 #1E1E1E;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 10mm auto;
+    margin: 0 auto 8mm auto;
+    overflow: hidden;
   }
   .cover-logo-circle img {
-    width: 75%;
-    height: 75%;
+    width: 85%;
+    height: 85%;
     object-fit: contain;
   }
   .cover-title {
@@ -93,36 +94,36 @@
     line-height: 1.25;
     letter-spacing: -0.03em;
     color: #1E1E1E;
-    margin-bottom: 6mm;
+    margin-bottom: 5mm;
   }
   .cover-subtitle {
     font-size: 12.5pt;
     font-weight: 700;
     color: #6B6354;
     line-height: 1.5;
-    margin-bottom: 14mm;
+    margin-bottom: 12mm;
   }
   .cover-box {
     background: #ffffff;
     border: 2.5px solid #1E1E1E;
     border-radius: 18px;
     box-shadow: 6px 6px 0 #1E1E1E;
-    padding: 7mm 8mm;
+    padding: 6mm 8mm;
     text-align: left;
     max-width: 155mm;
-    margin-bottom: 12mm;
+    margin-bottom: 10mm;
   }
   .cover-box-title {
     font-size: 11pt;
     font-weight: 900;
     color: #1E1E1E;
-    margin-bottom: 3mm;
+    margin-bottom: 2.5mm;
     display: flex;
     align-items: center;
     gap: 6px;
   }
   .cover-box-desc {
-    font-size: 9.5pt;
+    font-size: 9.3pt;
     font-weight: 600;
     color: #4A443A;
     line-height: 1.6;
@@ -138,9 +139,9 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 4mm;
+    margin-bottom: 3.5mm;
     border-bottom: 2.5px solid #1E1E1E;
-    padding-bottom: 3mm;
+    padding-bottom: 2.5mm;
   }
   .section-title-wrap {
     display: flex;
@@ -155,7 +156,7 @@
     text-transform: uppercase;
   }
   .section-title {
-    font-size: 16pt;
+    font-size: 15.5pt;
     font-weight: 900;
     color: #1E1E1E;
     letter-spacing: -0.02em;
@@ -173,11 +174,11 @@
   }
 
   .intro-text {
-    font-size: 9.2pt;
+    font-size: 9pt;
     font-weight: 600;
     color: #4A443A;
-    line-height: 1.5;
-    margin-bottom: 3.5mm;
+    line-height: 1.48;
+    margin-bottom: 3mm;
   }
 
   /* Screenshot Frame */
@@ -187,12 +188,12 @@
     border-radius: 12px;
     box-shadow: 4px 4px 0 #1E1E1E;
     overflow: hidden;
-    margin-bottom: 4mm;
+    margin-bottom: 3.5mm;
   }
   .screenshot-header {
     background: #F3EFE5;
     border-bottom: 1.5px solid #1E1E1E;
-    padding: 2mm 3.5mm;
+    padding: 1.8mm 3.5mm;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -212,7 +213,7 @@
   }
   .screenshot-img-wrap {
     width: 100%;
-    max-height: 68mm;
+    max-height: 65mm;
     overflow: hidden;
     display: flex;
     align-items: flex-start;
@@ -232,18 +233,18 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 3.5mm;
-    margin-bottom: 4mm;
+    margin-bottom: 3.5mm;
   }
   .split-screenshots .screenshot-img-wrap {
-    max-height: 52mm;
+    max-height: 50mm;
   }
 
   /* Step by step guide */
   .steps-grid {
     display: flex;
     flex-direction: column;
-    gap: 2.2mm;
-    margin-bottom: 3.5mm;
+    gap: 2mm;
+    margin-bottom: 3mm;
   }
   .step-item {
     display: flex;
@@ -252,7 +253,7 @@
     background: #ffffff;
     border: 1.5px solid #1E1E1E;
     border-radius: 9px;
-    padding: 2.2mm 3mm;
+    padding: 2mm 3mm;
     box-shadow: 2px 2px 0 #1E1E1E;
   }
   .step-num {
@@ -290,12 +291,12 @@
   .callout-box {
     border: 1.5px solid #1E1E1E;
     border-radius: 9px;
-    padding: 2.5mm 3.5mm;
+    padding: 2.3mm 3.5mm;
     font-size: 8.2pt;
     font-weight: 600;
     line-height: 1.45;
     margin-top: auto;
-    margin-bottom: 6mm;
+    margin-bottom: 5mm;
     display: flex;
     align-items: flex-start;
     gap: 2.5mm;
@@ -310,8 +311,8 @@
   .manual-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 8.2pt;
-    margin-bottom: 3.5mm;
+    font-size: 8pt;
+    margin-bottom: 3mm;
     border: 1.5px solid #1E1E1E;
     border-radius: 8px;
     overflow: hidden;
@@ -321,20 +322,33 @@
     background: #1E1E1E;
     color: #ffffff;
     font-weight: 800;
-    padding: 2mm 3mm;
+    padding: 1.8mm 2.8mm;
     text-align: left;
-    font-size: 8pt;
+    font-size: 7.8pt;
   }
   .manual-table td {
     background: #ffffff;
     border-top: 1px solid #E5DEC9;
-    padding: 2mm 3mm;
+    padding: 1.8mm 2.8mm;
     color: #332F28;
     font-weight: 600;
     vertical-align: top;
   }
   .manual-table tr:nth-child(even) td {
     background: #FAF8F4;
+  }
+
+  /* Zone Tags */
+  .zone-tag {
+    display: inline-block;
+    background: #FED943;
+    border: 1.2px solid #1E1E1E;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-weight: 900;
+    font-size: 7.5pt;
+    color: #1E1E1E;
+    margin-right: 2px;
   }
 
   /* Checklist Design */
@@ -386,7 +400,7 @@
 <div class="page cover">
   <div class="cover-badge">CARTOON PLUS · STAFF MANUAL</div>
   <div class="cover-logo-circle">
-    <img src="{{mascotLogo}}" alt="Logo">
+    <img src="{{mascotReading}}" alt="Mascot Reading">
   </div>
   <h1 class="cover-title">직원 콘솔 운영 매뉴얼</h1>
   <div class="cover-subtitle">신입 직원 교육과 카운터 현장 실무 운영을 위한 단계별 가이드</div>
@@ -395,12 +409,12 @@
     <div class="cover-box-title">📖 이 매뉴얼의 활용 안내</div>
     <div class="cover-box-desc">
       본 문서는 카툰플러스 매장 카운터 및 전용 PC에서 사용하는 <strong>직원 콘솔(Staff Console)</strong>의 공식 실무 운영 지침서입니다.<br/>
-      도서 재고 관리, 입고 신청 처리, 매장 콘텐츠/이벤트 등록, 매장 TTS 안내 방송 및 예약 송출 절차를 다룹니다.
+      <strong>11대 표준 장르(A~X) 서가 재배치 기준</strong>, 도서 재고 관리, 입고 신청 처리, 매장 콘텐츠/이벤트 등록, TTS 안내 방송 및 예약 송출 절차를 다룹니다.
     </div>
   </div>
 
   <div class="cover-meta">
-    문서 버전 1.1 · 2026-09-17 갱신 · 기준 매장: 카툰플러스 전 지점 (서울대입구/잠실/홍대)
+    문서 버전 1.2 · 2026-09-17 갱신 · 기준 매장: 카툰플러스 전 지점 (서울대입구/잠실/홍대)
   </div>
 </div>
 
@@ -504,7 +518,7 @@
       <tr>
         <td><strong>도서·입고</strong></td>
         <td>단권 도서 등록/수정, CSV 업로드</td>
-        <td>보유 권수 및 서가 위치(A-01 등) 저장</td>
+        <td>보유 권수 및 ABC 표준 서가 위치(A-01 등) 저장</td>
       </tr>
       <tr>
         <td><strong>입고 신청</strong></td>
@@ -540,57 +554,113 @@
   </div>
 </div>
 
-<!-- 4. 도서 재고 관리 -->
+<!-- 4. 도서 재고 관리 & ABC 표준 서가 재배치 -->
 <div class="page">
   <div class="section-header">
     <div class="section-title-wrap">
       <div class="section-category">CHAPTER 03</div>
-      <h2 class="section-title">도서 재고 등록 및 서가 위치 관리</h2>
+      <h2 class="section-title">도서 재고 등록 & 11대 표준 서가(ABC) 관리</h2>
     </div>
-    <div class="section-badge">핵심 실무</div>
+    <div class="section-badge">핵심 재배치 기준</div>
   </div>
   <div class="intro-text">
-    고객이 매장에서 책을 손쉽게 찾을 수 있도록 정확한 서가 위치(구역-열-단)와 권수를 등록합니다.
+    고객이 매장에서 책을 즉시 찾을 수 있도록 **11대 표준 장르(A~X)와 가나다순 배열 규칙**에 맞춰 서가 위치를 관리합니다.
   </div>
 
-  <div class="screenshot-card">
-    <div class="screenshot-header">
-      <div class="screenshot-dots"><div class="screenshot-dot"></div><div class="screenshot-dot"></div><div class="screenshot-dot"></div></div>
-      <span>도서 재고 관리 콘솔 (/staff/inventory)</span>
-      <span>단권 등록 & CSV 일괄 반영</span>
-    </div>
-    <div class="screenshot-img-wrap">
-      <img src="{{img03}}" alt="도서 재고 관리 화면">
-    </div>
-  </div>
+  <table class="manual-table" style="margin-bottom: 3mm;">
+    <thead>
+      <tr>
+        <th style="width: 15%;">구역</th>
+        <th style="width: 30%;">11대 표준 장르</th>
+        <th style="width: 30%;">배정 서가 범위</th>
+        <th style="width: 25%;">대표 도서 예시</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="zone-tag">A</span></td>
+        <td><strong>웹툰</strong></td>
+        <td><code>A-01-1 ~ A-05-6</code></td>
+        <td>나 혼자만 레벨업, 화산귀환</td>
+      </tr>
+      <tr>
+        <td><span class="zone-tag">B</span></td>
+        <td><strong>액션/모험</strong></td>
+        <td><code>B-01-1 ~ B-08-6</code></td>
+        <td>원피스, 나루토, 주술회전</td>
+      </tr>
+      <tr>
+        <td><span class="zone-tag">C</span></td>
+        <td><strong>로맨스/로판</strong></td>
+        <td><code>C-01-1 ~ C-04-6</code></td>
+        <td>너에게 닿기를, 궁, 낮에 뜨는 달</td>
+      </tr>
+      <tr>
+        <td><span class="zone-tag">D</span></td>
+        <td><strong>판타지/무협</strong></td>
+        <td><code>D-01-1 ~ D-04-6</code></td>
+        <td>강철의 연금술사, 열혈강호</td>
+      </tr>
+      <tr>
+        <td><span class="zone-tag">E</span></td>
+        <td><strong>일상/개그</strong></td>
+        <td><code>E-01-1 ~ E-02-6</code></td>
+        <td>마음의 소리, 요츠바랑</td>
+      </tr>
+      <tr>
+        <td><span class="zone-tag">F</span></td>
+        <td><strong>스릴러/추리/호러</strong></td>
+        <td><code>F-01-1 ~ F-03-6</code></td>
+        <td>명탐정 코난, 데스노트, 몬스터</td>
+      </tr>
+      <tr>
+        <td><span class="zone-tag">G</span></td>
+        <td><strong>드라마/스포츠/SF</strong></td>
+        <td><code>G-01-1 ~ G-03-6</code></td>
+        <td>슬램덩크, 하이큐, 우주형제</td>
+      </tr>
+      <tr>
+        <td><span class="zone-tag">H~J</span></td>
+        <td><strong>BL/GL / 일반소설 / 코믹스</strong></td>
+        <td><code>H-01 / I-01 / J-01</code></td>
+        <td>시맨틱 에러, 마블/DC 그래픽노블</td>
+      </tr>
+      <tr>
+        <td><span class="zone-tag" style="background:#FFCDD2;">X</span></td>
+        <td><strong>성인 (19금)</strong></td>
+        <td><code>X-01-1 ~ X-01-6</code></td>
+        <td>성인 전용 비치 구역</td>
+      </tr>
+    </tbody>
+  </table>
 
   <div class="steps-grid">
     <div class="step-item">
       <div class="step-num">1</div>
       <div class="step-content">
-        <div class="step-title">단권 도서 등록 및 서가 위치 지정</div>
-        <div class="step-desc">도서명, 작가, 장르를 입력하고 <strong>보유 권수</strong>와 <strong>서가 위치(예: A-01-3, 웹툰-12 등)</strong>를 실물 기준으로 입력 후 [저장]합니다.</div>
+        <div class="step-title">서가 위치 코드 포맷: [구역]-[책장]-[단]</div>
+        <div class="step-desc">반드시 <strong><code>A-01-3</code></strong> 형식(A구역 1번 책장, 위에서 3번째 칸)으로 입력합니다.</div>
       </div>
     </div>
     <div class="step-item">
       <div class="step-num">2</div>
       <div class="step-content">
-        <div class="step-title">기존 도서 재고/위치 빠른 수정</div>
-        <div class="step-desc">목록에서 도서를 검색한 뒤 권수나 서가 위치를 변경하면 고객 검색 화면에 실시간으로 즉시 반영됩니다.</div>
+        <div class="step-title">서가 내 도서 정렬 원칙</div>
+        <div class="step-desc">구역 내에서는 무조건 <strong>도서명 가나다순(ㄱ~ㅎ)</strong>으로 정렬하며, 시리즈물은 1권부터 좌측→우측 순으로 꽂습니다.</div>
       </div>
     </div>
     <div class="step-item">
       <div class="step-num">3</div>
       <div class="step-content">
-        <div class="step-title">CSV 일괄 대량 등록 (Caspio 호환)</div>
-        <div class="step-desc">대량 입고 시 [CSV 가져오기]를 통해 업로드합니다. 업로드 전 지점 선택과 필수 항목(도서명, 권수, 장르)을 확인하세요.</div>
+        <div class="step-title">현장 4단계 행동 수칙</div>
+        <div class="step-desc"><code>[1단계 시트확인]</code> ➜ <code>[2단계 물리이동]</code> ➜ <code>[3단계 라벨부착]</code> ➜ <code>[4단계 DB동기화]</code> 순서를 엄수합니다.</div>
       </div>
     </div>
   </div>
 
   <div class="callout-box red">
     <div class="callout-icon">🚨</div>
-    <div><strong>삭제 주의사항:</strong> 재고 삭제는 해당 지점의 비치 정보만 영구 삭제되며 복구되지 않습니다. 도서가 매장에서 완전히 파기/제외된 경우에만 신중히 삭제하세요.</div>
+    <div><strong>삭제 주의:</strong> 재고 삭제는 해당 지점의 비치 정보만 영구 삭제되며 복구되지 않습니다. 도서가 매장에서 완전히 파기/제외된 경우에만 신중히 삭제하세요.</div>
   </div>
 
   <div class="page-footer">
@@ -645,7 +715,7 @@
       <tr>
         <td><strong>3단계 (입고)</strong></td>
         <td><span style="background:#E8F5E9; color:#2E7D32; padding:2px 6px; border-radius:4px; font-weight:800;">입고 완료</span></td>
-        <td>실물이 매장에 도착하면 <strong>도서 재고(서가 위치)를 먼저 등록</strong>한 뒤 최종 입고 완료로 변경합니다.</td>
+        <td>실물이 매장에 도착하면 <strong>도서 재고(서가 위치: A-01-3 등)를 먼저 등록</strong>한 뒤 최종 입고 완료로 변경합니다.</td>
       </tr>
       <tr>
         <td><strong>예외 처리</strong></td>
@@ -657,7 +727,7 @@
 
   <div class="callout-box green">
     <div class="callout-icon">✅</div>
-    <div><strong>'입고 완료'의 진정한 완료 기준:</strong> 도서가 택배로 도착했다고 바로 완료를 누르지 마세요. 도서·입고 화면에서 서가 위치와 권수를 등록해야 손님이 검색할 수 있습니다!</div>
+    <div><strong>'입고 완료'의 진정한 완료 기준:</strong> 도서가 택배로 도착했다고 바로 완료를 누르지 마세요. 도서·입고 화면에서 <u>ABC 표준 서가 위치와 권수를 등록해야</u> 손님이 검색할 수 있습니다!</div>
   </div>
 
   <div class="page-footer">
@@ -1038,7 +1108,7 @@
     </div>
     <div class="checklist-row">
       <div class="chk-box"></div>
-      <div class="chk-text">오늘 입고되어 서가에 꽂힌 신간 도서의 권수와 위치를 재고에 등록했다.</div>
+      <div class="chk-text">오늘 입고된 신간 도서를 11대 표준 장르(A~X) 서가에 가나다순으로 배치하고 재고 등록했다.</div>
       <div class="chk-tag">신간 서가 등록</div>
     </div>
     <div class="checklist-row">

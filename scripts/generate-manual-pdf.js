@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const OUTPUT_PDF = path.join(ROOT, "output/pdf/cartoonplus-staff-console-manual.pdf");
 const SCREENSHOTS_DIR = path.join(ROOT, "docs/assets/manual-screenshots");
-const MASCOT_DIR = path.join(ROOT, "dist/assets/mascot");
+const MASCOT_DIR = path.join(ROOT, "public/assets/mascot");
 const TEMPLATE_FILE = path.join(ROOT, "scripts/manual_template.html");
 
 function imgBase64(filePath) {
@@ -17,7 +17,7 @@ function imgBase64(filePath) {
   return "data:image/" + ext + ";base64," + data;
 }
 
-const mascotLogo = imgBase64(path.join(MASCOT_DIR, "mascot_logo_circle.png"));
+const mascotReading = imgBase64(path.join(MASCOT_DIR, "mascot_reading.png"));
 const img01 = imgBase64(path.join(SCREENSHOTS_DIR, "01_login_page.png"));
 const img02 = imgBase64(path.join(SCREENSHOTS_DIR, "02_dashboard.png"));
 const img03 = imgBase64(path.join(SCREENSHOTS_DIR, "03_inventory.png"));
@@ -29,7 +29,7 @@ const img08 = imgBase64(path.join(SCREENSHOTS_DIR, "08_broadcast.png"));
 const img09 = imgBase64(path.join(SCREENSHOTS_DIR, "09_admin_accounts.png"));
 
 let html = fs.readFileSync(TEMPLATE_FILE, "utf-8");
-html = html.replaceAll("{{mascotLogo}}", mascotLogo);
+html = html.replaceAll("{{mascotReading}}", mascotReading);
 html = html.replaceAll("{{img01}}", img01);
 html = html.replaceAll("{{img02}}", img02);
 html = html.replaceAll("{{img03}}", img03);

@@ -4,9 +4,11 @@
 
 ## 2026-09-17 직원 운영 대시보드 데이터 로딩 실패 ("운영 데이터를 불러오지 못했습니다") 해결
 
-- **증상**: 직원 운영 대시보드(`/staff/dashboard`) 접속 시 "운영 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요." 오류 카드가 표시되며 KPI 통계가 로드되지 않음.
-- **원인**: 대시보드 최근 갱신 도서 조회(`DashboardPage.tsx`)에서 `book_inventories` 테이블을 대상으로 `.is('archived_at', null)` 필터를 호출하고 있었음. 그러나 최근 마이그레이션(`20260917100000_remove_inventory_archives.sql`)에서 `book_inventories` 테이블의 `archived_at` 컬럼이 완전 삭제(`DROP COLUMN`)되었기 때문에 PostgREST에서 400 에러(`column book_inventories.archived_at does not exist`)가 발생하여 대시보드 전체 로딩이 중단됨.
-- **수정**: `src/features/staff/DashboardPage.tsx`에서 `book_inventories` 쿼리의 불필요한 `.is('archived_at', null)` 조건을 제거하고, `DashboardPage.test.tsx` 회귀 테스트를 추가함.
+- **증상**: 직원 운영 대시보드(`/staff/dashboard`) 접속 시 콘솔에 `400 Bad Request (...chived_at=is.null)` 오류와 함께 "운영 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요." 오류 카드가 표시되며 KPI 통계가 로드되지 않음.
+- **원인**: 
+  1. 마이그레이션(`20260917090000_tts_broadcast_presets.sql`, `20260917100000_remove_inventory_archives.sql`)에서 `scheduled_broadcasts` 및 `book_inventories` 테이블의 `archived_at` 컬럼이 완전 삭제(`DROP COLUMN`)되었음.
+  2. 대시보드([DashboardPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/DashboardPage.tsx))에서 해당 두 테이블을 쿼리할 때 레거시 `.is('archived_at', null)` 필터를 여전히 전송하여 PostgREST 400 오류(`column does not exist`)가 발생하고 대시보드 통계 수신이 중단됨.
+- **수정**: `src/features/staff/DashboardPage.tsx`에서 `scheduled_broadcasts` 및 `book_inventories` 쿼리의 불필요한 `.is('archived_at', null)` 조건을 모두 제거하고, `DashboardPage.test.tsx` 단위 및 회귀 테스트를 추가함.
 - **검증**: `npm test` 전체 69개 단위 테스트 통과 및 `npm run build` SSG 프로덕션 빌드 성공 확인.
 
 ## 2026-09-17 도서 마스터 및 재고 데이터 동기화 (장르·권수·도서명·작가 반영, 기존 서가 유지)
