@@ -70,7 +70,7 @@ cartoonplus/
 - `catalogueRepository.ts`: Supabase에서 전체 도서 및 지점별 재고 데이터를 가져와 메모리 검색 엔진에 공급하는 데이터 로더.
 - `BookRequestStartPage.tsx` / `BookRequestForm.tsx`: 매장에 없는 도서의 입고를 손님이 직접 신청하는 폼 UI.
 - `NewArrivalsPage.tsx`: 최근 30일 이내에 새롭게 입고된 도서 목록을 카드 형태로 노출.
-- `StoreMenuPage.tsx` / `MenuPage.tsx`: 카페 식음료 및 요금제 메뉴판 화면.
+- `MenuPage.tsx`: 카페 식음료 및 요금제 메뉴판 화면.
 - `StoreIntroductionPage.tsx`: 매장 시설, 즐길거리(콘솔/보드게임), 이용 수칙 안내.
 
 #### 2) 레이아웃 및 공통 (`features/layout/`, `features/common/`)
@@ -99,7 +99,7 @@ cartoonplus/
 | URL 경로           | 렌더링 컴포넌트         | 접근 권한             | 비고               |
 | :----------------- | :---------------------- | :-------------------- | :----------------- |
 | `/`                | `BookSearchPage`        | 손님 (전체 공개)      | 홈 (도서 검색)     |
-| `/menu`            | `StoreMenuPage`         | 손님 (전체 공개)      | 식음료/요금 메뉴   |
+| `/menu`            | `MenuPage`              | 손님 (전체 공개)      | 식음료/요금 메뉴   |
 | `/new-arrivals`    | `NewArrivalsPage`       | 손님 (전체 공개)      | 신규 입고 도서     |
 | `/about`           | `StoreIntroductionPage` | 손님 (전체 공개)      | 매장 소개          |
 | `/request`         | `BookRequestStartPage`  | 손님 (전체 공개)      | 도서 입고 신청     |

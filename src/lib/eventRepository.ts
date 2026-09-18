@@ -184,6 +184,78 @@ export async function syncEventsWithSupabase(storeId?: string): Promise<ManagedE
   }
 }
 
+export async function saveEventToSupabase(
+  event: ManagedEvent,
+  storeId?: string
+): Promise<{ success: boolean; error?: string }> {
+  const { supabase } = await import('./supabase');
+  if (!supabase || !storeId) {
+    return { success: true };
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(event.id);
+
+  const payload: Record<string, unknown> = {
+    store_id: storeId,
+    title: event.title.trim(),
+    content: event.detail.trim(),
+    start_date: event.isAlwaysOn ? today : event.startDate || today,
+    end_date: event.isAlwaysOn ? '2099-12-31' : event.endDate || today,
+    is_always_on: event.isAlwaysOn,
+    is_public: event.isPublic,
+    archived_at: null,
+  };
+
+  if (isUuid) {
+    payload.id = event.id;
+  }
+
+  try {
+    const { error } = await supabase
+      .from('store_events')
+      .upsert(payload, isUuid ? { onConflict: 'id' } : { onConflict: 'store_id,title' });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: unknown) {
+    return { success: false, error: (err as Error)?.message || 'Supabase save failed' };
+  }
+}
+
+export async function deleteEventFromSupabase(
+  id: string,
+  storeId?: string,
+  title?: string
+): Promise<{ success: boolean; error?: string }> {
+  const { supabase } = await import('./supabase');
+  if (!supabase || !storeId) {
+    return { success: true };
+  }
+
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
+  try {
+    if (isUuid) {
+      const { error } = await supabase.from('store_events').delete().eq('id', id);
+      if (!error) return { success: true };
+    }
+    if (title) {
+      const { error } = await supabase
+        .from('store_events')
+        .delete()
+        .eq('store_id', storeId)
+        .eq('title', title);
+      if (error) return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: unknown) {
+    return { success: false, error: (err as Error)?.message || 'Supabase delete failed' };
+  }
+}
+
 export function getFeaturedEvent(
   storeSlugOrEvents?: string | ManagedEvent[],
   explicitEvents?: ManagedEvent[]

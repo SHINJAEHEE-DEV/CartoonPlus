@@ -3,12 +3,14 @@ import {
   loadManagedEvents,
   saveManagedEvents,
   getBannerImageUrl,
+  syncEventsWithSupabase,
+  saveEventToSupabase,
+  deleteEventFromSupabase,
   type ManagedEvent,
   type EventStoreSlug,
 } from '../../lib/eventRepository';
 import { useStaffStore, useSelectedStaffStoreId } from './StaffStoreContext';
 import { publicStoreList } from '../../lib/storeContext';
-import { supabase } from '../../lib/supabase';
 
 const STORE_NAME_MAP: Record<EventStoreSlug, string> = {
   all: '전 지점 공통',
@@ -44,10 +46,24 @@ export function EventsPage() {
   const [isFeatured, setIsFeatured] = useState(false);
   const [storeSlug, setStoreSlug] = useState<EventStoreSlug>(selectedStoreSlug);
 
-  // 로드
+  // 로드 및 Supabase 원격 동기화
   useEffect(() => {
+    let active = true;
     setEvents(loadManagedEvents());
-  }, []);
+
+    if (selectedStoreId) {
+      void syncEventsWithSupabase(selectedStoreId).then((remote) => {
+        if (active && remote.length > 0) {
+          setEvents(remote);
+          saveManagedEvents(remote);
+        }
+      });
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [selectedStoreId, selectedStoreSlug]);
 
   // 지점 컨텍스트 변경 시 폼 디폴트도 동기화 (수정 중이 아닐 때)
   useEffect(() => {
@@ -96,32 +112,14 @@ export function EventsPage() {
       return;
     }
 
-    if (supabase && selectedStoreId) {
-      try {
-        const today = new Date().toISOString().slice(0, 10);
-        await supabase.from('store_events').upsert(
-          {
-            store_id: selectedStoreId,
-            title: title.trim(),
-            content: detail.trim(),
-            start_date: isAlwaysOn ? today : startDate || today,
-            end_date: isAlwaysOn ? '2099-12-31' : endDate || today,
-            is_always_on: isAlwaysOn,
-            is_public: isPublic,
-          },
-          { onConflict: 'store_id,title' }
-        );
-      } catch {
-        // non-blocking fallback
-      }
-    }
-
     let updatedEvents = [...events];
+    let eventToPersist: ManagedEvent;
 
     if (isEditing) {
+      let editedItem: ManagedEvent | undefined;
       updatedEvents = updatedEvents.map((ev) => {
         if (ev.id === isEditing) {
-          return {
+          editedItem = {
             ...ev,
             title,
             tag,
@@ -136,6 +134,7 @@ export function EventsPage() {
             isFeatured,
             storeSlug,
           };
+          return editedItem;
         }
         // 동일 지점(또는 all) 내에서 Featured 중복 해제
         if (isFeatured && (ev.storeSlug === storeSlug || (!ev.storeSlug && storeSlug === 'all'))) {
@@ -143,18 +142,8 @@ export function EventsPage() {
         }
         return ev;
       });
-      setMessage('이벤트가 성공적으로 수정되었습니다.');
-    } else {
-      if (isFeatured) {
-        updatedEvents = updatedEvents.map((ev) => {
-          if (ev.storeSlug === storeSlug || (!ev.storeSlug && storeSlug === 'all')) {
-            return { ...ev, isFeatured: false };
-          }
-          return ev;
-        });
-      }
-      const newEvent: ManagedEvent = {
-        id: 'evt-' + Date.now(),
+      eventToPersist = editedItem ?? {
+        id: isEditing,
         title,
         tag,
         target,
@@ -169,8 +158,43 @@ export function EventsPage() {
         storeSlug,
         createdAt: new Date().toISOString(),
       };
+      setMessage('이벤트가 성공적으로 수정되었습니다.');
+    } else {
+      if (isFeatured) {
+        updatedEvents = updatedEvents.map((ev) => {
+          if (ev.storeSlug === storeSlug || (!ev.storeSlug && storeSlug === 'all')) {
+            return { ...ev, isFeatured: false };
+          }
+          return ev;
+        });
+      }
+      const newId =
+        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+          ? crypto.randomUUID()
+          : 'evt-' + Date.now();
+      const newEvent: ManagedEvent = {
+        id: newId,
+        title,
+        tag,
+        target,
+        detail,
+        bannerType,
+        customBannerUrl,
+        isAlwaysOn,
+        startDate: isAlwaysOn ? undefined : startDate,
+        endDate: isAlwaysOn ? undefined : endDate,
+        isPublic,
+        isFeatured,
+        storeSlug,
+        createdAt: new Date().toISOString(),
+      };
+      eventToPersist = newEvent;
       updatedEvents = [newEvent, ...updatedEvents];
       setMessage('새로운 이벤트가 등록되었습니다.');
+    }
+
+    if (selectedStoreId) {
+      void saveEventToSupabase(eventToPersist, selectedStoreId);
     }
 
     setEvents(updatedEvents);
@@ -182,16 +206,8 @@ export function EventsPage() {
   // 삭제 (Delete)
   const handleDelete = async (id: string, eventTitle: string) => {
     if (window.confirm("'" + eventTitle + "' 이벤트를 정말로 삭제하시겠습니까?")) {
-      if (supabase && selectedStoreId) {
-        try {
-          await supabase
-            .from('store_events')
-            .delete()
-            .eq('store_id', selectedStoreId)
-            .eq('title', eventTitle);
-        } catch {
-          // non-blocking fallback
-        }
+      if (selectedStoreId) {
+        void deleteEventFromSupabase(id, selectedStoreId, eventTitle);
       }
       const filtered = events.filter((ev) => ev.id !== id);
       setEvents(filtered);

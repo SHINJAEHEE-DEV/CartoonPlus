@@ -96,5 +96,21 @@ describe('eventRepository', () => {
     expect(jamsilFeatured.id).toBe('evt-3');
     expect(jamsilFeatured.title).toBe('잠실 직관 티켓 이벤트');
   });
+
+  it('handles saveEventToSupabase and deleteEventFromSupabase gracefully when offline/no storeId', async () => {
+    const { saveEventToSupabase, deleteEventFromSupabase, syncEventsWithSupabase } = await import('./eventRepository');
+    
+    // With undefined storeId, should gracefully return success
+    const saveResult = await saveEventToSupabase(testEvents[0], undefined);
+    expect(saveResult.success).toBe(true);
+
+    const deleteResult = await deleteEventFromSupabase('evt-1', undefined, '평일 종일권 이벤트');
+    expect(deleteResult.success).toBe(true);
+
+    // With undefined storeId, syncEventsWithSupabase should fallback to local events
+    const syncResult = await syncEventsWithSupabase(undefined);
+    expect(Array.isArray(syncResult)).toBe(true);
+    expect(syncResult.length).toBeGreaterThan(0);
+  });
 });
 
