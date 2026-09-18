@@ -6,8 +6,9 @@ import {
   type ManagedEvent,
   type EventStoreSlug,
 } from '../../lib/eventRepository';
-import { useStaffStore } from './StaffStoreContext';
+import { useStaffStore, useSelectedStaffStoreId } from './StaffStoreContext';
 import { publicStoreList } from '../../lib/storeContext';
+import { supabase } from '../../lib/supabase';
 
 const STORE_NAME_MAP: Record<EventStoreSlug, string> = {
   all: '전 지점 공통',
@@ -18,6 +19,7 @@ const STORE_NAME_MAP: Record<EventStoreSlug, string> = {
 
 export function EventsPage() {
   const { selectedStoreSlug } = useStaffStore();
+  const selectedStoreId = useSelectedStaffStoreId();
   const currentStore =
     publicStoreList.find((s) => s.slug === selectedStoreSlug) ?? publicStoreList[0];
 
@@ -87,11 +89,31 @@ export function EventsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !detail.trim()) {
       setMessage('제목과 상세 내용을 입력해 주세요.');
       return;
+    }
+
+    if (supabase && selectedStoreId) {
+      try {
+        const today = new Date().toISOString().slice(0, 10);
+        await supabase.from('store_events').upsert(
+          {
+            store_id: selectedStoreId,
+            title: title.trim(),
+            content: detail.trim(),
+            start_date: isAlwaysOn ? today : startDate || today,
+            end_date: isAlwaysOn ? '2099-12-31' : endDate || today,
+            is_always_on: isAlwaysOn,
+            is_public: isPublic,
+          },
+          { onConflict: 'store_id,title' }
+        );
+      } catch {
+        // non-blocking fallback
+      }
     }
 
     let updatedEvents = [...events];
@@ -158,8 +180,19 @@ export function EventsPage() {
   };
 
   // 삭제 (Delete)
-  const handleDelete = (id: string, eventTitle: string) => {
+  const handleDelete = async (id: string, eventTitle: string) => {
     if (window.confirm("'" + eventTitle + "' 이벤트를 정말로 삭제하시겠습니까?")) {
+      if (supabase && selectedStoreId) {
+        try {
+          await supabase
+            .from('store_events')
+            .delete()
+            .eq('store_id', selectedStoreId)
+            .eq('title', eventTitle);
+        } catch {
+          // non-blocking fallback
+        }
+      }
       const filtered = events.filter((ev) => ev.id !== id);
       setEvents(filtered);
       saveManagedEvents(filtered);

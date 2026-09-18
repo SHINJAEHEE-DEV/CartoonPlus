@@ -32,8 +32,12 @@ export async function submitBookRequest(
       throw storeError;
     }
 
+    if (!store?.id) {
+      return { success: false, error: '유효한 지점 정보를 찾을 수 없습니다.' };
+    }
+
     const { error } = await supabase.from('book_requests').insert({
-      store_id: store?.id ?? null,
+      store_id: store.id,
       title: input.title.trim(),
       author: input.author?.trim() || null,
       desired_volume: input.desiredVolume?.trim() || null,

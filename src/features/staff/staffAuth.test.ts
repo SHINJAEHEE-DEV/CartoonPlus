@@ -81,4 +81,30 @@ describe('staff login account selection', () => {
     await signOutStaff();
     expect(fixture.signOut).toHaveBeenCalledOnce();
   });
+
+  it('passes storeSlug when applying for staff', async () => {
+    const rpcMock = vi.fn().mockResolvedValue({ error: null });
+    const signUpMock = vi.fn().mockResolvedValue({ data: { user: { id: 'new-user' } }, error: null });
+
+    const testSupabase = await import('../../lib/supabase');
+    (testSupabase.supabase as any).auth.signUp = signUpMock;
+    (testSupabase.supabase as any).rpc = rpcMock;
+
+    const { applyForStaff } = await import('./staffAuth');
+    await applyForStaff({
+      name: '홍길동',
+      loginId: 'hongdae_staff',
+      password: 'password1234',
+      phoneLast4: '1234',
+      storeSlug: 'hongdae',
+    });
+
+    expect(signUpMock).toHaveBeenCalled();
+    expect(rpcMock).toHaveBeenCalledWith('apply_for_staff_account', {
+      p_name: '홍길동',
+      p_login_id: 'hongdae_staff',
+      p_phone_last4: '1234',
+      p_store_slug: 'hongdae',
+    });
+  });
 });

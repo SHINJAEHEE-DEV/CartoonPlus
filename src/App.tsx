@@ -116,6 +116,7 @@ function ProtectedStaffRoute({
 
   return (
     <StaffStoreProvider isAdmin={role === 'admin'} defaultStoreSlug={storeSlug}>
+      <GlobalBroadcastService />
       <StaffShell
         currentPath={location.pathname}
         isAdmin={role === 'admin'}
@@ -190,7 +191,6 @@ export default function App() {
   return (
     <BrowserRouter>
       <InternalLinkInterceptor />
-      <GlobalBroadcastService />
       <Routes>
         {/* Legacy Redirects */}
         <Route path="/search" element={<Navigate to="/books" replace />} />

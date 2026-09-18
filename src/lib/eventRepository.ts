@@ -145,6 +145,45 @@ export function saveManagedEvents(events: ManagedEvent[]): void {
   }
 }
 
+export async function syncEventsWithSupabase(storeId?: string): Promise<ManagedEvent[]> {
+  const { supabase } = await import('./supabase');
+  if (!supabase || !storeId) {
+    return loadManagedEvents();
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('store_events')
+      .select('id, title, content, start_date, end_date, is_public, is_always_on, created_at, store_id')
+      .eq('store_id', storeId)
+      .is('archived_at', null)
+      .order('created_at', { ascending: false });
+
+    if (error || !data || data.length === 0) {
+      return loadManagedEvents();
+    }
+
+    const remoteEvents: ManagedEvent[] = data.map((row) => ({
+      id: row.id,
+      title: row.title,
+      tag: row.is_always_on ? '상시 혜택' : '이벤트',
+      target: '카툰플러스 고객',
+      detail: row.content,
+      bannerType: row.title.includes('라면') ? 'naver_ramen' : row.title.includes('서울대') ? 'snu' : 'weekday',
+      startDate: row.start_date || undefined,
+      endDate: row.end_date || undefined,
+      isAlwaysOn: Boolean(row.is_always_on),
+      isPublic: Boolean(row.is_public),
+      isFeatured: false,
+      createdAt: row.created_at,
+    }));
+
+    return remoteEvents;
+  } catch {
+    return loadManagedEvents();
+  }
+}
+
 export function getFeaturedEvent(
   storeSlugOrEvents?: string | ManagedEvent[],
   explicitEvents?: ManagedEvent[]

@@ -57,6 +57,7 @@ export async function applyForStaff(input: {
   loginId: string;
   password: string;
   phoneLast4: string;
+  storeSlug?: string;
 }) {
   if (!supabase || !validateStaffSignup(input)) throw new Error('가입 정보를 확인해 주세요.');
   const email = loginIdToInternalEmail(input.loginId);
@@ -66,6 +67,7 @@ export async function applyForStaff(input: {
     p_name: input.name,
     p_login_id: input.loginId,
     p_phone_last4: input.phoneLast4,
+    p_store_slug: input.storeSlug || 'snu',
   });
   if (profileError) throw profileError;
 }

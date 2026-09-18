@@ -2,9 +2,9 @@
 
 ## 기준과 범위
 
-이 문서는 운영 데이터의 기준 문서다. 실제 스키마의 단일 기준은 `supabase/migrations/`이며, 이 문서는 2026-09-14 기준 migration을 사람이 검토·운영하기 쉽게 요약한다. 문서와 migration이 다르면 migration을 우선하고 이 문서를 즉시 고친다.
+이 문서는 운영 데이터의 기준 문서다. 실제 스키마의 단일 기준은 `supabase/migrations/`이며, 이 문서는 2026-09-18 기준 migration을 사람이 검토·운영하기 쉽게 요약한다. 문서와 migration이 다르면 migration을 우선하고 이 문서를 즉시 고친다.
 
-데이터 모델과 공개 고객 카탈로그는 여러 지점을 지원한다. 고객 조회는 URL 지점 컨텍스트로 범위가 정해지고, CSV 업로드 RPC는 인증된 Staff 권한을 서버에서 재검증한다. 따라서 추가 지점 데이터는 해당 지점 컨텍스트·권한·현장 표본 확인을 모두 마친 뒤에만 공개한다.
+데이터 모델과 공개 고객 카탈로그는 여러 지점(서울대입구역점, 잠실점, 홍대점)을 지원한다. 고객 조회는 URL 지점 컨텍스트로 범위가 정해지고, CSV 업로드 및 단건 등록 RPC는 인증된 Staff 권한을 서버에서 재검증한다.
 
 ## 핵심 관계
 
@@ -17,7 +17,6 @@ erDiagram
     STORES ||--o{ STORE_CONTENT : owns
     STORES ||--o{ ENTERTAINMENT_ITEMS : owns
     STORES ||--o{ STORE_EVENTS : owns
-    STORES ||--o{ MENU_ITEMS : owns
     STORES ||--o{ SCHEDULED_BROADCASTS : schedules
     SCHEDULED_BROADCASTS ||--o{ BROADCAST_RUNS : records
 ```
@@ -28,14 +27,13 @@ erDiagram
 | ---------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `stores`               | 지점 마스터                               | UUID `id`, 고유 `slug`, `name`                                                                       |
 | `books`                | 지점과 독립적인 도서 메타데이터           | `(title, author)` 고유, 검색용 정규화·초성 컬럼, `archived_at`                                       |
-| `book_inventories`     | 지점별 도서 보유 권수·서가                | `(store_id, book_id)` 고유, `volume_range`, `shelf_location`, `first_registered_at`; 삭제는 영구 처리 |
-| `staff_accounts`       | Supabase Auth 사용자와 연결된 직원 프로필 | `id`는 `auth.users(id)` FK, `login_id` 고유, 역할 `staff/admin`, 상태 `pending/approved/deactivated` |
-| `book_requests`        | 고객 희망 도서 신청                       | `status`: `received/ordered/completed/unavailable`; 연락처는 저장하지 않음                           |
-| `store_content`        | 지점별 공개 콘텐츠                        | `(store_id, content_key)` 고유, 값은 `jsonb`                                                         |
-| `entertainment_items`  | 게임·보드게임                             | 지점/종류/제목 고유, 실물 확인·이용 가능·보관 상태                                                   |
-| `store_events`         | 지점별 이벤트                             | 공개 여부, 상시 여부, 기간, 보관 상태                                                                |
-| `menu_items`           | 메뉴·요금                                 | 지점, 카테고리, 가격, 품절·정렬 정보                                                                 |
-| `broadcast_presets`    | 안내 방송 문구                            | 지점 전용 또는 공통(`store_id` NULL)                                                                 |
+| `book_inventories`     | 지점별 도서 보유 권수·서가                | `(store_id, book_id)` 고유, `volume_range`, `last_volume`, `shelf_location`, `first_registered_at`; 삭제는 영구 처리 |
+| `staff_accounts`       | Supabase Auth 사용자와 연결된 직원 프로필 | `id`는 `auth.users(id)` FK, `login_id` 고유, `store_id` FK, 역할 `staff/admin`, 상태 `pending/approved/deactivated` |
+| `book_requests`        | 고객 희망 도서 신청                       | `store_id` NOT NULL FK, `status`: `received/ordered/completed/unavailable`; 연락처는 저장하지 않음    |
+| `store_content`        | 지점별 공개 콘텐츠 (요금제, 음료, 음식, 매장 정보) | `(store_id, content_key)` 고유, 값은 `jsonb` (`price_packages`, `beverage_items`, `food_items`, `store_info`) |
+| `entertainment_items`  | 게임·보드게임                             | `(store_id, item_type, title)` 고유, `quantity`, 실물 확인·이용 가능 상태                            |
+| `store_events`         | 지점별 이벤트                             | `(store_id, title)` 고유, 공개 여부, 상시 여부, 기간                                                 |
+| `broadcast_presets`    | 안내 방송 음성/문구                       | 지점 전용 또는 공통(`store_id` NULL), `source_type ('static'/'upload')`, `audio_url`, `hidden_at`   |
 | `scheduled_broadcasts` | 예약 방송                                 | 매일·요일·일회성, 활성화, 선택적 `broadcast_preset_id`; 삭제는 영구 처리                            |
 | `broadcast_runs`       | 방송 실행 감사 기록                       | 예약 참조(선택, 삭제 시 NULL), `pending/success/failure/missed/cancelled`, 오류 메시지               |
 | `broadcast_playback_leases` | 방송 담당 탭 임대                    | 지점당 한 행, 탭 식별자와 30초 만료 시각으로 중복 송출 방지                                         |

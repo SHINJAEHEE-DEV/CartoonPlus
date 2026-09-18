@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { applyForStaff, getApprovedStaffRole, signInStaff } from './staffAuth';
 import { MASCOT_ASSETS } from '../../lib/brandAssets';
+import { publicStoreList } from '../../lib/storeContext';
 
 export function StaffAccessPage() {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ export function StaffAccessPage() {
           loginId: String(form.get('loginId')),
           password: String(form.get('password')),
           phoneLast4: String(form.get('phoneLast4')),
+          storeSlug: String(form.get('storeSlug') || 'snu'),
         });
         setMessage('가입 신청이 정상 접수되었습니다. 관리자 승인 후 로그인하실 수 있습니다.');
         setIsError(false);
@@ -184,35 +186,74 @@ export function StaffAccessPage() {
         {/* 입력 폼 */}
         <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {mode === 'signup' && (
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  color: '#1E1E1E',
-                  marginBottom: '6px',
-                }}
-              >
-                이름
-              </label>
-              <input
-                name="name"
-                placeholder="실명을 입력해 주세요"
-                required={mode === 'signup'}
-                style={{
-                  width: '100%',
-                  boxSizing: 'border-box',
-                  padding: '13px 16px',
-                  border: '2px solid #1E1E1E',
-                  borderRadius: '14px',
-                  background: '#FFF9EC',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  outline: 'none',
-                }}
-              />
-            </div>
+            <>
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    color: '#1E1E1E',
+                    marginBottom: '6px',
+                  }}
+                >
+                  소속 지점 *
+                </label>
+                <select
+                  name="storeSlug"
+                  defaultValue="snu"
+                  required={mode === 'signup'}
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    padding: '13px 16px',
+                    border: '2px solid #1E1E1E',
+                    borderRadius: '14px',
+                    background: '#FFF9EC',
+                    fontSize: '14px',
+                    fontWeight: 800,
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {publicStoreList.map((store) => (
+                    <option key={store.slug} value={store.slug}>
+                      {store.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    color: '#1E1E1E',
+                    marginBottom: '6px',
+                  }}
+                >
+                  이름
+                </label>
+                <input
+                  name="name"
+                  placeholder="실명을 입력해 주세요"
+                  required={mode === 'signup'}
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    padding: '13px 16px',
+                    border: '2px solid #1E1E1E',
+                    borderRadius: '14px',
+                    background: '#FFF9EC',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    outline: 'none',
+                  }}
+                />
+              </div>
+            </>
           )}
 
           <div>
