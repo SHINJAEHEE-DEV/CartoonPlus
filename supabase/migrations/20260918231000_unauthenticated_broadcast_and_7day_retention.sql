@@ -11,7 +11,7 @@ as $$
 begin
   delete from public.broadcast_runs
   where triggered_at < now() - interval '7 days';
-  return new;
+  return null;
 end;
 $$;
 
@@ -34,7 +34,13 @@ create policy "public reads broadcast presets"
   for select
   using (true);
 
--- 4. Enable public logging for broadcast runs
+-- 4. Enable public logging and reading for broadcast runs
+drop policy if exists "public reads broadcast runs" on public.broadcast_runs;
+create policy "public reads broadcast runs"
+  on public.broadcast_runs
+  for select
+  using (true);
+
 drop policy if exists "public inserts broadcast runs" on public.broadcast_runs;
 create policy "public inserts broadcast runs"
   on public.broadcast_runs

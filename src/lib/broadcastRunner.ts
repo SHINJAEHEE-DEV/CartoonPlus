@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { DEFAULT_STATIC_PRESETS, playVoiceAsset } from './voiceAssets';
 import { isDue, type ScheduledBroadcast } from './broadcastSchedule';
 import { supabase } from './supabase';
+import { type StoreSlug, defaultPublicStore } from './storeContext';
 
 export type BroadcastRunStatus = 'pending' | 'success' | 'failure' | 'missed' | 'cancelled';
 
@@ -39,6 +40,8 @@ export function getSchedulesDueBetween(
 export const NOTIFY_SCHEDULE_UPDATE_EVENT = 'cartoonplus_broadcast_schedules_updated';
 const LAST_BROADCAST_CHECK_KEY = 'cartoonplus_last_broadcast_check';
 const SELECTED_STORE_KEY = 'cartoonplus_selected_store';
+const SILENT_AUDIO_DATA_URI = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+
 let playbackQueue = Promise.resolve();
 let isAudioUnlocked = false;
 
@@ -49,8 +52,7 @@ export function unlockAudioEngine(): void {
   if (isAudioUnlocked || typeof window === 'undefined') return;
   try {
     const audio = new Audio();
-    // 0.01초 무음 WAV data URL
-    audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+    audio.src = SILENT_AUDIO_DATA_URI;
     audio.volume = 0.001;
     const playPromise = audio.play();
     if (playPromise && typeof playPromise.then === 'function') {
@@ -97,19 +99,21 @@ export async function fetchStoreMap(): Promise<Record<string, string>> {
   return {};
 }
 
-export function detectCurrentStoreSlug(): string {
-  if (typeof window === 'undefined') return 'snu';
+export function detectCurrentStoreSlug(): StoreSlug {
+  if (typeof window === 'undefined') return defaultPublicStore.slug;
   const pathname = window.location.pathname;
-  const match = pathname.match(/\/stores\/([^/?#]+)/);
-  if (match?.[1]) return match[1];
+  const match = pathname.match(/\/stores\/(snu|jamsil|hongdae)/);
+  if (match?.[1]) return match[1] as StoreSlug;
 
   try {
     const saved = window.localStorage ? window.localStorage.getItem(SELECTED_STORE_KEY) : null;
-    if (saved) return saved;
+    if (saved && (saved === 'snu' || saved === 'jamsil' || saved === 'hongdae')) {
+      return saved as StoreSlug;
+    }
   } catch {
     // ignore
   }
-  return 'snu';
+  return defaultPublicStore.slug;
 }
 
 function createPlaybackTabId(): string {

@@ -120,7 +120,7 @@ export function BookRequestModal({
               alt="책 읽는 마스코트"
               className="book-request-success-mascot"
             />
-            <div className="book-request-success-badge">REQUEST RECEIVED!</div>
+            <div className="book-request-success-badge">신청 접수 완료</div>
             <h2 id="book-request-modal-title" className="book-request-success-title">
               도서 입고 신청이 접수되었습니다!
             </h2>
@@ -152,7 +152,7 @@ export function BookRequestModal({
                 className="book-request-modal-mascot"
               />
               <div>
-                <div className="section-kicker">BOOK REQUEST</div>
+                <div className="section-kicker">도서 입고 신청</div>
                 <h2 id="book-request-modal-title" className="book-request-modal-title">
                   도서 입고 신청
                 </h2>

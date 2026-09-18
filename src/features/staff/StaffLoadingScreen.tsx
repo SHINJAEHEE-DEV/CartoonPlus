@@ -19,7 +19,7 @@ export function StaffLoadingScreen({
         </div>
 
         <div className="staff-loading-content">
-          <span className="staff-loading-badge">STAFF CONSOLE</span>
+          <span className="staff-loading-badge">직원 콘솔</span>
           <h2 className="staff-loading-title">{message}</h2>
           <p className="staff-loading-subtitle">{subMessage}</p>
         </div>
