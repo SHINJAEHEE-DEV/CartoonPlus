@@ -47,7 +47,7 @@ export function useSelectedStaffStoreId() {
       .from('stores')
       .select('id')
       .eq('slug', selectedStoreSlug)
-      .single()
+      .maybeSingle()
       .then(({ data }) => setStoreId(data?.id ?? null));
   }, [selectedStoreSlug]);
   return storeId;

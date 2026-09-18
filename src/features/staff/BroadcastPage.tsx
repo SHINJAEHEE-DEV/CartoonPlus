@@ -347,7 +347,15 @@ export function BroadcastPage() {
 
   useEffect(() => {
     const setup = async () => {
-      if (!storeId) return;
+      if (!storeId) {
+        setSchedules([]);
+        setUploadedPresets([]);
+        setMissedRuns([]);
+        return;
+      }
+      setSchedules([]);
+      setUploadedPresets([]);
+      setMissedRuns([]);
       await loadSchedules(storeId);
       await loadPresets(storeId);
       await loadMissedRuns(storeId);
