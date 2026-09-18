@@ -81,7 +81,7 @@ flowchart TD
 
 ## 3. 매장 자동 안내 방송 및 스케줄러 흐름 (Broadcast Flow)
 
-카운터 PC 브라우저가 열려 있는 상태에서 지정된 시각에 맞춰 Web Speech API 또는 사전 녹음된 오디오를 매장 스피커로 자동 송출하는 무인 자동화 엔진입니다.
+카운터 PC 브라우저가 열려 있는 상태에서 지정된 시각에 맞춰 사전 녹음된 정적 고음질 음원 또는 업로드된 음성 오디오 파일(`voiceAssets`)을 매장 스피커로 자동 송출하는 무인 자동화 엔진입니다.
 
 ### 3.1. 자동 방송 실행 루프
 
@@ -96,7 +96,7 @@ flowchart TD
     Check -- "Yes" --> Duplicate{"오늘/이번 분에 이미 송출했는가?<br/>(lastTriggeredMinuteRef)"}
 
     Duplicate -- "이미 송출됨" --> Loop
-    Duplicate -- "미송출" --> Play["🔊 음성 합성 또는 프리셋 음원 재생<br/>(speakKorean / Audio.play)"]
+    Duplicate -- "미송출" --> Play["🔊 정적 프리셋 음원 또는 업로드 오디오 파일 재생<br/>(playVoiceAsset / Audio.play)"]
 
     Play --> Record["DB에 실행 이력 저장 (recordBroadcastRun)<br/>scheduled_broadcast_id, message, executed_at"]
     Record --> UI["화면 내 최근 방송 로그 실시간 갱신"]

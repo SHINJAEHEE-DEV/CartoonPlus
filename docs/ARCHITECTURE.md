@@ -20,7 +20,7 @@ flowchart TB
         direction TB
         AppRouting["React Router SPA"]
         SearchEngine["한글 초성/정규화 검색 엔진 (Client Memory)"]
-        TTSModule["Web Speech API / Audio TTS 재생기"]
+        AudioModule["정적 음원 및 업로드 오디오 재생기 (voiceAssets)"]
         StaffContext["Staff Auth & Store Context"]
     end
 
@@ -28,7 +28,7 @@ flowchart TB
         direction TB
         Auth["Supabase Auth<br/>(가상 이메일 매핑 기반)"]
         Postgres["PostgreSQL Database<br/>(RLS & RPC & Triggers)"]
-        Storage["Supabase Storage<br/>(이벤트/메뉴 이미지)"]
+        Storage["Supabase Storage<br/>(방송 음원/이벤트/메뉴 이미지)"]
     end
 
     subgraph Hosting["🌐 호스팅 및 CI/CD (Hosting & CI)"]
@@ -38,7 +38,7 @@ flowchart TB
 
     UserBrowser --> AppRouting
     StaffBrowser --> AppRouting
-    StaffBrowser --> TTSModule
+    StaffBrowser --> AudioModule
     AppRouting --> SearchEngine
     AppRouting --> StaffContext
 
@@ -61,7 +61,7 @@ flowchart TB
 | **Backend & DB**       | `Supabase` (PostgreSQL 15+)        | RDBMS, 행 단위 보안(RLS), Stored Procedures(RPC), 실시간 인증           |
 | **Auth**               | `Supabase Auth`                    | 직원/관리자 인증 (아이디를 내부 가상 이메일로 투명 변환, 지점별 권한)  |
 | **Testing**            | `Vitest`, `Testing Library`        | 핵심 유틸리티(검색, 스케줄러, CSV 파서) 및 UI 컴포넌트 단위/통합 테스트 |
-| **Voice / Broadcast**  | `Web Speech API` & `MP3 Assets`    | 고음질 프리셋 오디오 및 브라우저 TTS 하이브리드 자동 방송 엔진          |
+| **Voice / Broadcast**  | `HTMLAudioElement` & `Voice Assets`| 고음질 정적 안내 음원(.wav/.mp3) 및 업로드 음성 기반 매장 자동 방송 엔진 |
 
 ---
 

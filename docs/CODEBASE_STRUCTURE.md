@@ -48,8 +48,8 @@ cartoonplus/
 | 파일명                 | 주요 역할 및 책임                                                                                                                     |
 | :--------------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
 | `bookSearch.ts`        | 도서 제목/작가명 공백 제거 정규화, 한글 초성 분해/추출 알고리즘 및 클라이언트 검색 엔진                                               |
-| `broadcast.ts`         | 브라우저 `window.speechSynthesis` (Web Speech API)를 이용한 한국어 음성 합성/재생 모듈                                                |
-| `broadcastRunner.ts`   | 1초 주기로 예약 방송 도래 여부를 감시하고 백그라운드에서 자동 음성 재생 및 실행 로그(`broadcast_runs`)를 기록하는 React Hook & 실행기 |
+| `voiceAssets.ts`       | 정적 안내 방송 음원(.wav/.mp3) 재생, 유효성 검증 및 Supabase Storage 음성 파일 업로드/삭제 모듈                               |
+| `broadcastRunner.ts`   | 1초 주기로 예약 방송 도래 여부를 감시하고 백그라운드에서 오디오 자동 재생 및 실행 로그(`broadcast_runs`)를 기록하는 React Hook & 실행기 |
 | `broadcastSchedule.ts` | 매일 반복, 요일 반복, 특정 일시 등 예약 조건 평가(`isDue`) 순수 함수                                                                  |
 | `eventRepository.ts`   | 매장 이벤트 조회, 생성, 수정, 만료 처리 및 Supabase 연동 계층                                                                         |
 | `inventoryCsv.ts`      | Caspio 등 외부 시스템의 CSV 재고 파일을 파싱하고 도서명/권수/서가위치 유효성을 검증하는 파서                                          |
