@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { applyForStaff, getApprovedStaffRole, signInStaff } from './staffAuth';
 import { MASCOT_ASSETS } from '../../lib/brandAssets';
 import { publicStoreList } from '../../lib/storeContext';
+import { StaffLoadingScreen } from './StaffLoadingScreen';
 
 export function StaffAccessPage() {
   const navigate = useNavigate();
@@ -24,7 +25,9 @@ export function StaffAccessPage() {
     };
   }, [navigate]);
 
-  if (isCheckingSession) return <p className="state-card">직원 로그인 상태를 확인하는 중입니다.</p>;
+  if (isCheckingSession) {
+    return <StaffLoadingScreen message="직원 로그인 상태를 확인하는 중입니다." />;
+  }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

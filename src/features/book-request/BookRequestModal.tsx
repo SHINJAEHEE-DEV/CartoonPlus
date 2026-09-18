@@ -235,17 +235,10 @@ export function BookRequestModal({
 
               <div className="book-request-footer">
                 <button
-                  type="button"
-                  onClick={onClose}
-                  className="book-request-cancel-btn"
-                >
-                  취소
-                </button>
-                <button
                   type="submit"
                   disabled={isSubmitting || !title.trim()}
                   className="primary-btn"
-                  style={{ flex: '2', padding: '12px 20px' }}
+                  style={{ width: '100%', padding: '14px 24px', justifyContent: 'center' }}
                 >
                   {isSubmitting ? '신청 접수 중...' : '입고 신청 완료 →'}
                 </button>
