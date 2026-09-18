@@ -2,6 +2,19 @@
 
 개발 과정에서 발생하는 이슈, 데이터 전처리 분석, 성능 최적화 및 트러블슈팅 내역을 체계적으로 기록합니다.
 
+## 2026-09-18 예약 방송 스케줄 등록 시 UUID 파싱 오류 ("invalid input syntax for type uuid") 해결
+
+- **증상**: 직원 안내 방송 페이지(`/staff/broadcast`)에서 기본 정적 프리셋(예: "11시 마감 안내")을 선택하고 스케줄을 저장할 때 `"저장하지 못했습니다: invalid input syntax for type uuid: '11시 마감 안내'"` 400 Bad Request 에러가 발생하며 예약 방송이 저장되지 않음.
+- **원인**:
+  1. `scheduled_broadcasts.broadcast_preset_id` 컬럼은 UUID 외래키(nullable) 타입임.
+  2. 기본 정적 프리셋 6종이 DB에 seed 데이터로 존재하지 않아 `p.id`가 `undefined`였고, 드롭다운 `<select>`의 `value`에 프리셋 제목 문자열(`"11시 마감 안내"`)이 바인딩됨.
+  3. `saveSchedule` 폼 제출 시 문자열 제목이 `broadcast_preset_id` 컬럼에 그대로 전송되어 PostgreSQL UUID 파싱 에러 발생.
+- **수정**:
+  1. `20260918163800_seed_static_broadcast_presets.sql` 마이그레이션을 통해 모든 지점에 기본 정적 프리셋 6종을 `source_type = 'static'`, 정적 오디오 경로(`/audio/broadcast/...wav`)와 함께 DB에 영구 시드 등록(`supabase db push` 완료).
+  2. `BroadcastPage.tsx`에 `isValidUuid` 유효성 검증 함수를 도입하여 `schedule.presetId`가 유효한 UUID가 아닐 경우 안전하게 `null`로 폴백 처리.
+  3. `loadPresets`에서 정적 프리셋과 DB 레코드의 ID 매핑을 강화하고, `handleEditScheduleClick`에서 기존 스케줄 수정 시 프리셋 ID/문구를 상호 매칭하도록 개선.
+- **검증**: 원격 Supabase DB 마이그레이션 푸시 완료, 단위 테스트(`npm test`, 18개 파일 89개 테스트) 및 Vite SSG 프로덕션 빌드 통과.
+
 ## 2026-09-17 직원 운영 대시보드 데이터 로딩 실패 ("운영 데이터를 불러오지 못했습니다") 해결
 
 - **증상**: 직원 운영 대시보드(`/staff/dashboard`) 접속 시 콘솔에 `400 Bad Request (...chived_at=is.null)` 오류와 함께 "운영 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요." 오류 카드가 표시되며 KPI 통계가 로드되지 않음.

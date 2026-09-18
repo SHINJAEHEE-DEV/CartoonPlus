@@ -60,6 +60,11 @@ function formatError(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
+function isValidUuid(value?: string | null): boolean {
+  if (!value) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}
+
 export function BroadcastPage() {
   const storeId = useSelectedStaffStoreId();
   const [staticPresets, setStaticPresets] = useState<BroadcastPresetItem[]>([...DEFAULT_STATIC_PRESETS]);
@@ -180,7 +185,9 @@ export function BroadcastPage() {
 
       const dbPresets = (data ?? []) as BroadcastPresetItem[];
       const mergedStatic: BroadcastPresetItem[] = DEFAULT_STATIC_PRESETS.map((def) => {
-        const found = dbPresets.find((p) => p.source_type === 'static' && p.title === def.title);
+        const found =
+          dbPresets.find((p) => p.source_type === 'static' && p.title === def.title && p.store_id === storeId) ??
+          dbPresets.find((p) => p.source_type === 'static' && p.title === def.title);
         if (found) {
           return {
             ...def,
@@ -367,10 +374,11 @@ export function BroadcastPage() {
       setScheduleStatus('지점 정보를 불러오는 중입니다.');
       return;
     }
+    const presetId = isValidUuid(schedule.presetId) ? schedule.presetId : null;
     const values = {
       store_id: storeId,
       message_text: schedule.message.trim(),
-      broadcast_preset_id: schedule.presetId || null,
+      broadcast_preset_id: presetId,
       schedule_type: schedule.type,
       target_time: schedule.time,
       target_days: schedule.type === 'weekdays' ? schedule.weekdays : null,
@@ -425,9 +433,12 @@ export function BroadcastPage() {
   };
 
   const handleEditScheduleClick = (item: StoredSchedule) => {
+    const matchedPreset = allAvailablePresets.find(
+      (p) => (item.presetId && p.id === item.presetId) || p.title === item.message_text
+    );
     setSchedule({
       message: item.message_text,
-      presetId: item.presetId ?? '',
+      presetId: matchedPreset?.id ?? item.presetId ?? '',
       type: item.scheduleType,
       time: item.targetTime,
       date: item.targetDate ?? '',
@@ -888,7 +899,7 @@ export function BroadcastPage() {
                   const selected = allAvailablePresets.find((p) => p.id === selectedId || p.title === selectedId);
                   setSchedule({
                     ...schedule,
-                    presetId: selectedId,
+                    presetId: selected?.id ?? (isValidUuid(selectedId) ? selectedId : ''),
                     message: selected?.title ?? schedule.message,
                   });
                 }}
