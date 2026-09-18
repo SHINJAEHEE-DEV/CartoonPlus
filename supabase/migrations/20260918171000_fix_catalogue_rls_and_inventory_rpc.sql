@@ -9,6 +9,7 @@ create policy "public can read active inventory" on public.book_inventories
   );
 
 -- Recreate customer_book_catalogue view with security invoker
+drop view if exists public.customer_book_catalogue;
 create or replace view public.customer_book_catalogue
 with (security_invoker = true) as
 select

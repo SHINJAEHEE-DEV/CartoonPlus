@@ -2,6 +2,20 @@
 
 개발 과정에서 발생하는 이슈, 데이터 전처리 분석, 성능 최적화 및 트러블슈팅 내역을 체계적으로 기록합니다.
 
+## 2026-09-18 비로그인 상태 매장 안내 방송 송출 지원 및 방송 기록 7일 롤링 보존
+
+- **증상/요구사항**:
+  1. 매장 카운터 PC에서 직원이 로그인하지 않고 일반 고객 화면(홈/도서검색)을 띄워두거나 브라우저 캐시 문제 발생 시 예약 방송이 송출되지 않는 현상 발생.
+  2. 방송 실행 감사 기록(`broadcast_runs`)이 무한정 누적되는 것을 방지하고, 기존 누적 데이터를 전체 초기화한 뒤 최근 7일치만 롤링 보존하도록 개선.
+- **원인 분석**:
+  1. `<GlobalBroadcastService />`가 `<ProtectedStaffRoute>`(로그인 필수 라우트) 내부에만 감싸져 있어 비로그인 시 스케줄러 자체가 실행되지 않음.
+  2. Supabase `claim_broadcast_playback_lease` RPC 및 `broadcast_runs` RLS 정책이 `authenticated` 직원 전용으로 제한되어 있어 익명 사용자의 스케줄 쿼리 및 Lease 선점이 차단됨.
+- **해결 방안 및 반영**:
+  1. `docs/adr/0010-unauthenticated-broadcast-and-7day-retention.md` 수립 및 승인.
+  2. `<GlobalBroadcastService />`를 최상위 전역 라우트로 승격하고 URL/로컬스토리지 기반 지점 자동 식별 적용.
+  3. `broadcast_runs` 기존 데이터 초기화(TRUNCATE) 및 7일 경과 기록 자동 삭제 트리거/RPC 적용.
+  4. 비로그인 클라이언트에서도 스케줄 조회 및 Lease 획득이 가능하도록 RLS 및 RPC 익명 권한 확장.
+
 ## 2026-09-18 예약 방송 스케줄 등록 시 UUID 파싱 오류 ("invalid input syntax for type uuid") 해결
 
 - **증상**: 직원 안내 방송 페이지(`/staff/broadcast`)에서 기본 정적 프리셋(예: "11시 마감 안내")을 선택하고 스케줄을 저장할 때 `"저장하지 못했습니다: invalid input syntax for type uuid: '11시 마감 안내'"` 400 Bad Request 에러가 발생하며 예약 방송이 저장되지 않음.

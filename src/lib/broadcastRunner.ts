@@ -38,7 +38,79 @@ export function getSchedulesDueBetween(
 
 export const NOTIFY_SCHEDULE_UPDATE_EVENT = 'cartoonplus_broadcast_schedules_updated';
 const LAST_BROADCAST_CHECK_KEY = 'cartoonplus_last_broadcast_check';
+const SELECTED_STORE_KEY = 'cartoonplus_selected_store';
 let playbackQueue = Promise.resolve();
+let isAudioUnlocked = false;
+
+/**
+ * 사용자 첫 제스처(클릭/터치) 시 브라우저 오디오 재생 차단(Autoplay)을 무음으로 언락
+ */
+export function unlockAudioEngine(): void {
+  if (isAudioUnlocked || typeof window === 'undefined') return;
+  try {
+    const audio = new Audio();
+    // 0.01초 무음 WAV data URL
+    audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+    audio.volume = 0.001;
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.then === 'function') {
+      playPromise.then(() => {
+        isAudioUnlocked = true;
+      }).catch(() => {
+        // ignore
+      });
+    } else {
+      isAudioUnlocked = true;
+    }
+  } catch {
+    // ignore
+  }
+}
+
+if (typeof window !== 'undefined') {
+  const unlockEvents = ['click', 'touchstart', 'keydown'];
+  const handleUserGesture = () => {
+    unlockAudioEngine();
+    unlockEvents.forEach((evt) => window.removeEventListener(evt, handleUserGesture));
+  };
+  unlockEvents.forEach((evt) => window.addEventListener(evt, handleUserGesture, { once: true, passive: true }));
+}
+
+let cachedStoreMap: Record<string, string> | null = null;
+
+export async function fetchStoreMap(): Promise<Record<string, string>> {
+  if (cachedStoreMap) return cachedStoreMap;
+  if (!supabase) return {};
+  try {
+    const { data } = await supabase.from('stores').select('id, slug');
+    if (data) {
+      const map: Record<string, string> = {};
+      data.forEach((s) => {
+        map[s.slug] = s.id;
+      });
+      cachedStoreMap = map;
+      return map;
+    }
+  } catch {
+    // ignore
+  }
+  return {};
+}
+
+export function detectCurrentStoreSlug(): string {
+  if (typeof window === 'undefined') return 'snu';
+  const pathname = window.location.pathname;
+  const match = pathname.match(/\/stores\/([^/?#]+)/);
+  if (match?.[1]) return match[1];
+
+  try {
+    const saved = window.localStorage ? window.localStorage.getItem(SELECTED_STORE_KEY) : null;
+    if (saved) return saved;
+  } catch {
+    // ignore
+  }
+  return 'snu';
+}
 
 function createPlaybackTabId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
@@ -278,9 +350,18 @@ export function useGlobalBroadcastScheduler(): void {
         const now = new Date();
         const currentMinuteKey = now.toISOString().slice(0, 16);
 
+        const storeMap = await fetchStoreMap();
+        const currentSlug = detectCurrentStoreSlug();
+        const currentStoreId = storeMap[currentSlug];
+
+        // 현재 지점에 해당하는 스케줄만 실행 (지점 정보가 있으면 필터링, 없으면 전체)
+        const relevantSchedules = currentStoreId
+          ? schedulesRef.current.filter((s) => !s.storeId || s.storeId === currentStoreId)
+          : schedulesRef.current;
+
         const previousCheck = lastCheckedAtRef.current;
         if (previousCheck && now.getTime() - previousCheck.getTime() > 70_000) {
-          for (const item of getSchedulesDueBetween(schedulesRef.current, previousCheck, now)) {
+          for (const item of getSchedulesDueBetween(relevantSchedules, previousCheck, now)) {
             const executionKey = `${item.id}:${item.dueAt.toISOString().slice(0, 16)}`;
             if (!executedKeysRef.current.has(executionKey)) {
               if (await claimPlaybackLease(item.storeId, playbackTabIdRef.current)) {
@@ -299,7 +380,7 @@ export function useGlobalBroadcastScheduler(): void {
           // Ignore storage errors in restricted/test environments
         }
 
-        for (const item of schedulesRef.current) {
+        for (const item of relevantSchedules) {
           const executionKey = `${item.id}:${currentMinuteKey}`;
           if (executedKeysRef.current.has(executionKey)) continue;
 

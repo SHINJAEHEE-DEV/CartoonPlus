@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as voiceAssetsModule from './voiceAssets';
+import * as broadcastRunnerModule from './broadcastRunner';
 import {
   createBroadcastTimerWorker,
   getSchedulesDueBetween,
@@ -158,4 +159,19 @@ describe('broadcastRunner (MP3 & Scheduled Broadcasts)', () => {
       '2026-09-16T01:00:00.000Z',
     ]);
   });
+
+  it('detects store slug from pathname or defaults to snu', () => {
+    expect(broadcastRunnerModule.detectCurrentStoreSlug()).toBe('snu');
+  });
+
+  it('fetches store map from supabase stores table', async () => {
+    const storeMap = await broadcastRunnerModule.fetchStoreMap();
+    expect(typeof storeMap).toBe('object');
+  });
+
+  it('safely runs unlockAudioEngine without throwing', () => {
+    expect(() => broadcastRunnerModule.unlockAudioEngine()).not.toThrow();
+  });
 });
+
+

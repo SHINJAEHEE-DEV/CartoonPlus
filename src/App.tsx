@@ -28,6 +28,7 @@ import { CustomerShell, StaffShell } from './features/layout/AppShell';
 import type { SearchableBook } from './lib/bookSearch';
 import { getApprovedStaffContext, signOutStaff } from './features/staff/staffAuth';
 import { StaffStoreProvider } from './features/staff/StaffStoreContext';
+import { StaffLoadingScreen } from './features/staff/StaffLoadingScreen';
 import { useGlobalBroadcastScheduler } from './lib/broadcastRunner';
 import {
   defaultPublicStore,
@@ -104,7 +105,7 @@ function ProtectedStaffRoute({
     });
   }, []);
 
-  if (role === undefined) return <p className="state-card">직원 권한을 확인하는 중입니다.</p>;
+  if (role === undefined) return <StaffLoadingScreen message="직원 권한을 확인하는 중입니다." />;
   if (role === null)
     return (
       <div className="staff-access-shell">
@@ -116,7 +117,6 @@ function ProtectedStaffRoute({
 
   return (
     <StaffStoreProvider isAdmin={role === 'admin'} defaultStoreSlug={storeSlug}>
-      <GlobalBroadcastService />
       <StaffShell
         currentPath={location.pathname}
         isAdmin={role === 'admin'}
@@ -191,6 +191,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <InternalLinkInterceptor />
+      <GlobalBroadcastService />
       <Routes>
         {/* Legacy Redirects */}
         <Route path="/search" element={<Navigate to="/books" replace />} />
