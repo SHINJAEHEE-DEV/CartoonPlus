@@ -2005,6 +2005,28 @@ button {
   margin-top: 6px;
 }
 
+.book-request-cancel-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: var(--radius-pill);
+  background: #f4f0e6;
+  color: var(--color-dark);
+  font-size: 14px;
+  font-weight: 900;
+  border: 2px solid var(--color-dark);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.book-request-cancel-btn:hover {
+  background: #e5dec9;
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 var(--color-dark);
+}
+
 /* Modal Success State */
 .book-request-success-view {
   display: flex;

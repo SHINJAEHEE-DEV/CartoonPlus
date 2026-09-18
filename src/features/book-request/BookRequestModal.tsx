@@ -165,7 +165,7 @@ export function BookRequestModal({
             <form onSubmit={handleSubmit} className="book-request-modal-form">
               <div className="book-request-field">
                 <label htmlFor="req-title" className="book-request-label">
-                  도서명 <span style={{ color: '#E03E3E' }}>*</span>
+                  도서명 (필수) <span style={{ color: '#E03E3E' }}>*</span>
                 </label>
                 <input
                   id="req-title"
@@ -237,8 +237,7 @@ export function BookRequestModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="secondary-btn"
-                  style={{ flex: '1', padding: '12px' }}
+                  className="book-request-cancel-btn"
                 >
                   취소
                 </button>

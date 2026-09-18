@@ -10,6 +10,7 @@ interface BookRequestItem {
   desired_volume: string | null;
   customer_comment?: string | null;
   status: string;
+  staff_note?: string | null;
   created_at?: string;
 }
 
@@ -17,7 +18,7 @@ const STATUS_LABELS: Record<string, { label: string; bg: string; text: string }>
   received: { label: '접수 대기', bg: '#FFF3C9', text: '#8A6A00' },
   ordered: { label: '주문 완료', bg: '#E3F2FD', text: '#1976D2' },
   completed: { label: '입고 완료', bg: '#E8F5E9', text: '#2E7D32' },
-  unavailable: { label: '입고 불가', bg: '#FFEBEE', text: '#D32F2F' },
+  unavailable: { label: '입고 취소', bg: '#FFEBEE', text: '#D32F2F' },
 };
 
 const PAGE_SIZE = 10;
@@ -28,6 +29,8 @@ export function BookRequestsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [message, setMessage] = useState('');
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [noteInput, setNoteInput] = useState<string>('');
 
   const load = async () => {
     if (!supabase) return;
@@ -37,7 +40,7 @@ export function BookRequestsPage() {
     }
     let query = supabase
       .from('book_requests')
-      .select('id,title,author,desired_volume,customer_comment,status,created_at')
+      .select('id,title,author,desired_volume,customer_comment,status,staff_note,created_at')
       .eq('store_id', selectedStoreId)
       .order('created_at', { ascending: false });
 
@@ -65,6 +68,30 @@ export function BookRequestsPage() {
     if (error) setMessage(error.message);
     else {
       setMessage('신청 상태를 변경했습니다.');
+      if (status === 'unavailable') {
+        setEditingNoteId(id);
+        const currentItem = items.find((i) => i.id === id);
+        setNoteInput(currentItem?.staff_note || '');
+      } else if (editingNoteId === id) {
+        setEditingNoteId(null);
+      }
+      await load();
+      setTimeout(() => setMessage(''), 3000);
+    }
+  };
+
+  const updateStaffNote = async (id: string, note: string) => {
+    if (!supabase) return;
+    const { error } = await supabase
+      .from('book_requests')
+      .update({ staff_note: note.trim() || null, updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (error) {
+      setMessage(error.message);
+    } else {
+      setMessage('취소 사유를 저장했습니다.');
+      setEditingNoteId(null);
       await load();
       setTimeout(() => setMessage(''), 3000);
     }
@@ -222,6 +249,147 @@ export function BookRequestsPage() {
                           💬 {item.customer_comment}
                         </div>
                       )}
+
+                      {/* 취소 사유 입력 또는 표시 (입고 취소 상태이거나 사유가 있는 경우) */}
+                      {editingNoteId === item.id ? (
+                        <div
+                          style={{
+                            marginTop: '8px',
+                            padding: '10px 12px',
+                            background: '#FFF5F5',
+                            border: '1.5px dashed #FFCDD2',
+                            borderRadius: '10px',
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: '12px',
+                              fontWeight: 800,
+                              color: '#D32F2F',
+                              marginBottom: '6px',
+                            }}
+                          >
+                            입고 취소 사유 (선택)
+                          </div>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                            <input
+                              type="text"
+                              value={noteInput}
+                              onChange={(e) => setNoteInput(e.target.value)}
+                              placeholder="취소 사유 입력 (예: 절판 도서, 단행본 미출간 등)"
+                              style={{
+                                flex: 1,
+                                padding: '6px 10px',
+                                fontSize: '12px',
+                                borderRadius: '6px',
+                                border: '1.5px solid #D32F2F',
+                                background: '#FFFFFF',
+                                outline: 'none',
+                                fontWeight: 600,
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  void updateStaffNote(item.id, noteInput);
+                                }
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => void updateStaffNote(item.id, noteInput)}
+                              style={{
+                                padding: '6px 12px',
+                                borderRadius: '6px',
+                                background: '#D32F2F',
+                                color: '#FFFFFF',
+                                fontSize: '12px',
+                                fontWeight: 800,
+                                border: 'none',
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              저장
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingNoteId(null);
+                                setNoteInput('');
+                              }}
+                              style={{
+                                padding: '6px 10px',
+                                borderRadius: '6px',
+                                background: '#ECEFF1',
+                                color: '#546E7A',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                border: 'none',
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              닫기
+                            </button>
+                          </div>
+                        </div>
+                      ) : item.staff_note ? (
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: '#D32F2F',
+                            fontWeight: 700,
+                            marginTop: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          <span>🚫 취소 사유: {item.staff_note}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingNoteId(item.id);
+                              setNoteInput(item.staff_note || '');
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#6B6354',
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              textDecoration: 'underline',
+                              cursor: 'pointer',
+                              padding: 0,
+                            }}
+                          >
+                            사유 수정
+                          </button>
+                        </div>
+                      ) : item.status === 'unavailable' ? (
+                        <div style={{ marginTop: '4px' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingNoteId(item.id);
+                              setNoteInput('');
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#D32F2F',
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              textDecoration: 'underline',
+                              cursor: 'pointer',
+                              padding: 0,
+                            }}
+                          >
+                            + 취소 사유 입력 (선택)
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
 
                     <div className="staff-item-row-actions">

@@ -85,7 +85,7 @@ cartoonplus/
 - `InventoryPage.tsx`: 수동 재고 추가/수정/삭제 및 CSV 재고 일괄 가져오기 화면.
 - `BroadcastPage.tsx`: 수동 즉시 방송 송출, 예약 방송 스케줄 등록/관리, 방송 실행 기록(로그) 모니터링.
 - `EventsPage.tsx`: 매장 진행 이벤트 등록, 이미지 첨부, 공개/숨김 제어.
-- `BookRequestsPage.tsx`: 손님이 신청한 도서의 상태 변경(`접수` ➔ `주문 완료` ➔ `입고 완료` / `입고 불가`).
+- `BookRequestsPage.tsx`: 손님이 신청한 도서의 상태 변경(`접수` ➔ `주문 완료` ➔ `입고 완료` / `입고 취소`).
 - `GamesPage.tsx`: 매장 보유 닌텐도/PS4 게임 팩 및 보드게임 카탈로그 관리.
 - `AdminAccountsPage.tsx`: 최고 관리자 전용 직원 계정 가입 승인/반려 및 권한(`staff`/`admin`) 관리 화면.
 - `StoreContentPage.tsx`: 지점별 운영 정보 및 시설 안내 텍스트/이미지 관리.
