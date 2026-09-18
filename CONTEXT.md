@@ -49,78 +49,96 @@ erDiagram
     STORE ||--o{ BOOK_INVENTORY : "지점별 재고"
     STORE ||--o{ BOOK_REQUEST : "도서 입고 신청"
     STORE ||--o{ ENTERTAINMENT_ITEM : "구비 게임"
-    STORE ||--o{ MENU_ITEM : "판매 메뉴"
+    STORE ||--o{ STORE_CONTENT : "지점 콘텐츠 (메뉴/요금/안내)"
+    STORE ||--o{ STORE_EVENT : "매장 이벤트"
     STORE ||--o{ BROADCAST_PRESET : "보유 프리셋"
-    STORE ||--o{ ADMIN_USER : "소속 직원"
+    STORE ||--o{ SCHEDULED_BROADCAST : "예약 방송"
+    STORE ||--o{ STAFF_ACCOUNT : "소속 직원"
 
     BOOK ||--o{ BOOK_INVENTORY : "도서 마스터 매핑"
+    SCHEDULED_BROADCAST ||--o{ BROADCAST_RUN : "실행 감사 기록"
 
     BOOK {
-        string id PK
+        uuid id PK
         string title "도서명"
         string normalized_title "정규화 제목"
         string initial_consonants "한글 초성"
         string author "작가"
         string publisher "출판사"
         string category "장르"
+        datetime archived_at "보관일시"
     }
 
     BOOK_INVENTORY {
-        string id PK
-        string store_id FK
-        string book_id FK
+        uuid id PK
+        uuid store_id FK
+        uuid book_id FK
         string volume_range "보유 권수 (예: 1~35권)"
+        int last_volume "마지막 보유 권수"
         string shelf_location "서가 위치 (예: A-04)"
         string note "특이사항"
+        datetime first_registered_at "최초 등록일시"
         datetime updated_at "최종 갱신일"
     }
 
     BOOK_REQUEST {
-        string id PK
-        string store_id FK
+        uuid id PK
+        uuid store_id FK
         string title "신청 도서명"
         string author "작가/출판사"
         string volume_range "희망 권수"
         string user_comment "손님 코멘트"
-        string status "상태 (PENDING | ORDERED | COMPLETED | REJECTED)"
+        string status "상태 (received | ordered | completed | unavailable)"
         string admin_reply "관리자 메모/답변"
         datetime created_at "신청일시"
     }
 
     ENTERTAINMENT_ITEM {
-        string id PK
-        string store_id FK
-        string type "종류 (NINTENDO | PLAYSTATION_4 | XBOX | BOARD_GAME)"
+        uuid id PK
+        uuid store_id FK
+        string item_type "종류 (nintendo | playstation_4 | xbox | board_game)"
         string title "타이틀명"
-        string players "지원 인원 (예: 1~4인)"
+        string players "지원 인원"
         string genre "장르/난이도"
+        int quantity "보유 수량"
         boolean is_available "이용 가능 여부"
     }
 
-    MENU_ITEM {
-        string id PK
-        string store_id FK
-        string category "카테고리 (MEAL | SNACK | BEV | PACKAGE)"
-        string name "메뉴명"
-        int price "가격"
-        boolean is_best "인기 메뉴 여부"
-        boolean is_soldout "품절 여부"
+    STORE_CONTENT {
+        uuid id PK
+        uuid store_id FK
+        string content_key "콘텐츠 키 (price_packages | beverage_items | food_items | store_info)"
+        jsonb content_value "콘텐츠 데이터"
+    }
+
+    STORE_EVENT {
+        uuid id PK
+        uuid store_id FK
+        string title "이벤트명"
+        string description "안내 문구"
+        date start_date "시작일"
+        date end_date "종료일"
+        boolean is_always_on "상시 진행 여부"
+        boolean is_public "고객 공개 여부"
     }
 
     BROADCAST_PRESET {
-        string id PK
-        string store_id FK "지점 공통 또는 전용"
+        uuid id PK
+        uuid store_id FK "지점 공통(NULL) 또는 전용"
         string preset_key "식별 키"
-        string title "버튼명 (예: 마감 10분 전)"
-        string message_text "TTS 음성 텍스트"
+        string title "프리셋명"
+        string source_type "음원 출처 (static | upload)"
+        string audio_url "음원 파일 URL"
+        datetime hidden_at "숨김일시"
         int sort_order "정렬 순서"
     }
 
-    ADMIN_USER {
-        string id PK
-        string store_id FK
-        string username "아이디/이름"
-        string password_hash "암호화 비밀번호"
-        string role "권한 (ADMIN | STAFF)"
+    STAFF_ACCOUNT {
+        uuid id PK "auth.users FK"
+        uuid store_id FK
+        string login_id "로그인 아이디"
+        string name "직원 이름"
+        string role "권한 (staff | admin)"
+        string status "상태 (pending | approved | deactivated)"
     }
 ```
