@@ -40,9 +40,12 @@ docs/internal/
 docs/assets/
 public/data/*
 !public/data/*.csv
-public/audio/
+public/audio/*
+!public/audio/broadcast/
+
 src/assets/*.png
 src/assets/*.jpg
+
 learning-records/
 MISSION.md
 NOTES.md

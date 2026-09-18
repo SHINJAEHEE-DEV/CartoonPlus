@@ -18,48 +18,49 @@ export interface BroadcastPresetItem {
 
 export const DEFAULT_STATIC_PRESETS: readonly BroadcastPresetItem[] = [
   {
-    title: '기본',
+    title: '기본 안내',
     message_text:
       '매장 이용 후 퇴실 시 사용하신 담요, 만화책, 식기 등을 모두 반납해 주시고 쓰레기는 쓰레기통에 버려 주시기 바랍니다.',
-    audio_url: '/audio/broadcast/default.mp3',
+    audio_url: '/audio/broadcast/기본 안내.wav',
     source_type: 'static',
   },
   {
-    title: '마감',
+    title: '11시 마감 안내',
     message_text:
       '안내 말씀드립니다. 저희 매장 이용 시간은 11시까지입니다. 10시 50분부터 마감 준비를 하오니 사용하신 담요, 만화책, 식기 등을 반납하고 자리 정돈 부탁드립니다.',
-    audio_url: '/audio/broadcast/closing.mp3',
+    audio_url: '/audio/broadcast/11시 마감 안내.wav',
     source_type: 'static',
   },
   {
-    title: '만석',
+    title: '만석 안내',
     message_text:
       '현재 만석으로 자리 이동이 제한됩니다. 퇴실 시 사용하신 담요, 만화책, 식기 등을 반납하고 자리 정돈 부탁드립니다.',
-    audio_url: '/audio/broadcast/full.mp3',
+    audio_url: '/audio/broadcast/만석 안내.wav',
     source_type: 'static',
   },
   {
-    title: '소음',
+    title: '소음 안내',
     message_text:
       '모든 고객님이 편안하게 이용하실 수 있도록 큰 소리는 삼가 주시고 자리 정돈 부탁드립니다.',
-    audio_url: '/audio/broadcast/noise.mp3',
+    audio_url: '/audio/broadcast/소음 안내.wav',
     source_type: 'static',
   },
   {
-    title: '신분증 검사',
+    title: '신분증 검사 안내',
     message_text:
       '잠시 후 10시부터 신분증 확인을 진행합니다. 계속 이용하실 고객님께서는 실물 신분증을 미리 준비해 주시기 바랍니다.',
-    audio_url: '/audio/broadcast/id_check.mp3',
+    audio_url: '/audio/broadcast/신분증 검사 안내.wav',
     source_type: 'static',
   },
   {
-    title: '음료 픽업 요청',
+    title: '음료 픽업 요청 안내',
     message_text:
       '주문하신 음료가 카운터에 준비되어 있습니다. 카카오톡 알림을 확인해 주시기 바랍니다.',
-    audio_url: '/audio/broadcast/drink_pickup.mp3',
+    audio_url: '/audio/broadcast/음료 픽업 요청 안내.wav',
     source_type: 'static',
   },
 ];
+
 
 export function canRegisterUploadedPreset(activeUploadedPresetCount: number): boolean {
   return activeUploadedPresetCount < MAX_UPLOAD_PRESETS_PER_STORE;

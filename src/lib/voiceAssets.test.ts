@@ -16,14 +16,18 @@ describe('voice asset public API', () => {
   it('provides default static presets with static audio URLs', () => {
     expect(DEFAULT_STATIC_PRESETS.length).toBe(6);
     expect(DEFAULT_STATIC_PRESETS.every((p) => p.source_type === 'static')).toBe(true);
-    expect(DEFAULT_STATIC_PRESETS.every((p) => typeof p.audio_url === 'string' && p.audio_url.endsWith('.mp3'))).toBe(true);
+    expect(
+      DEFAULT_STATIC_PRESETS.every(
+        (p) => typeof p.audio_url === 'string' && (p.audio_url.endsWith('.wav') || p.audio_url.endsWith('.mp3'))
+      )
+    ).toBe(true);
     expect(DEFAULT_STATIC_PRESETS.map((p) => p.title)).toEqual([
-      '기본',
-      '마감',
-      '만석',
-      '소음',
-      '신분증 검사',
-      '음료 픽업 요청',
+      '기본 안내',
+      '11시 마감 안내',
+      '만석 안내',
+      '소음 안내',
+      '신분증 검사 안내',
+      '음료 픽업 요청 안내',
     ]);
   });
 

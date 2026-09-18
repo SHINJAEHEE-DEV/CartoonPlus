@@ -114,12 +114,12 @@ describe('BroadcastPage MP3 preset management', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('기본')).toBeTruthy();
-      expect(screen.getByText('마감')).toBeTruthy();
-      expect(screen.getByText('만석')).toBeTruthy();
-      expect(screen.getByText('소음')).toBeTruthy();
-      expect(screen.getByText('신분증 검사')).toBeTruthy();
-      expect(screen.getByText('음료 픽업 요청')).toBeTruthy();
+      expect(screen.getByText('기본 안내')).toBeTruthy();
+      expect(screen.getByText('11시 마감 안내')).toBeTruthy();
+      expect(screen.getByText('만석 안내')).toBeTruthy();
+      expect(screen.getByText('소음 안내')).toBeTruthy();
+      expect(screen.getByText('신분증 검사 안내')).toBeTruthy();
+      expect(screen.getByText('음료 픽업 요청 안내')).toBeTruthy();
     });
 
     expect(await screen.findByText('매장 특별 이벤트 안내')).toBeTruthy();
@@ -135,14 +135,14 @@ describe('BroadcastPage MP3 preset management', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('기본')).toBeTruthy();
+      expect(screen.getByText('기본 안내')).toBeTruthy();
     });
 
     const playButtons = screen.getAllByRole('button', { name: /즉시 방송/i });
     fireEvent.click(playButtons[0]);
 
     await waitFor(() => {
-      expect(playSpy).toHaveBeenCalledWith('/audio/broadcast/default.mp3');
+      expect(playSpy).toHaveBeenCalledWith('/audio/broadcast/기본 안내.wav');
     });
   });
 
