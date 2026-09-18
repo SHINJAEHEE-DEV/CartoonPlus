@@ -70,9 +70,12 @@ describe('voice asset public API', () => {
     await expect(playVoiceAsset('https://example.test/invalid.mp3')).rejects.toThrow('MP3 방송 재생에 실패했습니다.');
   });
 
-  it('accepts only MP3 files up to 3MB', () => {
+  it('accepts common audio files (MP3, WAV, M4A, OGG) up to 3MB and rejects non-audio', () => {
     expect(validateVoiceAssetUpload(new File(['audio'], 'notice.mp3', { type: 'audio/mpeg' }))).toBeNull();
-    expect(validateVoiceAssetUpload(new File(['audio'], 'notice.wav', { type: 'audio/wav' }))).toMatch(/MP3/);
+    expect(validateVoiceAssetUpload(new File(['audio'], 'notice.wav', { type: 'audio/wav' }))).toBeNull();
+    expect(validateVoiceAssetUpload(new File(['audio'], 'notice.m4a', { type: 'audio/mp4' }))).toBeNull();
+    expect(validateVoiceAssetUpload(new File(['audio'], 'notice.ogg', { type: 'audio/ogg' }))).toBeNull();
+    expect(validateVoiceAssetUpload(new File(['text'], 'notice.pdf', { type: 'application/pdf' }))).toMatch(/음성/);
     expect(
       validateVoiceAssetUpload(
         new File([new Uint8Array(MAX_VOICE_ASSET_BYTES + 1)], 'large.mp3', { type: 'audio/mpeg' })

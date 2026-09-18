@@ -84,6 +84,9 @@ export function BroadcastPage() {
   const [editTitleModal, setEditTitleModal] = useState<{ id?: string; title: string; source_type: 'static' | 'upload' } | null>(null);
   const [isSavingTitle, setIsSavingTitle] = useState(false);
 
+  // 모달 상태: 대본 / 상세 정보 모달
+  const [detailModalPreset, setDetailModalPreset] = useState<BroadcastPresetItem | null>(null);
+
   const scheduleFormRef = useRef<HTMLFormElement>(null);
   const scheduleTypeSelectRef = useRef<HTMLSelectElement>(null);
 
@@ -623,8 +626,8 @@ export function BroadcastPage() {
                   }}
                 >
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '15px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '15.5px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
                         {preset.title}
                       </span>
                       <button
@@ -636,21 +639,27 @@ export function BroadcastPage() {
                         {isHidden ? '복구' : '숨김'}
                       </button>
                     </div>
-                    <p
+
+                    <button
+                      type="button"
+                      aria-label={`${preset.title} 대본 보기`}
+                      onClick={() => setDetailModalPreset(preset)}
                       style={{
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        background: '#FFFFFF',
+                        border: '1.5px solid var(--color-border, #1E1E1E)',
                         fontSize: '12px',
-                        color: 'var(--color-text-muted, #6B6354)',
-                        fontWeight: 600,
-                        lineHeight: 1.4,
-                        margin: 0,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
+                        fontWeight: 800,
+                        color: 'var(--color-dark, #1E1E1E)',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
                       }}
                     >
-                      {preset.message_text}
-                    </p>
+                      <span>📄 대본 보기</span>
+                    </button>
                   </div>
 
                   {!isHidden && (
@@ -707,7 +716,7 @@ export function BroadcastPage() {
                 </span>
               </div>
               <div style={{ fontSize: '12.5px', color: 'var(--color-text-muted, #6B6354)', fontWeight: 600 }}>
-                매장에서 직접 제작한 MP3 안내 음성을 등록하고 송출합니다. (3MB 이하 MP3)
+                매장에서 직접 제작한 음성 안내 파일을 등록하고 송출합니다. (3MB 이하 MP3, WAV, M4A 등)
               </div>
             </div>
 
@@ -733,13 +742,13 @@ export function BroadcastPage() {
                 transition: 'all 0.15s ease',
               }}
             >
-              + 새 MP3 프리셋 업로드
+              + 새 음성 프리셋 업로드
             </button>
           </div>
 
           {uploadedPresets.length === 0 ? (
             <div style={{ padding: '24px', textAlign: 'center', color: '#8A8175', fontSize: '13px', fontWeight: 600 }}>
-              등록된 지점 업로드 프리셋이 없습니다. (+ 새 MP3 프리셋 업로드 버튼을 눌러 등록하세요.)
+              등록된 지점 업로드 프리셋이 없습니다. (+ 새 음성 프리셋 업로드 버튼을 눌러 등록하세요.)
             </div>
           ) : (
             <div
@@ -768,8 +777,8 @@ export function BroadcastPage() {
                     }}
                   >
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '15px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '15.5px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
                           {preset.title}
                         </span>
                         <div style={{ display: 'flex', gap: '4px' }}>
@@ -791,9 +800,28 @@ export function BroadcastPage() {
                           </button>
                         </div>
                       </div>
-                      <span style={{ fontSize: '11px', color: '#8A8175', fontWeight: 700 }}>
-                        📁 사용자 업로드 MP3
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button
+                          type="button"
+                          aria-label={`${preset.title} 대본 보기`}
+                          onClick={() => setDetailModalPreset(preset)}
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            background: '#FFFFFF',
+                            border: '1.5px solid var(--color-border, #1E1E1E)',
+                            fontSize: '12px',
+                            fontWeight: 800,
+                            color: 'var(--color-dark, #1E1E1E)',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <span>📄 대본 / 파일 정보</span>
+                        </button>
+                      </div>
                     </div>
 
                     <button
@@ -1197,7 +1225,7 @@ export function BroadcastPage() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 id="upload-modal-title" style={{ margin: 0, fontSize: '20px', fontWeight: 900 }}>
-                새 MP3 방송 프리셋 등록
+                새 음성 방송 프리셋 등록
               </h2>
               <button
                 type="button"
@@ -1248,29 +1276,90 @@ export function BroadcastPage() {
             </div>
 
             <div>
-              <label htmlFor="upload-preset-file" style={{ display: 'block', fontSize: '13px', fontWeight: 900, marginBottom: '6px' }}>
-                MP3 음성 파일 (최대 3MB)
-              </label>
+              <span style={{ display: 'block', fontSize: '13px', fontWeight: 900, marginBottom: '6px' }}>
+                음성 파일 선택 (최대 3MB)
+              </span>
               <input
                 id="upload-preset-file"
                 type="file"
-                required
-                accept=".mp3,audio/mpeg"
+                accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.webm,.flac"
+                style={{ display: 'none' }}
                 onChange={(e) => {
                   const file = e.target.files?.[0] || null;
                   setUploadFile(file);
                 }}
-                style={{
-                  width: '100%',
-                  boxSizing: 'border-box',
-                  padding: '10px',
-                  borderRadius: '10px',
-                  border: '2px solid var(--color-border, #1E1E1E)',
-                  background: '#FFF',
-                  fontSize: '13px',
-                }}
               />
-              <p style={{ margin: '6px 0 0', fontSize: '12px', color: '#8A8175' }}>
+
+              {!uploadFile ? (
+                <label
+                  htmlFor="upload-preset-file"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    padding: '24px 16px',
+                    borderRadius: '12px',
+                    border: '2px dashed var(--color-border, #1E1E1E)',
+                    background: '#FAF8F5',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <span style={{ fontSize: '28px' }}>📂</span>
+                  <span style={{ fontSize: '14px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
+                    클릭하여 음성 파일 선택
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#8A8175', fontWeight: 600 }}>
+                    MP3, WAV, M4A, OGG 등 (최대 3MB)
+                  </span>
+                </label>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    border: '2px solid var(--color-border, #1E1E1E)',
+                    background: 'var(--color-yellow-light, #FFF3C9)',
+                    boxShadow: '2px 2px 0 var(--color-border, #1E1E1E)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                    <span style={{ fontSize: '22px' }}>🎵</span>
+                    <div style={{ minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: '13.5px',
+                          fontWeight: 900,
+                          color: 'var(--color-dark, #1E1E1E)',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {uploadFile.name}
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: '#6B6354', fontWeight: 700 }}>
+                        {(uploadFile.size / (1024 * 1024)).toFixed(2)} MB
+                      </div>
+                    </div>
+                  </div>
+                  <label
+                    htmlFor="upload-preset-file"
+                    className="btn-neo-sub"
+                    style={{ cursor: 'pointer', flexShrink: 0 }}
+                  >
+                    파일 변경
+                  </label>
+                </div>
+              )}
+
+              <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#8A8175' }}>
                 * 업로드된 음성 파일은 Supabase Storage에 보관되며 모든 카운터 PC에서 재생됩니다.
               </p>
             </div>
@@ -1294,16 +1383,16 @@ export function BroadcastPage() {
               </button>
               <button
                 type="submit"
-                disabled={isUploading}
+                disabled={isUploading || !uploadFile}
                 style={{
                   padding: '10px 20px',
                   border: '2px solid var(--color-border, #1E1E1E)',
                   borderRadius: '10px',
-                  background: 'var(--color-yellow, #FED943)',
+                  background: uploadFile ? 'var(--color-yellow, #FED943)' : '#E0DCD3',
                   fontWeight: 900,
                   fontSize: '13px',
-                  cursor: isUploading ? 'not-allowed' : 'pointer',
-                  boxShadow: '2px 2px 0 var(--color-border, #1E1E1E)',
+                  cursor: isUploading || !uploadFile ? 'not-allowed' : 'pointer',
+                  boxShadow: uploadFile ? '2px 2px 0 var(--color-border, #1E1E1E)' : 'none',
                 }}
               >
                 {isUploading ? '업로드 중...' : '업로드 및 저장'}
@@ -1413,6 +1502,148 @@ export function BroadcastPage() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* 7. 프리셋 대본 / 상세 정보 모달 */}
+      {detailModalPreset && (
+        <div
+          role="presentation"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setDetailModalPreset(null);
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100,
+            display: 'grid',
+            placeItems: 'center',
+            padding: '20px',
+            background: 'rgba(30, 30, 30, 0.65)',
+            backdropFilter: 'blur(3px)',
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${detailModalPreset.title} 안내 방송 대본`}
+            style={{
+              width: 'min(100%, 480px)',
+              background: '#FFFDF9',
+              border: '3px solid var(--color-border, #1E1E1E)',
+              borderRadius: '20px',
+              padding: '24px',
+              boxShadow: '7px 7px 0 var(--color-border, #1E1E1E)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+              <div>
+                <span
+                  style={{
+                    display: 'inline-block',
+                    fontSize: '11px',
+                    fontWeight: 900,
+                    padding: '3px 8px',
+                    borderRadius: 'var(--radius-pill, 999px)',
+                    background: detailModalPreset.source_type === 'static' ? '#FFF3C9' : '#D1E8FF',
+                    border: '1.5px solid var(--color-border, #1E1E1E)',
+                    marginBottom: '6px',
+                  }}
+                >
+                  {detailModalPreset.source_type === 'static' ? '📻 기본 정적 안내' : '🎙️ 지점 업로드 음성'}
+                </span>
+                <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
+                  {detailModalPreset.title}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDetailModalPreset(null)}
+                aria-label="닫기"
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  border: '2px solid var(--color-border, #1E1E1E)',
+                  borderRadius: '50%',
+                  background: '#FFF',
+                  cursor: 'pointer',
+                  fontWeight: 900,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: 900, color: '#8A8175', marginBottom: '6px' }}>
+                안내 방송 대본 (전체 문구)
+              </div>
+              <div
+                style={{
+                  padding: '16px',
+                  background: 'var(--color-panel-cream, #FFF9EC)',
+                  border: '2px solid var(--color-border, #1E1E1E)',
+                  borderRadius: '12px',
+                  fontSize: '14px',
+                  lineHeight: 1.6,
+                  color: 'var(--color-dark, #1E1E1E)',
+                  fontWeight: 600,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  maxHeight: '260px',
+                  overflowY: 'auto',
+                }}
+              >
+                {detailModalPreset.message_text || '(별도로 작성된 텍스트 대본이 없는 음성 파일입니다.)'}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '4px' }}>
+              <button
+                type="button"
+                onClick={() => setDetailModalPreset(null)}
+                style={{
+                  padding: '10px 16px',
+                  border: '2px solid var(--color-border, #1E1E1E)',
+                  borderRadius: '10px',
+                  background: '#FFF',
+                  fontWeight: 900,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                }}
+              >
+                닫기
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const target = detailModalPreset;
+                  setDetailModalPreset(null);
+                  void play(target);
+                }}
+                disabled={status === '재생 중'}
+                style={{
+                  padding: '10px 20px',
+                  border: '2px solid var(--color-border, #1E1E1E)',
+                  borderRadius: '10px',
+                  background: 'var(--color-yellow, #FED943)',
+                  fontWeight: 900,
+                  fontSize: '13px',
+                  cursor: status === '재생 중' ? 'not-allowed' : 'pointer',
+                  boxShadow: '2px 2px 0 var(--color-border, #1E1E1E)',
+                }}
+              >
+                ▶ 즉시 방송
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

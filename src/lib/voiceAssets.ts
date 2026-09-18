@@ -66,10 +66,15 @@ export function canRegisterUploadedPreset(activeUploadedPresetCount: number): bo
   return activeUploadedPresetCount < MAX_UPLOAD_PRESETS_PER_STORE;
 }
 
+const SUPPORTED_AUDIO_EXTENSIONS = ['.mp3', '.wav', '.m4a', '.aac', '.ogg', '.webm', '.flac', '.opus', '.wma'];
+
 export function validateVoiceAssetUpload(file: File): string | null {
-  const isMp3 = file.type === 'audio/mpeg' || file.name.toLowerCase().endsWith('.mp3');
-  if (!isMp3) return 'MP3 파일만 업로드할 수 있습니다.';
-  if (file.size > MAX_VOICE_ASSET_BYTES) return 'MP3 파일은 3MB 이하여야 합니다.';
+  const fileName = file.name.toLowerCase();
+  const hasAudioExtension = SUPPORTED_AUDIO_EXTENSIONS.some((ext) => fileName.endsWith(ext));
+  const isAudioType = file.type.startsWith('audio/') || hasAudioExtension;
+
+  if (!isAudioType) return '음성(오디오) 파일만 업로드할 수 있습니다. (MP3, WAV, M4A, OGG 등)';
+  if (file.size > MAX_VOICE_ASSET_BYTES) return '음성 파일은 3MB 이하여야 합니다.';
   return null;
 }
 
@@ -89,14 +94,15 @@ export async function uploadVoiceAsset(
 
   const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
   const filePath = `${storeId}/${Date.now()}-${safeFileName}`;
+  const contentType = file.type || 'audio/mpeg';
 
   const { data, error } = await storageClient.from(VOICE_ASSET_BUCKET).upload(filePath, file, {
-    contentType: 'audio/mpeg',
+    contentType,
     upsert: false,
   });
 
   if (error || !data) {
-    throw new Error(`MP3 파일 업로드에 실패했습니다: ${error?.message ?? '알 수 없는 오류'}`);
+    throw new Error(`음성 파일 업로드에 실패했습니다: ${error?.message ?? '알 수 없는 오류'}`);
   }
 
   const { data: publicData } = storageClient.from(VOICE_ASSET_BUCKET).getPublicUrl(data.path);

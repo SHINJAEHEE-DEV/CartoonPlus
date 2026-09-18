@@ -150,10 +150,10 @@ describe('BroadcastPage MP3 preset management', () => {
     });
   });
 
-  it('allows opening upload modal and uploading an MP3 preset', async () => {
+  it('allows opening upload modal and uploading an audio preset (MP3/WAV/etc)', async () => {
     const uploadSpy = vi.spyOn(voiceAssetsModule, 'uploadVoiceAsset').mockResolvedValue({
-      url: 'https://storage.test/broadcast-audio/store-uuid-1/arrival.mp3',
-      path: 'store-uuid-1/arrival.mp3',
+      url: 'https://storage.test/broadcast-audio/store-uuid-1/arrival.wav',
+      path: 'store-uuid-1/arrival.wav',
     });
 
     render(
@@ -162,23 +162,45 @@ describe('BroadcastPage MP3 preset management', () => {
       </MemoryRouter>
     );
 
-    const addUploadBtn = await screen.findByRole('button', { name: /\+ 새 MP3 프리셋 업로드/i });
+    const addUploadBtn = await screen.findByRole('button', { name: /\+ 새 음성 프리셋 업로드/i });
     fireEvent.click(addUploadBtn);
 
-    expect(screen.getByText('새 MP3 방송 프리셋 등록')).toBeTruthy();
+    expect(screen.getByText('새 음성 방송 프리셋 등록')).toBeTruthy();
 
     const titleInput = screen.getByLabelText('프리셋 제목', { selector: '#upload-preset-title' });
-    const fileInput = screen.getByLabelText('MP3 음성 파일 (최대 3MB)', { selector: '#upload-preset-file' });
+    const fileInput = document.querySelector('#upload-preset-file') as HTMLInputElement;
 
     fireEvent.change(titleInput, { target: { value: '신규 도서 입고 안내' } });
-    const dummyFile = new File(['dummy audio content'], 'arrival.mp3', { type: 'audio/mpeg' });
+    const dummyFile = new File(['dummy audio content'], 'arrival.wav', { type: 'audio/wav' });
     fireEvent.change(fileInput, { target: { files: [dummyFile] } });
 
-    const form = screen.getByRole('dialog');
-    fireEvent.submit(form);
+    expect(screen.getByText('arrival.wav')).toBeTruthy();
+
+    const submitBtn = screen.getByRole('button', { name: '업로드 및 저장' });
+    fireEvent.click(submitBtn);
 
     await waitFor(() => {
       expect(uploadSpy).toHaveBeenCalledWith('store-uuid-1', dummyFile);
+    });
+  });
+
+  it('opens script detail modal when clicking view script button', async () => {
+    render(
+      <MemoryRouter>
+        <BroadcastPage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('기본 안내')).toBeTruthy();
+    });
+
+    const scriptButtons = screen.getAllByRole('button', { name: /대본 보기/i });
+    fireEvent.click(scriptButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText('안내 방송 대본 (전체 문구)')).toBeTruthy();
+      expect(screen.getByText(/매장 이용 후 퇴실 시 사용하신 담요/)).toBeTruthy();
     });
   });
 
