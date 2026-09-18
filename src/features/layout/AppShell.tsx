@@ -446,7 +446,12 @@ export function StaffShell({
     <div className="staff-shell">
       {/* 모바일 전용 컴팩트 상단 헤더 */}
       <header className="staff-mobile-header">
-        <div className="staff-mobile-header-brand">
+        <a
+          href="/"
+          className="staff-mobile-header-brand"
+          style={{ textDecoration: 'none', color: 'inherit' }}
+          aria-label="카툰플러스 고객 홈"
+        >
           <div className="staff-mobile-logo-wrap">
             <img src={MASCOT_ASSETS.logoCircle} alt="카툰플러스" />
           </div>
@@ -454,7 +459,7 @@ export function StaffShell({
             <span className="staff-mobile-title">STAFF</span>
             <span className="staff-mobile-store">{storeName ?? '카툰플러스'}</span>
           </div>
-        </div>
+        </a>
 
         <div className="staff-mobile-header-actions">
           {isAdmin && <StaffStoreSelector variant="header" />}
@@ -494,7 +499,17 @@ export function StaffShell({
           />
           <aside className="staff-drawer" aria-label="직원 모바일 메뉴">
             <div className="staff-drawer-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <a
+                href="/"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                }}
+                aria-label="카툰플러스 고객 홈"
+              >
                 <div className="staff-mobile-logo-wrap">
                   <img src={MASCOT_ASSETS.logoCircle} alt="카툰플러스" />
                 </div>
@@ -515,7 +530,7 @@ export function StaffShell({
                       : `STAFF · ${storeName ?? '소속 지점 확인 중'}`}
                   </div>
                 </div>
-              </div>
+              </a>
               <button
                 type="button"
                 className="staff-drawer-close-btn"
@@ -555,13 +570,6 @@ export function StaffShell({
               </nav>
 
               <div className="staff-drawer-footer">
-                <a
-                  href="/"
-                  className="staff-drawer-customer-link"
-                  onClick={() => setIsDrawerOpen(false)}
-                >
-                  ← 고객 화면 보기
-                </a>
                 <button
                   type="button"
                   onClick={() => {
@@ -580,7 +588,7 @@ export function StaffShell({
 
       {/* 데스크톱 사이드바 */}
       <aside className="staff-sidebar">
-        <Brand />
+        <Brand enableDropdown={false} allowStaffEntry={false} />
         <div
           style={{
             fontSize: '11px',
@@ -623,25 +631,11 @@ export function StaffShell({
             fontSize: '12px',
             fontWeight: 800,
             textAlign: 'center',
+            cursor: 'pointer',
           }}
         >
           로그아웃
         </button>
-        <a
-          href="/"
-          style={{
-            marginTop: 'auto',
-            padding: '10px 14px',
-            borderRadius: '999px',
-            border: '2px solid #4A4438',
-            color: '#FED943',
-            fontSize: '12px',
-            fontWeight: 800,
-            textAlign: 'center',
-          }}
-        >
-          ← 고객 화면 보기
-        </a>
       </aside>
 
       <main className="staff-content">{children}</main>

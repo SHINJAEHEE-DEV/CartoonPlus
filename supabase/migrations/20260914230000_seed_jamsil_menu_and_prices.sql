@@ -19,7 +19,7 @@ with jamsil as (select id from public.stores where slug = 'jamsil')
 insert into public.store_content (store_id, content_key, content_value)
 select jamsil.id, 'food_items', jsonb_build_object(
   'foods', jsonb_build_array(
-    jsonb_build_object('id', 'f-ramen', 'name', '라면 (전제품 동일가격)', 'price', 4000, 'category', 'meal', 'categoryKo', '라면/음식', 'note', '대파·숙주·떡·계란 토핑 바 무료', 'isPopular', true),
+    jsonb_build_object('id', 'f-ramen', 'name', '라면 (전제품 동일가격)', 'price', 4000, 'category', 'meal', 'categoryKo', '라면/음식', 'note', '대파·콩나물·청양고추·떡사리·만두·비엔나소시지·치즈·어묵 8종 토핑 바 무료', 'isPopular', true),
     jsonb_build_object('id', 'f-chicken', 'name', '치킨', 'price', 5000, 'category', 'meal', 'categoryKo', '라면/음식', 'isPopular', true),
     jsonb_build_object('id', 'f-dumpling', 'name', '만두', 'price', 4000, 'category', 'meal', 'categoryKo', '라면/음식'),
     jsonb_build_object('id', 'f-fried-rice', 'name', '볶음밥', 'price', 4000, 'category', 'meal', 'categoryKo', '라면/음식'),
@@ -27,7 +27,7 @@ select jamsil.id, 'food_items', jsonb_build_object(
     jsonb_build_object('id', 'f-kimbap', 'name', '김밥', 'price', 4800, 'category', 'meal', 'categoryKo', '라면/음식'),
     jsonb_build_object('id', 'f-tteokbokki-masitta', 'name', '떡볶이 (마시따)', 'price', 4000, 'category', 'meal', 'categoryKo', '라면/음식'),
     jsonb_build_object('id', 'f-tteokbokki-orig', 'name', '떡볶이 (오리지날)', 'price', 4800, 'category', 'meal', 'categoryKo', '라면/음식', 'isPopular', true),
-    jsonb_build_object('id', 'f-sotteok', 'name', '소떡', 'price', 3000, 'category', 'meal', 'categoryKo', '라면/음식'),
+    jsonb_build_object('id', 'f-sotteok', 'name', '소떡소떡', 'price', 3000, 'category', 'meal', 'categoryKo', '라면/음식'),
     jsonb_build_object('id', 'f-hotdog', 'name', '핫도그', 'price', 2500, 'category', 'meal', 'categoryKo', '라면/음식'),
     jsonb_build_object('id', 'f-frank', 'name', '닭가슴살 후랑크', 'price', 1800, 'category', 'meal', 'categoryKo', '라면/음식'),
     jsonb_build_object('id', 'f-instant-rice', 'name', '햇반', 'price', 2000, 'category', 'meal', 'categoryKo', '라면/음식'),

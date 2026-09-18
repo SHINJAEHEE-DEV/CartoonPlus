@@ -78,4 +78,22 @@ describe('CustomerShell', () => {
     expect(screen.getByRole('menuitem', { name: /홍대점/ })).toBeTruthy();
     expect(screen.getByRole('menuitem', { name: /서울대입구역점/ })).toBeTruthy();
   });
+
+  it('links logo to customer home and does not show customer view button in StaffShell', () => {
+    render(
+      <StaffShell currentPath="/staff/dashboard" isAdmin={true}>
+        <h1>운영</h1>
+      </StaffShell>
+    );
+
+    const brand = screen.getByRole('link', { name: '카툰플러스 홈' });
+    expect(brand.getAttribute('href')).toBe('/');
+
+    // 지점 드롭다운이 Brand 클릭 시 열리지 않음
+    fireEvent.click(brand);
+    expect(screen.queryByRole('menu', { name: '지점 선택' })).toBeNull();
+
+    // 고객 화면 보기 버튼이 제거됨
+    expect(screen.queryByRole('link', { name: /고객 화면 보기/ })).toBeNull();
+  });
 });

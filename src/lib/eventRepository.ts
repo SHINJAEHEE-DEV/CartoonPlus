@@ -42,7 +42,8 @@ export const INITIAL_EVENTS: ManagedEvent[] = [
     title: '네이버 영수증 포토 리뷰 — 라면 무료 쿠폰',
     tag: '상시 리뷰 쿠폰',
     target: '네이버 플레이스 영수증 인증 후 포토 리뷰 작성 고객 전원',
-    detail: '즉석 한강 라면 무료 + 계란·대파·숙주·떡사리 4종 무제한 토핑 바 100% 무료 제공',
+    detail:
+      '즉석 한강 라면 무료 + 대파·콩나물·청양고추·떡사리·만두·비엔나소시지·치즈·어묵 8종 무제한 토핑 바 100% 무료 제공',
     bannerType: 'naver_ramen',
     isAlwaysOn: true,
     isPublic: true,

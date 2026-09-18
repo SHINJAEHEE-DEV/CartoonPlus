@@ -230,7 +230,7 @@ export function MenuPage() {
                 marginTop: '4px',
               }}
             >
-              라면 주문 시 4종 토핑 무제한 무료
+              라면 주문 시 8종 토핑 무제한 무료
             </div>
             <div
               style={{
@@ -242,7 +242,7 @@ export function MenuPage() {
               }}
             >
               신라면·짜파게티·너구리 등 한강 라면 조리기 완비!{' '}
-              <strong>계란 · 대파 · 숙주 · 떡사리</strong>를 원하는 만큼 무료로 넣어 드세요.
+              <strong>대파 · 콩나물 · 청양고추 · 떡사리 · 만두 · 비엔나소시지 · 치즈 · 어묵</strong>을 원하는 만큼 무료로 넣어 드세요.
             </div>
           </div>
         </div>
