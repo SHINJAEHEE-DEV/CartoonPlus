@@ -23,6 +23,7 @@ const mockPresetsData = [
 
 const presetsQuery = {
   select: vi.fn().mockReturnThis(),
+  eq: vi.fn().mockReturnThis(),
   or: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
   insert: vi.fn().mockResolvedValue({ data: [{ id: 'new-1' }], error: null }),

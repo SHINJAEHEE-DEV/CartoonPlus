@@ -168,13 +168,13 @@ export function BroadcastPage() {
     );
   };
 
-  const loadPresets = async () => {
-    if (!supabase || !storeId) return;
+  const loadPresets = async (targetStoreId = storeId) => {
+    if (!supabase || !targetStoreId) return;
     try {
       const { data, error } = await supabase
         .from('broadcast_presets')
         .select('id, store_id, title, message_text, audio_url, source_type, hidden_at')
-        .or(`store_id.eq.${storeId},source_type.eq.static`)
+        .eq('store_id', targetStoreId)
         .order('created_at', { ascending: true });
 
       if (error) {
@@ -185,9 +185,7 @@ export function BroadcastPage() {
 
       const dbPresets = (data ?? []) as BroadcastPresetItem[];
       const mergedStatic: BroadcastPresetItem[] = DEFAULT_STATIC_PRESETS.map((def) => {
-        const found =
-          dbPresets.find((p) => p.source_type === 'static' && p.title === def.title && p.store_id === storeId) ??
-          dbPresets.find((p) => p.source_type === 'static' && p.title === def.title);
+        const found = dbPresets.find((p) => p.source_type === 'static' && p.title === def.title);
         if (found) {
           return {
             ...def,
@@ -200,7 +198,7 @@ export function BroadcastPage() {
       });
 
       const uploaded: BroadcastPresetItem[] = dbPresets.filter(
-        (p) => p.source_type === 'upload' && p.store_id === storeId
+        (p) => p.source_type === 'upload' && p.store_id === targetStoreId
       );
 
       setStaticPresets(mergedStatic);
@@ -351,7 +349,7 @@ export function BroadcastPage() {
     const setup = async () => {
       if (!storeId) return;
       await loadSchedules(storeId);
-      await loadPresets();
+      await loadPresets(storeId);
       await loadMissedRuns(storeId);
     };
     void setup();
@@ -359,7 +357,7 @@ export function BroadcastPage() {
 
   useEffect(() => {
     if (!storeId) return;
-    const interval = window.setInterval(() => void loadMissedRuns(), 30_000);
+    const interval = window.setInterval(() => void loadMissedRuns(storeId), 30_000);
     return () => window.clearInterval(interval);
   }, [storeId]);
 
