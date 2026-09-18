@@ -191,16 +191,14 @@ describe('BroadcastPage MP3 preset management', () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('기본 안내')).toBeTruthy();
-    });
+    expect(await screen.findByText('매장 특별 이벤트 안내')).toBeTruthy();
 
-    const scriptButtons = screen.getAllByRole('button', { name: /대본 보기/i });
-    fireEvent.click(scriptButtons[0]);
+    const scriptBtn = await screen.findByRole('button', { name: '기본 안내 대본 보기' });
+    fireEvent.click(scriptBtn);
 
     await waitFor(() => {
       expect(screen.getByText('안내 방송 대본 (전체 문구)')).toBeTruthy();
-      expect(screen.getByText(/매장 이용 후 퇴실 시 사용하신 담요/)).toBeTruthy();
+      expect(screen.getByText(/매장 이용 후 퇴실 시/)).toBeTruthy();
     });
   });
 

@@ -168,37 +168,43 @@ export function BroadcastPage() {
 
   const loadPresets = async () => {
     if (!supabase || !storeId) return;
-    const { data, error } = await supabase
-      .from('broadcast_presets')
-      .select('id, store_id, title, message_text, audio_url, source_type, hidden_at')
-      .or(`store_id.eq.${storeId},source_type.eq.static`)
-      .order('created_at', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('broadcast_presets')
+        .select('id, store_id, title, message_text, audio_url, source_type, hidden_at')
+        .or(`store_id.eq.${storeId},source_type.eq.static`)
+        .order('created_at', { ascending: true });
 
-    if (error) {
-      setScheduleStatus(`프리셋을 불러오지 못했습니다: ${error.message}`);
-      return;
-    }
-
-    const dbPresets = (data ?? []) as BroadcastPresetItem[];
-    const mergedStatic: BroadcastPresetItem[] = DEFAULT_STATIC_PRESETS.map((def) => {
-      const found = dbPresets.find((p) => p.source_type === 'static' && p.title === def.title);
-      if (found) {
-        return {
-          ...def,
-          id: found.id,
-          hidden_at: found.hidden_at,
-          audio_url: found.audio_url || def.audio_url,
-        };
+      if (error) {
+        console.warn('프리셋 로드 실패 (기본 정적 프리셋 사용):', error.message);
+        setStaticPresets([...DEFAULT_STATIC_PRESETS]);
+        return;
       }
-      return def;
-    });
 
-    const uploaded: BroadcastPresetItem[] = dbPresets.filter(
-      (p) => p.source_type === 'upload' && p.store_id === storeId
-    );
+      const dbPresets = (data ?? []) as BroadcastPresetItem[];
+      const mergedStatic: BroadcastPresetItem[] = DEFAULT_STATIC_PRESETS.map((def) => {
+        const found = dbPresets.find((p) => p.source_type === 'static' && p.title === def.title);
+        if (found) {
+          return {
+            ...def,
+            id: found.id,
+            hidden_at: found.hidden_at,
+            audio_url: found.audio_url || def.audio_url,
+          };
+        }
+        return def;
+      });
 
-    setStaticPresets(mergedStatic);
-    setUploadedPresets(uploaded);
+      const uploaded: BroadcastPresetItem[] = dbPresets.filter(
+        (p) => p.source_type === 'upload' && p.store_id === storeId
+      );
+
+      setStaticPresets(mergedStatic);
+      setUploadedPresets(uploaded);
+    } catch (err) {
+      console.warn('프리셋 로드 중 오류 발생:', err);
+      setStaticPresets([...DEFAULT_STATIC_PRESETS]);
+    }
   };
 
   const loadMissedRuns = async (targetStoreId = storeId) => {
@@ -643,7 +649,10 @@ export function BroadcastPage() {
                     <button
                       type="button"
                       aria-label={`${preset.title} 대본 보기`}
-                      onClick={() => setDetailModalPreset(preset)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDetailModalPreset({ ...preset });
+                      }}
                       style={{
                         padding: '4px 10px',
                         borderRadius: '8px',
@@ -804,7 +813,7 @@ export function BroadcastPage() {
                         <button
                           type="button"
                           aria-label={`${preset.title} 대본 보기`}
-                          onClick={() => setDetailModalPreset(preset)}
+                          onClick={() => setDetailModalPreset({ ...preset })}
                           style={{
                             padding: '4px 10px',
                             borderRadius: '8px',
@@ -1085,16 +1094,12 @@ export function BroadcastPage() {
           </div>
         </form>
 
-        {/* 등록된 스케줄 목록 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ fontSize: '14px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
-            등록된 자동 방송 목록 ({schedules.length}건)
-          </div>
-          {schedules.length === 0 ? (
-            <div style={{ padding: '20px', textAlign: 'center', color: '#8A8175', fontSize: '13px' }}>
-              등록된 예약 방송이 없습니다.
+        {/* 등록된 스케줄 목록 (예약이 1건 이상 있을 때만 노출) */}
+        {schedules.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
+              등록된 자동 방송 목록 ({schedules.length}건)
             </div>
-          ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {schedules.map((item) => (
                 <div
@@ -1152,32 +1157,28 @@ export function BroadcastPage() {
                 </div>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
-      {/* 4. 최근 미실행 기록 */}
-      <div
-        className="staff-section-card"
-        style={{
-          background: missedRuns.length > 0 ? '#FFF5F5' : '#FAF8F5',
-          border: `2px solid ${missedRuns.length > 0 ? '#FFA8A8' : 'var(--color-border, #1E1E1E)'}`,
-          borderRadius: '16px',
-          padding: '16px 20px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '15px' }}>{missedRuns.length > 0 ? '⚠️' : '✅'}</span>
-          <strong style={{ fontSize: '14px', color: missedRuns.length > 0 ? '#C92A2A' : 'var(--color-dark, #1E1E1E)' }}>
-            미실행 예약 방송 기록
-          </strong>
-        </div>
+      {/* 4. 최근 미실행 기록 (미실행 건이 있을 때만 노출) */}
+      {missedRuns.length > 0 && (
+        <div
+          className="staff-section-card"
+          style={{
+            background: '#FFF5F5',
+            border: '2px solid #FFA8A8',
+            borderRadius: '16px',
+            padding: '16px 20px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '15px' }}>⚠️</span>
+            <strong style={{ fontSize: '14px', color: '#C92A2A' }}>
+              미실행 예약 방송 기록
+            </strong>
+          </div>
 
-        {missedRuns.length === 0 ? (
-          <p style={{ margin: '8px 0 0 0', fontSize: '12.5px', color: 'var(--color-text-muted, #6B6354)', fontWeight: 600 }}>
-            최근 미실행된 예약 방송이 없습니다. 모든 스케줄이 정상 작동 중입니다.
-          </p>
-        ) : (
           <ul style={{ margin: '10px 0 0', paddingLeft: '20px', fontSize: '13px', color: '#C92A2A', lineHeight: 1.6 }}>
             {missedRuns.map((run) => (
               <li key={run.id}>
@@ -1185,8 +1186,8 @@ export function BroadcastPage() {
               </li>
             ))}
           </ul>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* 5. 새 MP3 프리셋 업로드 모달 */}
       {uploadModalOpen && (
@@ -1509,7 +1510,7 @@ export function BroadcastPage() {
       {detailModalPreset && (
         <div
           role="presentation"
-          onMouseDown={(e) => {
+          onClick={(e) => {
             if (e.target === e.currentTarget) setDetailModalPreset(null);
           }}
           style={{
