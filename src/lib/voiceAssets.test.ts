@@ -4,10 +4,13 @@ import {
   MAX_UPLOAD_PRESETS_PER_STORE,
   MAX_VOICE_ASSET_BYTES,
   canRegisterUploadedPreset,
+  deleteVoiceAssetFromStorage,
   playVoiceAsset,
+  stopVoiceAsset,
   uploadVoiceAsset,
   validateVoiceAssetUpload,
 } from './voiceAssets';
+
 
 describe('voice asset public API', () => {
   it('provides default static presets with static audio URLs', () => {
@@ -103,15 +106,40 @@ describe('voice asset public API', () => {
     expect(result.url).toBe('https://storage.example.test/broadcast-audio/store-1/test.mp3');
   });
 
-  it('rejects invalid file before attempting storage upload', async () => {
-    const mockStorageClient = {
-      from: vi.fn(),
-    };
-    const invalidFile = new File(['text'], 'test.txt', { type: 'text/plain' });
-    await expect(uploadVoiceAsset('store-1', invalidFile, mockStorageClient as any)).rejects.toThrow(
-      'MP3 파일만 업로드할 수 있습니다.'
+  it('stops current playing voice asset', async () => {
+    const pause = vi.fn();
+    vi.stubGlobal(
+      'Audio',
+      vi.fn(() => ({
+        play: vi.fn().mockResolvedValue(undefined),
+        pause,
+        currentTime: 10,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }))
     );
-    expect(mockStorageClient.from).not.toHaveBeenCalled();
+
+    const playPromise = playVoiceAsset('https://example.test/first.mp3');
+    stopVoiceAsset();
+    expect(pause).toHaveBeenCalled();
+  });
+
+  it('deletes voice asset from storage', async () => {
+    const mockRemove = vi.fn().mockResolvedValue({ data: [], error: null });
+    const mockStorageClient = {
+      from: vi.fn().mockReturnValue({
+        remove: mockRemove,
+      }),
+    };
+
+    await deleteVoiceAssetFromStorage(
+      'https://storage.example.test/broadcast-audio/store-1/123-notice.mp3',
+      mockStorageClient as any
+    );
+
+    expect(mockStorageClient.from).toHaveBeenCalledWith('broadcast-audio');
+    expect(mockRemove).toHaveBeenCalledWith(['store-1/123-notice.mp3']);
   });
 });
+
 

@@ -105,10 +105,23 @@ export async function uploadVoiceAsset(
   };
 }
 
+let currentAudio: HTMLAudioElement | null = null;
+
+export function stopVoiceAsset(): void {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+    currentAudio = null;
+  }
+}
+
 export function playVoiceAsset(url: string): Promise<void> {
+  stopVoiceAsset();
   return new Promise((resolve, reject) => {
     const audio = new Audio(url);
+    currentAudio = audio;
     const cleanup = () => {
+      if (currentAudio === audio) currentAudio = null;
       audio.removeEventListener('ended', onEnded);
       audio.removeEventListener('error', onError);
     };
@@ -126,4 +139,21 @@ export function playVoiceAsset(url: string): Promise<void> {
     void audio.play().catch(onError);
   });
 }
+
+export async function deleteVoiceAssetFromStorage(
+  filePathOrUrl: string,
+  storageClient = supabase?.storage
+): Promise<void> {
+  if (!storageClient) return;
+  let path = filePathOrUrl;
+  if (filePathOrUrl.includes(VOICE_ASSET_BUCKET)) {
+    const parts = filePathOrUrl.split(`${VOICE_ASSET_BUCKET}/`);
+    if (parts[1]) path = parts[1];
+  }
+  const { error } = await storageClient.from(VOICE_ASSET_BUCKET).remove([path]);
+  if (error) {
+    throw new Error(`스토리지 음성 파일 삭제에 실패했습니다: ${error.message}`);
+  }
+}
+
 
