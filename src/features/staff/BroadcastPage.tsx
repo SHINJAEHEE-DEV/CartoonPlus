@@ -84,9 +84,6 @@ export function BroadcastPage() {
   const [editTitleModal, setEditTitleModal] = useState<{ id?: string; title: string; source_type: 'static' | 'upload' } | null>(null);
   const [isSavingTitle, setIsSavingTitle] = useState(false);
 
-  // 모달 상태: 대본 / 상세 정보 모달
-  const [detailModalPreset, setDetailModalPreset] = useState<BroadcastPresetItem | null>(null);
-
   const scheduleFormRef = useRef<HTMLFormElement>(null);
   const scheduleTypeSelectRef = useRef<HTMLSelectElement>(null);
 
@@ -632,7 +629,7 @@ export function BroadcastPage() {
                   }}
                 >
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px' }}>
                       <span style={{ fontSize: '15.5px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
                         {preset.title}
                       </span>
@@ -645,30 +642,6 @@ export function BroadcastPage() {
                         {isHidden ? '복구' : '숨김'}
                       </button>
                     </div>
-
-                    <button
-                      type="button"
-                      aria-label={`${preset.title} 대본 보기`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDetailModalPreset({ ...preset });
-                      }}
-                      style={{
-                        padding: '4px 10px',
-                        borderRadius: '8px',
-                        background: '#FFFFFF',
-                        border: '1.5px solid var(--color-border, #1E1E1E)',
-                        fontSize: '12px',
-                        fontWeight: 800,
-                        color: 'var(--color-dark, #1E1E1E)',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                      }}
-                    >
-                      <span>📄 대본 보기</span>
-                    </button>
                   </div>
 
                   {!isHidden && (
@@ -808,28 +781,6 @@ export function BroadcastPage() {
                             삭제
                           </button>
                         </div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <button
-                          type="button"
-                          aria-label={`${preset.title} 대본 보기`}
-                          onClick={() => setDetailModalPreset({ ...preset })}
-                          style={{
-                            padding: '4px 10px',
-                            borderRadius: '8px',
-                            background: '#FFFFFF',
-                            border: '1.5px solid var(--color-border, #1E1E1E)',
-                            fontSize: '12px',
-                            fontWeight: 800,
-                            color: 'var(--color-dark, #1E1E1E)',
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <span>📄 대본 / 파일 정보</span>
-                        </button>
                       </div>
                     </div>
 
@@ -1506,147 +1457,6 @@ export function BroadcastPage() {
         </div>
       )}
 
-      {/* 7. 프리셋 대본 / 상세 정보 모달 */}
-      {detailModalPreset && (
-        <div
-          role="presentation"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setDetailModalPreset(null);
-          }}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 100,
-            display: 'grid',
-            placeItems: 'center',
-            padding: '20px',
-            background: 'rgba(30, 30, 30, 0.65)',
-            backdropFilter: 'blur(3px)',
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={`${detailModalPreset.title} 안내 방송 대본`}
-            style={{
-              width: 'min(100%, 480px)',
-              background: '#FFFDF9',
-              border: '3px solid var(--color-border, #1E1E1E)',
-              borderRadius: '20px',
-              padding: '24px',
-              boxShadow: '7px 7px 0 var(--color-border, #1E1E1E)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-              <div>
-                <span
-                  style={{
-                    display: 'inline-block',
-                    fontSize: '11px',
-                    fontWeight: 900,
-                    padding: '3px 8px',
-                    borderRadius: 'var(--radius-pill, 999px)',
-                    background: detailModalPreset.source_type === 'static' ? '#FFF3C9' : '#D1E8FF',
-                    border: '1.5px solid var(--color-border, #1E1E1E)',
-                    marginBottom: '6px',
-                  }}
-                >
-                  {detailModalPreset.source_type === 'static' ? '📻 기본 정적 안내' : '🎙️ 지점 업로드 음성'}
-                </span>
-                <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
-                  {detailModalPreset.title}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setDetailModalPreset(null)}
-                aria-label="닫기"
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  border: '2px solid var(--color-border, #1E1E1E)',
-                  borderRadius: '50%',
-                  background: '#FFF',
-                  cursor: 'pointer',
-                  fontWeight: 900,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                ×
-              </button>
-            </div>
-
-            <div>
-              <div style={{ fontSize: '12px', fontWeight: 900, color: '#8A8175', marginBottom: '6px' }}>
-                안내 방송 대본 (전체 문구)
-              </div>
-              <div
-                style={{
-                  padding: '16px',
-                  background: 'var(--color-panel-cream, #FFF9EC)',
-                  border: '2px solid var(--color-border, #1E1E1E)',
-                  borderRadius: '12px',
-                  fontSize: '14px',
-                  lineHeight: 1.6,
-                  color: 'var(--color-dark, #1E1E1E)',
-                  fontWeight: 600,
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
-                  maxHeight: '260px',
-                  overflowY: 'auto',
-                }}
-              >
-                {detailModalPreset.message_text || '(별도로 작성된 텍스트 대본이 없는 음성 파일입니다.)'}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '4px' }}>
-              <button
-                type="button"
-                onClick={() => setDetailModalPreset(null)}
-                style={{
-                  padding: '10px 16px',
-                  border: '2px solid var(--color-border, #1E1E1E)',
-                  borderRadius: '10px',
-                  background: '#FFF',
-                  fontWeight: 900,
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                }}
-              >
-                닫기
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const target = detailModalPreset;
-                  setDetailModalPreset(null);
-                  void play(target);
-                }}
-                disabled={status === '재생 중'}
-                style={{
-                  padding: '10px 20px',
-                  border: '2px solid var(--color-border, #1E1E1E)',
-                  borderRadius: '10px',
-                  background: 'var(--color-yellow, #FED943)',
-                  fontWeight: 900,
-                  fontSize: '13px',
-                  cursor: status === '재생 중' ? 'not-allowed' : 'pointer',
-                  boxShadow: '2px 2px 0 var(--color-border, #1E1E1E)',
-                }}
-              >
-                ▶ 즉시 방송
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

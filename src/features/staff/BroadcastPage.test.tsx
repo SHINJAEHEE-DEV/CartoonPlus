@@ -184,23 +184,6 @@ describe('BroadcastPage MP3 preset management', () => {
     });
   });
 
-  it('opens script detail modal when clicking view script button', async () => {
-    render(
-      <MemoryRouter>
-        <BroadcastPage />
-      </MemoryRouter>
-    );
-
-    expect(await screen.findByText('매장 특별 이벤트 안내')).toBeTruthy();
-
-    const scriptBtn = await screen.findByRole('button', { name: '기본 안내 대본 보기' });
-    fireEvent.click(scriptBtn);
-
-    await waitFor(() => {
-      expect(screen.getByText('안내 방송 대본 (전체 문구)')).toBeTruthy();
-      expect(screen.getByText(/매장 이용 후 퇴실 시/)).toBeTruthy();
-    });
-  });
 
   it('allows opening edit title modal and updating preset title', async () => {
     render(
