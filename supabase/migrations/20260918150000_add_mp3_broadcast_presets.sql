@@ -48,7 +48,7 @@ create trigger limit_uploaded_broadcast_presets
   for each row execute function public.limit_uploaded_broadcast_presets();
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('broadcast-audio', 'broadcast-audio', true, 3145728, array['audio/mpeg'])
+values ('broadcast-audio', 'broadcast-audio', true, 3145728, array['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/mp4', 'audio/x-m4a', 'audio/aac', 'audio/ogg', 'audio/webm', 'audio/flac'])
 on conflict (id) do update
 set public = excluded.public,
     file_size_limit = excluded.file_size_limit,
