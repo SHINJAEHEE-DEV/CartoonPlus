@@ -1,26 +1,15 @@
 import { useEffect, useRef } from 'react';
-import { isKoreanSpeechCancellation, speakKorean } from './broadcast';
+import { DEFAULT_STATIC_PRESETS, playVoiceAsset } from './voiceAssets';
 import { isDue, type ScheduledBroadcast } from './broadcastSchedule';
 import { supabase } from './supabase';
 
-const WINDOWS_FEMALE_VOICE_NAMES = ['SunHi', 'Heami'];
 export type BroadcastRunStatus = 'pending' | 'success' | 'failure' | 'missed' | 'cancelled';
-
-/** Returns the supported Windows female Korean voices that this browser can actually use. */
-export function getKoreanFemaleVoices(
-  voices: readonly SpeechSynthesisVoice[]
-): SpeechSynthesisVoice[] {
-  return voices.filter(
-    (voice) =>
-      voice.lang.toLowerCase() === 'ko-kr' &&
-      WINDOWS_FEMALE_VOICE_NAMES.some((name) => voice.name.toLowerCase().includes(name.toLowerCase()))
-  );
-}
 
 export type StoredSchedule = ScheduledBroadcast & {
   id: string;
   storeId: string;
   message_text: string;
+  broadcast_preset_id?: string | null;
 };
 
 /** Returns schedules due in fully elapsed minutes after the previous scheduler check. */
@@ -76,7 +65,7 @@ export async function fetchActiveSchedules(): Promise<StoredSchedule[]> {
   try {
     const { data, error } = await supabase
       .from('scheduled_broadcasts')
-      .select('id, store_id, message_text, schedule_type, target_time, target_days, target_date, is_enabled')
+      .select('id, store_id, message_text, broadcast_preset_id, schedule_type, target_time, target_days, target_date, is_enabled')
       .eq('is_enabled', true)
       .order('target_time');
 
@@ -86,6 +75,7 @@ export async function fetchActiveSchedules(): Promise<StoredSchedule[]> {
       id: item.id,
       storeId: item.store_id,
       message_text: item.message_text,
+      broadcast_preset_id: item.broadcast_preset_id,
       scheduleType: item.schedule_type,
       targetTime: item.target_time.slice(0, 5),
       targetDays: item.target_days ?? [],
@@ -97,7 +87,48 @@ export async function fetchActiveSchedules(): Promise<StoredSchedule[]> {
   }
 }
 
-async function recordBroadcastRun(
+export async function resolvePresetAudioUrl(
+  presetId?: string | null,
+  messageText?: string,
+  storeId?: string
+): Promise<string | null> {
+  // 1. 정적 프리셋 ID 확인 (static-...)
+  if (presetId?.startsWith('static-')) {
+    const staticPreset = DEFAULT_STATIC_PRESETS.find((p) => p.id === presetId);
+    if (staticPreset) return staticPreset.audio_url;
+  }
+
+  // 2. DB 업로드 프리셋 ID 조회
+  if (presetId && supabase) {
+    const { data } = await supabase
+      .from('broadcast_presets')
+      .select('audio_url')
+      .eq('id', presetId)
+      .single();
+    if (data?.audio_url) return data.audio_url;
+  }
+
+  // 3. Fallback: messageText나 title로 매칭
+  if (messageText) {
+    const staticMatch = DEFAULT_STATIC_PRESETS.find(
+      (p) => p.title === messageText || p.message_text === messageText
+    );
+    if (staticMatch) return staticMatch.audio_url;
+
+    if (supabase) {
+      let query = supabase.from('broadcast_presets').select('audio_url').eq('title', messageText);
+      if (storeId) {
+        query = query.eq('store_id', storeId);
+      }
+      const { data } = await query.limit(1).maybeSingle();
+      if (data?.audio_url) return data.audio_url;
+    }
+  }
+
+  return null;
+}
+
+export async function recordBroadcastRun(
   message: string,
   scheduledId?: string,
   status: Extract<BroadcastRunStatus, 'pending' | 'missed'> = 'pending',
@@ -123,7 +154,7 @@ async function recordBroadcastRun(
   }
 }
 
-async function finishBroadcastRun(
+export async function finishBroadcastRun(
   id: string | undefined,
   status: Extract<BroadcastRunStatus, 'success' | 'failure' | 'cancelled'>
 ): Promise<void> {
@@ -131,7 +162,7 @@ async function finishBroadcastRun(
   try {
     await supabase
       .from('broadcast_runs')
-      .update(status === 'failure' ? { status, error_message: '브라우저 음성 재생 실패' } : { status })
+      .update(status === 'failure' ? { status, error_message: '오디오 파일 재생 실패' } : { status })
       .eq('id', id);
   } catch {
     // ignore
@@ -141,16 +172,23 @@ async function finishBroadcastRun(
 export async function playBroadcast(
   message: string,
   scheduledId?: string,
-  storeId?: string
+  storeId?: string,
+  presetId?: string | null,
+  directAudioUrl?: string | null
 ): Promise<boolean> {
   const run = async () => {
     const runId = await recordBroadcastRun(message, scheduledId, 'pending', storeId);
     try {
-      await speakKorean(message);
+      const audioUrl = directAudioUrl ?? (await resolvePresetAudioUrl(presetId, message, storeId));
+      if (!audioUrl) {
+        await finishBroadcastRun(runId, 'failure');
+        return false;
+      }
+      await playVoiceAsset(audioUrl);
       await finishBroadcastRun(runId, 'success');
       return true;
-    } catch (error) {
-      await finishBroadcastRun(runId, isKoreanSpeechCancellation(error) ? 'cancelled' : 'failure');
+    } catch {
+      await finishBroadcastRun(runId, 'failure');
       return false;
     }
   };
@@ -237,41 +275,41 @@ export function useGlobalBroadcastScheduler(): void {
       if (tickInFlightRef.current) return;
       tickInFlightRef.current = true;
       try {
-      const now = new Date();
-      const currentMinuteKey = now.toISOString().slice(0, 16);
+        const now = new Date();
+        const currentMinuteKey = now.toISOString().slice(0, 16);
 
-      const previousCheck = lastCheckedAtRef.current;
-      if (previousCheck && now.getTime() - previousCheck.getTime() > 70_000) {
-        for (const item of getSchedulesDueBetween(schedulesRef.current, previousCheck, now)) {
-          const executionKey = `${item.id}:${item.dueAt.toISOString().slice(0, 16)}`;
-          if (!executedKeysRef.current.has(executionKey)) {
-            if (await claimPlaybackLease(item.storeId, playbackTabIdRef.current)) {
-              executedKeysRef.current.add(executionKey);
-              void recordBroadcastRun(item.message_text, item.id, 'missed', item.storeId, item.dueAt);
+        const previousCheck = lastCheckedAtRef.current;
+        if (previousCheck && now.getTime() - previousCheck.getTime() > 70_000) {
+          for (const item of getSchedulesDueBetween(schedulesRef.current, previousCheck, now)) {
+            const executionKey = `${item.id}:${item.dueAt.toISOString().slice(0, 16)}`;
+            if (!executedKeysRef.current.has(executionKey)) {
+              if (await claimPlaybackLease(item.storeId, playbackTabIdRef.current)) {
+                executedKeysRef.current.add(executionKey);
+                void recordBroadcastRun(item.message_text, item.id, 'missed', item.storeId, item.dueAt);
+              }
             }
           }
         }
-      }
-      lastCheckedAtRef.current = now;
-      try {
-        if (typeof window !== 'undefined' && window.localStorage) {
-          window.localStorage.setItem(LAST_BROADCAST_CHECK_KEY, now.toISOString());
+        lastCheckedAtRef.current = now;
+        try {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            window.localStorage.setItem(LAST_BROADCAST_CHECK_KEY, now.toISOString());
+          }
+        } catch {
+          // Ignore storage errors in restricted/test environments
         }
-      } catch {
-        // Ignore storage errors in restricted/test environments
-      }
 
-      for (const item of schedulesRef.current) {
-        const executionKey = `${item.id}:${currentMinuteKey}`;
-        if (executedKeysRef.current.has(executionKey)) continue;
+        for (const item of schedulesRef.current) {
+          const executionKey = `${item.id}:${currentMinuteKey}`;
+          if (executedKeysRef.current.has(executionKey)) continue;
 
-        if (isDue(item, now)) {
-          if (await claimPlaybackLease(item.storeId, playbackTabIdRef.current)) {
-            executedKeysRef.current.add(executionKey);
-            void playBroadcast(item.message_text, item.id, item.storeId);
+          if (isDue(item, now)) {
+            if (await claimPlaybackLease(item.storeId, playbackTabIdRef.current)) {
+              executedKeysRef.current.add(executionKey);
+              void playBroadcast(item.message_text, item.id, item.storeId, item.broadcast_preset_id);
+            }
           }
         }
-      }
       } finally {
         tickInFlightRef.current = false;
       }

@@ -265,6 +265,7 @@ export function BroadcastPage() {
     setIsUploading(true);
     setUploadError(null);
     try {
+      if (!supabase) throw new Error('Supabase 클라이언트를 찾을 수 없습니다.');
       const { url } = await uploadVoiceAsset(storeId, uploadFile);
       const { error } = await supabase.from('broadcast_presets').insert({
         store_id: storeId,
@@ -887,10 +888,11 @@ export function BroadcastPage() {
 
           <div className="staff-form-grid">
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}>
+              <label htmlFor="schedule-preset-select" style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}>
                 방송 프리셋 선택
               </label>
               <select
+                id="schedule-preset-select"
                 aria-label="방송 프리셋 선택"
                 value={schedule.presetId}
                 onChange={(event) => {
@@ -922,10 +924,12 @@ export function BroadcastPage() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}>
+              <label htmlFor="schedule-type-select" style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}>
                 반복 방식
               </label>
               <select
+                id="schedule-type-select"
+                aria-label="반복 방식"
                 ref={scheduleTypeSelectRef}
                 value={schedule.type}
                 onChange={(event) =>
@@ -951,10 +955,12 @@ export function BroadcastPage() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}>
+              <label htmlFor="schedule-time-input" style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}>
                 송출 시간
               </label>
               <input
+                id="schedule-time-input"
+                aria-label="송출 시간"
                 type="time"
                 required
                 value={schedule.time}

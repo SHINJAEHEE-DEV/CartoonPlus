@@ -41,6 +41,10 @@ const scheduledBroadcastsQuery = {
   select: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
+  insert: vi.fn().mockResolvedValue({ data: [{ id: 'sched-1' }], error: null }),
+  update: vi.fn().mockReturnValue({
+    eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+  }),
   delete: vi.fn().mockReturnValue({
     eq: vi.fn().mockResolvedValue({ data: [], error: null }),
   }),
@@ -215,6 +219,31 @@ describe('BroadcastPage MP3 preset management', () => {
 
     await waitFor(() => {
       expect(deleteStorageSpy).toHaveBeenCalledWith('https://storage.test/broadcast-audio/store-uuid-1/event.mp3');
+    });
+  });
+
+  it('allows scheduling a broadcast from a preset', async () => {
+    render(
+      <MemoryRouter>
+        <BroadcastPage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('기본 안내')).toBeTruthy();
+    });
+
+    const presetSelect = screen.getByLabelText('방송 프리셋 선택');
+    fireEvent.change(presetSelect, { target: { value: '기본 안내' } });
+
+    const timeInput = screen.getByLabelText('송출 시간');
+    fireEvent.change(timeInput, { target: { value: '14:30' } });
+
+    const submitBtn = screen.getByRole('button', { name: '스케줄 저장' });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('예약 방송을 저장했습니다.')).toBeTruthy();
     });
   });
 });
