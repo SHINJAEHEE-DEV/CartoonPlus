@@ -55,22 +55,23 @@ flowchart TB
 | 구분                   | 기술 / 라이브러리                  | 적용 목적 및 설명                                                       |
 | :--------------------- | :--------------------------------- | :---------------------------------------------------------------------- |
 | **Frontend Framework** | `React 18`, `TypeScript`           | 안정적인 타입 시스템과 컴포넌트 기반 UI 개발                            |
-| **Build & Bundler**    | `Vite`                             | 빠른 HMR 개발 환경 및 최적화된 프로덕션 빌드                            |
-| **Routing**            | `React Router v6` (SPA)            | 손님용 / 직원용 / 관리자용 라우트 제어 및 지점별 딥링크 처리            |
+| **Build & Bundler**    | `Vite` + `Node.js SSG Generator`   | 초고속 HMR 및 20개 공개/지점별 경로 사전 HTML 렌더링 (SSG)              |
+| **Routing**            | `React Router v6` (History API)    | 손님용 / 직원용 / 관리자용 라우트 제어 및 `/stores/:slug` 딥링크 지원    |
 | **Styling & Icons**    | `Tailwind CSS`, `Lucide React`     | 유틸리티 퍼스트 CSS를 통한 반응형 디자인 및 직관적 아이콘셋             |
-| **Backend & DB**       | `Supabase` (PostgreSQL 15+)        | RDBMS, 행 단위 보안(RLS), Stored Procedures(RPC), 인증                  |
-| **Auth**               | `Supabase Auth`                    | 직원/관리자 인증 (아이디를 내부 가상 이메일로 투명 변환)                |
+| **Backend & DB**       | `Supabase` (PostgreSQL 15+)        | RDBMS, 행 단위 보안(RLS), Stored Procedures(RPC), 실시간 인증           |
+| **Auth**               | `Supabase Auth`                    | 직원/관리자 인증 (아이디를 내부 가상 이메일로 투명 변환, 지점별 권한)  |
 | **Testing**            | `Vitest`, `Testing Library`        | 핵심 유틸리티(검색, 스케줄러, CSV 파서) 및 UI 컴포넌트 단위/통합 테스트 |
-| **Voice / TTS**        | `Web Speech API` (SpeechSynthesis) | 카운터 PC 브라우저 기반 무인 매장 자동 방송 및 수동 송출                |
+| **Voice / Broadcast**  | `Web Speech API` & `MP3 Assets`    | 고음질 프리셋 오디오 및 브라우저 TTS 하이브리드 자동 방송 엔진          |
 
 ---
 
 ## 3. 인프라 및 배포 환경 (Infrastructure & Hosting)
 
-### 3.1. 프론트엔드 정적 호스팅 (Static Hosting)
+### 3.1. 프론트엔드 정적 호스팅 및 SSG (Static Site Generation)
 
-- **빌드 산출물**: SPA 정적 파일 (`dist/` 디렉터리: HTML, JS, CSS, Assets)
-- **SPA 라우팅 처리**: 모든 서브 URL (`/*`) 요청을 `/index.html`로 리다이렉트하는 Rewrites 규칙 적용.
+- **빌드 산출물**: 정적 HTML 및 번들 에셋 (`dist/` 디렉터리: 20개 SSG 페이지, `sitemap.xml`, `robots.txt`, `_routes.json`)
+- **SSG 빌드 스크립트**: `scripts/generate-ssg.js`가 빌드 시점에 각 공개 라우트별 `index.html`을 사전 생성하여 검색엔진 크롤링 및 초기 로딩 최적화.
+- **SPA 라우팅 및 딥링크 처리**: Cloudflare Pages / GitHub Pages / Vercel 환경에서 `_routes.json` 또는 `404.html` ➔ `/index.html` fallback을 지원하며 History API 인터셉터가 클라이언트 라우팅을 유지.
 - **환경 변수 관리 (`.env.local`)**:
   - `VITE_SUPABASE_URL`: Supabase 프로젝트 엔드포인트 URL
   - `VITE_SUPABASE_ANON_KEY`: 클라이언트 공개용 익명(Anon) Key
@@ -79,6 +80,7 @@ flowchart TB
 
 - **리전**: AWS 아시아 태평양 (서울 / `ap-northeast-2`)
 - **보안 격리**: PostgreSQL의 **Row-Level Security (RLS)** 기능을 활용하여 클라이언트에서 직접 쿼리하되, 권한 없는 데이터 변조를 원천 차단.
+- **RPC 함수**: `upsert_inventory_for_store`, `apply_for_staff_account` 등 복합 비즈니스 로직 및 권한 검증을 서버사이드 Stored Procedure로 처리.
 
 ---
 

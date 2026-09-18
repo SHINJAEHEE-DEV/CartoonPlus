@@ -10,4 +10,4 @@
 - 🏛️ [**기술 결정 내역 (TECHNOLOGY_DECISIONS.md)**](./TECHNOLOGY_DECISIONS.md)
 - 🧩 [**기능 명세 색인**](./FUNCTIONAL_SPECIFICATIONS.md)
 
-다지점 전환의 기준은 ADR-0005다. 현재 코드에서 다른 지점 데이터 업로드·공개는 아직 구현되지 않았으므로, URL 지점 선택과 지점 범위 권한을 구현·검증하기 전에는 추가 지점 CSV를 업로드하지 않는다.
+다지점 전환의 기준은 ADR-0005 및 ADR-0006을 따릅니다. 현재 서울대입구역점(`snu`), 잠실점(`jamsil`), 홍대점(`hongdae`) 3개 지점의 URL 기반 지점 선택(`/stores/:slug`), 도서 재고 CSV 임포트, 메뉴/이벤트/게임 격리, SSG 정적 사전 생성이 전면 구현 및 검증되어 정상 운영 중입니다.

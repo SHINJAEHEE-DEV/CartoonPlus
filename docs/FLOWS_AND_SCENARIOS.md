@@ -19,18 +19,18 @@ sequenceDiagram
     participant Auth as Supabase Auth
     participant DB as PostgreSQL (staff_accounts)
 
-    Staff->>Web: 이름, 아이디, 비번, 전화번호 뒷4자리 입력
+    Staff->>Web: 이름, 희망 지점(store_slug), 아이디, 비번, 전화번호 뒷4자리 입력
     Web->>Auth: signUp(email: '아이디@cartoonplus.internal', password)
     Auth-->>Web: 가입 성공 (User ID 반환)
-    Web->>DB: RPC apply_for_staff_account(이름, 아이디, 전화번호)
-    DB-->>Web: status='pending' 등록 완료
+    Web->>DB: RPC apply_for_staff_account(이름, 아이디, 전화번호, store_slug)
+    DB-->>Web: status='pending' (store_id 자동 매핑) 등록 완료
     Web-->>Staff: "가입 신청 완료. 관리자 승인 대기" 안내
 
     Note over Admin,DB: 관리자 승인 단계
     Admin->>Web: AdminAccountsPage 접속
     Web->>DB: SELECT * FROM staff_accounts WHERE status='pending'
     DB-->>Web: 신청 대기 목록
-    Admin->>Web: 승인 버튼 클릭 (지점 및 역할 staff/admin 지정)
+    Admin->>Web: 승인 버튼 클릭 (지점 확인 및 역할 staff/admin 지정)
     Web->>DB: UPDATE staff_accounts SET status='approved', role='staff', store_id=...
     DB-->>Web: 승인 완료
 
