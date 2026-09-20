@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { MASCOT_ASSETS } from '../../lib/brandAssets';
 import {
+  STANDARD_BOOK_GENRES,
   normalizeBookCategory,
   searchBooks,
   splitBookCategories,
@@ -38,22 +39,13 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
     setCurrentPage(1);
   }, [query, selectedGenre]);
 
-  // 실제 저장된 도서들의 카테고리/장르를 동적으로 추출
+  // 우리가 정의한 11대 표준 장르 중 현재 도서 목록에 등록된 장르들만 표준 순서대로 노출
   const dynamicGenres = useMemo(() => {
-    const genreCounts = new Map<string, number>();
-    for (const book of books) {
-      if (!book.category) continue;
-      const parts = splitBookCategories(book.category);
-      for (const part of parts) {
-        genreCounts.set(part, (genreCounts.get(part) || 0) + 1);
-      }
-    }
-    const sorted = Array.from(genreCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([name]) => name);
-
-    return ['전체', ...sorted];
+    const existingGenres = new Set(books.flatMap((book) => splitBookCategories(book.category)));
+    const matchedStandards = STANDARD_BOOK_GENRES.filter((genre) => existingGenres.has(genre));
+    return ['전체', ...matchedStandards];
   }, [books]);
+
 
   const filteredBooks = useMemo(() => {
     let result = books;

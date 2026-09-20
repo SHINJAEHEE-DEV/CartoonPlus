@@ -36,6 +36,22 @@ export function normalizeSearchText(value: string): string {
   return value.toLowerCase().replace(/[\s\p{P}\p{S}]/gu, '');
 }
 
+export const STANDARD_BOOK_GENRES = [
+  '웹툰',
+  '액션/모험',
+  '로맨스/로판',
+  '판타지/무협',
+  '일상/개그',
+  '스릴러/추리/호러',
+  '드라마/스포츠/SF',
+  'BL/GL',
+  '일반도서/소설',
+  '코믹스/그래픽노블',
+  '성인',
+] as const;
+
+export type StandardBookGenre = (typeof STANDARD_BOOK_GENRES)[number];
+
 export function normalizeBookCategory(value: string): string {
   const normalized = value
     .trim()
@@ -46,10 +62,11 @@ export function normalizeBookCategory(value: string): string {
 
 export function splitBookCategories(value: string): string[] {
   return normalizeBookCategory(value)
-    .split(/[,·/]/u)
+    .split(/[,·]/u)
     .map((category) => category.trim())
     .filter(Boolean);
 }
+
 
 export function toInitialConsonants(value: string): string {
   return [...value]

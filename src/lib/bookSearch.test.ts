@@ -54,4 +54,10 @@ describe('normalizeBookCategory', () => {
     expect(normalizeBookCategory('sf, 판타지')).toBe('판타지,SF');
     expect(splitBookCategories('판타지,SF')).toEqual(['판타지', 'SF']);
   });
+
+  it('preserves slash in standard composite genres when splitting categories', () => {
+    expect(splitBookCategories('액션/모험, 웹툰')).toEqual(['액션/모험', '웹툰']);
+    expect(splitBookCategories('로맨스/로판, 드라마/스포츠/SF')).toEqual(['로맨스/로판', '드라마/스포츠/SF']);
+  });
 });
+

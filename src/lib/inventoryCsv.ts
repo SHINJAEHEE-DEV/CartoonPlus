@@ -154,11 +154,24 @@ export function parseBaselineInventory(csv: string): SearchableBook[] {
 
     if (isCleanedFormat) {
       const title = row['도서명']?.trim() ?? '';
-      const shelf = row['기존서가']?.trim() ?? '';
-      if (!title || !shelf) return [];
+      if (!title) return [];
       const volumeRange = row['보유권수']?.trim() ?? '';
       const author = row['작가']?.trim() ?? '';
       const genre = row['목표장르']?.trim() ?? row['기존장르']?.trim() ?? '';
+      const moved = row['이동여부']?.trim().toLowerCase() === 'o';
+      const targetArea = row['목표구역']?.trim() ?? '';
+      const detailLoc = row['세부위치']?.trim() ?? '';
+      const shelf = row['기존서가']?.trim() ?? '';
+
+      let shelfLocation = '';
+      if (moved) {
+        shelfLocation = detailLoc ? `책장 1번 (${detailLoc})` : '책장 1번';
+      } else if (shelf) {
+        shelfLocation = `책장 ${shelf}번`;
+      } else {
+        shelfLocation = '서가 확인 중';
+      }
+
       return [
         {
           id: `baseline-${index}-${title}`,
@@ -166,10 +179,11 @@ export function parseBaselineInventory(csv: string): SearchableBook[] {
           author,
           category: normalizeBookCategory(genre),
           volumeRange: volumeRange || '확인 중',
-          shelfLocation: `책장 ${shelf}번`,
+          shelfLocation,
         },
       ];
     }
+
 
     const legacyRow = row as InventoryCsvRow;
     if (!legacyRow.title?.trim() || !legacyRow.number?.trim()) return [];
