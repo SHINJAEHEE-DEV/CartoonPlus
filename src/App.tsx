@@ -168,6 +168,17 @@ function CustomerRoute({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const { storeSlug } = useParams();
   const store = storeSlug ? getPublicStore(storeSlug) : defaultPublicStore;
+
+  useEffect(() => {
+    if (store?.slug && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('cartoonplus_active_store', store.slug);
+      } catch {
+        // ignore storage errors
+      }
+    }
+  }, [store?.slug]);
+
   if (!store) return <p className="state-card">페이지를 찾을 수 없습니다.</p>;
   return (
     <StoreContext value={{ store, scoped: Boolean(storeSlug) }}>

@@ -87,7 +87,7 @@ describe('CustomerShell', () => {
     );
 
     const brand = screen.getByRole('link', { name: '카툰플러스 홈' });
-    expect(brand.getAttribute('href')).toBe('/');
+    expect(brand.getAttribute('href')).toBe('/stores/snu');
 
     // 지점 드롭다운이 Brand 클릭 시 열리지 않음
     fireEvent.click(brand);

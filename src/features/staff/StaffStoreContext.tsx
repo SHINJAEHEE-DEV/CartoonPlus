@@ -1,9 +1,10 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { publicStoreList, type StoreSlug } from '../../lib/storeContext';
+import { createContext, useContext, useState, useMemo, useEffect, type ReactNode } from 'react';
+import { defaultPublicStore, getPublicStore, publicStoreList, type PublicStore, type StoreSlug } from '../../lib/storeContext';
 import { supabase } from '../../lib/supabase';
 
 type StaffStoreContextValue = {
   selectedStoreSlug: StoreSlug;
+  currentStore: PublicStore;
   selectStore: (slug: StoreSlug) => void;
   isAdmin: boolean;
 };
@@ -18,23 +19,53 @@ export function StaffStoreProvider({
   defaultStoreSlug: StoreSlug;
   children: ReactNode;
 }) {
-  const [selectedStoreSlug, setSelectedStoreSlug] = useState(defaultStoreSlug);
+  const [selectedStoreSlug, setSelectedStoreSlug] = useState<StoreSlug>(() => {
+    if (isAdmin && typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cartoonplus_active_store') as StoreSlug | null;
+      if (saved && (saved === 'snu' || saved === 'jamsil' || saved === 'hongdae')) {
+        return saved;
+      }
+    }
+    return defaultStoreSlug;
+  });
+
+  const currentStore = useMemo(
+    () => getPublicStore(selectedStoreSlug) ?? publicStoreList[0],
+    [selectedStoreSlug]
+  );
+
   const value = useMemo(
     () => ({
       selectedStoreSlug,
+      currentStore,
       isAdmin,
       selectStore: (slug: StoreSlug) => {
-        if (isAdmin) setSelectedStoreSlug(slug);
+        if (isAdmin) {
+          setSelectedStoreSlug(slug);
+          try {
+            localStorage.setItem('cartoonplus_active_store', slug);
+          } catch {
+            // ignore storage errors
+          }
+        }
       },
     }),
-    [isAdmin, selectedStoreSlug]
+    [isAdmin, selectedStoreSlug, currentStore]
   );
   return <StaffStoreContext value={value}>{children}</StaffStoreContext>;
 }
 
+
 export function useStaffStore() {
   const context = useContext(StaffStoreContext);
-  if (!context) throw new Error('StaffStoreProvider is required');
+  if (!context) {
+    return {
+      selectedStoreSlug: 'snu' as StoreSlug,
+      currentStore: defaultPublicStore,
+      selectStore: () => {},
+      isAdmin: false,
+    };
+  }
   return context;
 }
 

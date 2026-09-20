@@ -7,7 +7,8 @@ import {
   storePath,
   type PublicStore,
 } from '../../lib/storeContext';
-import { StaffStoreSelector } from '../staff/StaffStoreContext';
+import { isStoreOpen } from '../../lib/storeHours';
+import { StaffStoreSelector, useStaffStore } from '../staff/StaffStoreContext';
 
 const customerLinks = [
   ['도서 검색', '/'],
@@ -330,8 +331,7 @@ export function CustomerShell({
   store?: PublicStore;
   scoped?: boolean;
 }) {
-  const currentHour = new Date().getHours();
-  const isOpen = currentHour >= 10 && currentHour < 23;
+  const isOpen = isStoreOpen(store.slug);
 
   return (
     <div className="site-shell customer-shell">
@@ -431,6 +431,7 @@ export function StaffShell({
   onSignOut?: () => void;
 }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { currentStore } = useStaffStore();
 
   useEffect(() => {
     if (isDrawerOpen) {
@@ -447,7 +448,7 @@ export function StaffShell({
       {/* 모바일 전용 컴팩트 상단 헤더 */}
       <header className="staff-mobile-header">
         <a
-          href="/"
+          href={storePath(currentStore)}
           className="staff-mobile-header-brand"
           style={{ textDecoration: 'none', color: 'inherit' }}
           aria-label="카툰플러스 고객 홈"
@@ -457,7 +458,7 @@ export function StaffShell({
           </div>
           <div className="staff-mobile-title-wrap">
             <span className="staff-mobile-title">STAFF</span>
-            <span className="staff-mobile-store">{storeName ?? '카툰플러스'}</span>
+            <span className="staff-mobile-store">{storeName ?? currentStore.name}</span>
           </div>
         </a>
 
@@ -500,7 +501,7 @@ export function StaffShell({
           <aside className="staff-drawer" aria-label="직원 모바일 메뉴">
             <div className="staff-drawer-header">
               <a
-                href="/"
+                href={storePath(currentStore)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -526,8 +527,8 @@ export function StaffShell({
                   </div>
                   <div style={{ fontSize: '12px', fontWeight: 800, color: '#FFF9EC' }}>
                     {isAdmin
-                      ? 'ADMIN · 전체 지점'
-                      : `STAFF · ${storeName ?? '소속 지점 확인 중'}`}
+                      ? `ADMIN · ${currentStore.name}`
+                      : `STAFF · ${storeName ?? currentStore.name}`}
                   </div>
                 </div>
               </a>
@@ -588,7 +589,7 @@ export function StaffShell({
 
       {/* 데스크톱 사이드바 */}
       <aside className="staff-sidebar">
-        <Brand enableDropdown={false} allowStaffEntry={false} />
+        <Brand enableDropdown={false} allowStaffEntry={false} store={currentStore} scoped />
         <div
           style={{
             fontSize: '11px',

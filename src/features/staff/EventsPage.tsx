@@ -39,6 +39,8 @@ export function EventsPage() {
     'weekday'
   );
   const [customBannerUrl, setCustomBannerUrl] = useState('');
+  const [imageMode, setImageMode] = useState<'upload' | 'url' | 'preset'>('upload');
+  const [fileName, setFileName] = useState<string>('');
   const [isAlwaysOn, setIsAlwaysOn] = useState(true);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -79,6 +81,8 @@ export function EventsPage() {
     setDetail('');
     setBannerType('weekday');
     setCustomBannerUrl('');
+    setImageMode('preset');
+    setFileName('');
     setIsAlwaysOn(true);
     setStartDate('');
     setEndDate('');
@@ -96,6 +100,18 @@ export function EventsPage() {
     setDetail(item.detail);
     setBannerType(item.bannerType);
     setCustomBannerUrl(item.customBannerUrl || '');
+    if (item.bannerType === 'custom') {
+      if (item.customBannerUrl?.startsWith('data:')) {
+        setImageMode('upload');
+        setFileName('업로드된 이미지');
+      } else {
+        setImageMode('url');
+        setFileName('');
+      }
+    } else {
+      setImageMode('preset');
+      setFileName('');
+    }
     setIsAlwaysOn(item.isAlwaysOn);
     setStartDate(item.startDate || '');
     setEndDate(item.endDate || '');
@@ -103,6 +119,39 @@ export function EventsPage() {
     setIsFeatured(Boolean(item.isFeatured));
     setStoreSlug(item.storeSlug || 'all');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage('이미지 파일 크기는 5MB 이하여야 합니다.');
+      setTimeout(() => setMessage(''), 4000);
+      return;
+    }
+
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setCustomBannerUrl(dataUrl);
+        setBannerType('custom');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleModeChange = (mode: 'upload' | 'url' | 'preset') => {
+    setImageMode(mode);
+    if (mode === 'preset') {
+      if (bannerType === 'custom') {
+        setBannerType('weekday');
+      }
+    } else {
+      setBannerType('custom');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -536,65 +585,266 @@ export function EventsPage() {
             </div>
           </div>
 
+          {/* 배너 이미지 첨부 및 선택 섹션 */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '14px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              padding: '16px',
+              background: '#FFFDF5',
+              borderRadius: '16px',
+              border: '2px solid #1E1E1E',
             }}
           >
-            <div>
-              <label
-                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}
-              >
-                배너 이미지 프리셋 선택
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              <label style={{ fontSize: '13px', fontWeight: 900, color: '#1E1E1E' }}>
+                🖼️ 이벤트 배너 이미지 첨부 / 선택
               </label>
-              <select
-                value={bannerType}
-                onChange={(e) => setBannerType(e.target.value as any)}
+
+              {/* 이미지 입력 모드 탭 */}
+              <div
                 style={{
-                  width: '100%',
-                  padding: '11px 14px',
-                  borderRadius: '12px',
-                  border: '2px solid #1E1E1E',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  background: '#FFFFFF',
-                  outline: 'none',
-                  boxSizing: 'border-box',
+                  display: 'inline-flex',
+                  gap: '4px',
+                  background: '#EAE5D8',
+                  padding: '4px',
+                  borderRadius: '999px',
+                  border: '1.5px solid #1E1E1E',
                 }}
               >
-                <option value="weekday">평일 종일권 (15,000원 + 젤라또/라면 무료)</option>
-                <option value="naver_ramen">네이버 영수증 리뷰 (라면무료+토핑무료 쿠폰)</option>
-                <option value="snu">2026 서울대학교 공식 제휴 배너 (서울대점 전용)</option>
-                <option value="custom">직접 이미지 URL 입력</option>
-              </select>
+                <button
+                  type="button"
+                  onClick={() => handleModeChange('upload')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '999px',
+                    border: 'none',
+                    background: imageMode === 'upload' ? '#1E1E1E' : 'transparent',
+                    color: imageMode === 'upload' ? '#FED943' : '#1E1E1E',
+                    fontSize: '12px',
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  📁 파일 업로드
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleModeChange('url')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '999px',
+                    border: 'none',
+                    background: imageMode === 'url' ? '#1E1E1E' : 'transparent',
+                    color: imageMode === 'url' ? '#FED943' : '#1E1E1E',
+                    fontSize: '12px',
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  🔗 웹 링크 (URL)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleModeChange('preset')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '999px',
+                    border: 'none',
+                    background: imageMode === 'preset' ? '#1E1E1E' : 'transparent',
+                    color: imageMode === 'preset' ? '#FED943' : '#1E1E1E',
+                    fontSize: '12px',
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  🎨 기본 프리셋
+                </button>
+              </div>
             </div>
 
-            {bannerType === 'custom' && (
-              <div>
-                <label
-                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}
-                >
-                  배너 이미지 URL
-                </label>
-                <input
-                  type="url"
-                  value={customBannerUrl}
-                  onChange={(e) => setCustomBannerUrl(e.target.value)}
-                  placeholder="https://..."
+            {/* 모드별 입력 UI 및 미리보기 그리드 */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '16px',
+                alignItems: 'start',
+              }}
+            >
+              {/* 왼쪽: 모드별 인풋 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {imageMode === 'upload' && (
+                  <div>
+                    <label
+                      htmlFor="event-image-upload"
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '20px 16px',
+                        border: '2px dashed #1E1E1E',
+                        borderRadius: '12px',
+                        background: '#FFFFFF',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        gap: '8px',
+                        transition: 'background 0.15s ease',
+                      }}
+                    >
+                      <span style={{ fontSize: '28px' }}>📸</span>
+                      <span style={{ fontSize: '13px', fontWeight: 900, color: '#1E1E1E' }}>
+                        {fileName ? fileName : '클릭하여 이미지 파일 첨부 (JPG, PNG, WEBP)'}
+                      </span>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: '#8A8175' }}>
+                        최대 5MB 이하의 이미지 파일 첨부 가능
+                      </span>
+                    </label>
+                    <input
+                      id="event-image-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      style={{ display: 'none' }}
+                    />
+                  </div>
+                )}
+
+                {imageMode === 'url' && (
+                  <div>
+                    <input
+                      type="url"
+                      value={customBannerUrl}
+                      onChange={(e) => {
+                        setCustomBannerUrl(e.target.value);
+                        setBannerType('custom');
+                      }}
+                      placeholder="https://example.com/banner.png"
+                      style={{
+                        width: '100%',
+                        padding: '12px 14px',
+                        borderRadius: '12px',
+                        border: '2px solid #1E1E1E',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        background: '#FFFFFF',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                    <span
+                      style={{
+                        display: 'block',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        color: '#8A8175',
+                        marginTop: '4px',
+                      }}
+                    >
+                      온라인에 호스팅된 이미지 직접 링크(HTTPS)를 입력하세요.
+                    </span>
+                  </div>
+                )}
+
+                {imageMode === 'preset' && (
+                  <div>
+                    <select
+                      value={bannerType}
+                      onChange={(e) => setBannerType(e.target.value as any)}
+                      style={{
+                        width: '100%',
+                        padding: '12px 14px',
+                        borderRadius: '12px',
+                        border: '2px solid #1E1E1E',
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        background: '#FFFFFF',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      <option value="weekday">평일 종일권 (15,000원 + 젤라또/라면 무료)</option>
+                      <option value="naver_ramen">네이버 영수증 리뷰 (라면무료+토핑무료 쿠폰)</option>
+                      <option value="snu">2026 서울대학교 공식 제휴 배너 (서울대점 전용)</option>
+                    </select>
+                  </div>
+                )}
+
+                {/* 이미지 초기화 / 변경 안내 버튼 */}
+                {customBannerUrl && imageMode !== 'preset' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomBannerUrl('');
+                      setFileName('');
+                      setBannerType('weekday');
+                      setImageMode('preset');
+                    }}
+                    style={{
+                      alignSelf: 'flex-start',
+                      background: 'none',
+                      border: 'none',
+                      color: '#C92A2A',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
+                  >
+                    ✕ 이미지 초기화 및 기본 프리셋으로 복귀
+                  </button>
+                )}
+              </div>
+
+              {/* 오른쪽: 실시간 배너 미리보기 */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px',
+                }}
+              >
+                <div style={{ fontSize: '11px', fontWeight: 800, color: '#8A6A00' }}>
+                  배너 미리보기 (실제 고객 화면 노출)
+                </div>
+                <div
                   style={{
+                    position: 'relative',
                     width: '100%',
-                    padding: '11px 14px',
+                    height: '110px',
                     borderRadius: '12px',
                     border: '2px solid #1E1E1E',
-                    fontSize: '14px',
-                    outline: 'none',
-                    boxSizing: 'border-box',
+                    overflow: 'hidden',
+                    background: '#F0EBD9',
+                    display: 'grid',
+                    placeItems: 'center',
                   }}
-                />
+                >
+                  <img
+                    src={getBannerImageUrl(bannerType, customBannerUrl)}
+                    alt="배너 미리보기"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/assets/events/placeholder.svg';
+                    }}
+                  />
+                </div>
               </div>
-            )}
+            </div>
           </div>
 
           <div>
