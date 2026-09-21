@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { isNewArrival } from '../../lib/newArrival';
 import type { StoreSlug } from '../../lib/storeContext';
 import {
+  isJamsilInventoryCsv,
   parseBaselineInventory,
   parseHongdaeInventoryCsv,
   parseJamsilInventoryCsv,
@@ -42,7 +43,10 @@ async function loadBaselineCsv(storeSlug: StoreSlug): Promise<SearchableBook[]> 
     if (!response.ok) return [];
     const text = await response.text();
     if (storeSlug === 'jamsil') {
-      return parseJamsilInventoryCsv(text).books;
+      if (isJamsilInventoryCsv(text)) {
+        return parseJamsilInventoryCsv(text).books;
+      }
+      return parseBaselineInventory(text);
     }
     if (storeSlug === 'hongdae') {
       return parseHongdaeInventoryCsv(text).books;

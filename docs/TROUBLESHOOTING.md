@@ -2,6 +2,20 @@
 
 개발 과정에서 발생하는 이슈, 데이터 전처리 분석, 성능 최적화 및 트러블슈팅 내역을 체계적으로 기록합니다.
 
+## 2026-09-21 잠실점 최신 도서 재고(2,671종) 작가·11대 표준 장르 보강, 중복 정제, 정적 CSV 재생성 및 Supabase DB 적용
+
+- **배경/요구사항**:
+  1. 최신 잠실점 서가 원본 데이터(`docs/assets/jamsilbook_2026-Sep-21_0421/jamsilbook_2026-Sep-21_0421.csv`) 반영.
+  2. 도서명 뒤 권수 분리(`//` 및 권수 뒤 단일 `/` 구분자 처리) 및 중복 도서(39건) 병합 정제 (최신/최대 권수 및 서가 보존).
+  3. 전 도서에 대해 작가명 및 11대 표준 장르(`웹툰`, `액션/모험`, `로맨스/로판`, `판타지/무협`, `일상/개그`, `스릴러/추리/호러`, `드라마/스포츠/SF`, `BL/GL`, `일반도서/소설`, `코믹스/그래픽노블`, `성인`) 메타데이터 부여.
+  4. 정제된 표준 CSV(`public/data/jamsil-inventory.csv`) 재생성 및 Supabase 원격 DB(`books`, `book_inventories`)에 실시간 반영.
+- **수정 및 처리**:
+  1. `scripts/build-jamsil-master.cjs`: 2,671종 고유 도서에 대한 작가 및 장르 인덱싱 스크립트 작성.
+  2. `public/data/jamsil-inventory.csv` & `dist/data/jamsil-inventory.csv`: `도서명,보유권수,작가,목표장르,기존서가` 5열 표준 헤더 포맷으로 2,671건 전건 재생성.
+  3. `src/features/book-search/catalogueRepository.ts`: 정제된 5열 CSV 형식에 대한 `parseBaselineInventory` 자동 호환 파싱 지원.
+  4. `supabase/migrations/20260921140000_seed_jamsil_enriched_inventory.sql`: `books` 및 `book_inventories` 테이블에 작가, 11대 표준 장르, 초성 검색 인덱스(`initial_consonants`), 정규화 컬럼 일괄 Upsert 및 `npx supabase db push`로 DB 반영 완료.
+- **검증**: 원격 DB 마이그레이션 적용 완료, `npm test` 회귀 테스트(19개 파일 / 104개 테스트 전체 통과), `npm run build` SSG 프로덕션 빌드 완료.
+
 ## 2026-09-20 도서 검색 장르 필터 11대 표준 장르 고정 및 슬래시 보존
 
 - **증상/요구사항**: 도서 검색 화면의 장르 필터 칩과 모바일 선택 모달에서 우리가 정의한 11대 표준 장르(`웹툰`, `액션/모험`, `로맨스/로판`, `판타지/무협`, `일상/개그`, `스릴러/추리/호러`, `드라마/스포츠/SF`, `BL/GL`, `코믹스/그래픽노블` 등)만 깔끔하게 노출되도록 요청됨.

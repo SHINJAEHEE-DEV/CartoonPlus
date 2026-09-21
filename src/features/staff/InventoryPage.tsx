@@ -42,6 +42,13 @@ export function InventoryPage() {
   const [pageSize, setPageSize] = useState(20);
   const [genreTags, setGenreTags] = useState<string[]>([]);
 
+  // 수정 및 폼 제어 상태
+  const [editingItem, setEditingItem] = useState<{ id: string; title: string } | null>(null);
+  const [formTitle, setFormTitle] = useState(defaultTitle);
+  const [formAuthor, setFormAuthor] = useState(defaultAuthor);
+  const [formVolume, setFormVolume] = useState(defaultVolume.replace(/\D/g, ''));
+  const [formShelf, setFormShelf] = useState('');
+
   const load = async () => {
     if (!supabase) return;
     if (!selectedStoreId) {
@@ -62,25 +69,52 @@ export function InventoryPage() {
     void load();
   }, [selectedStoreId]);
 
+  const cancelEdit = () => {
+    setEditingItem(null);
+    setFormTitle('');
+    setFormAuthor('');
+    setFormVolume('');
+    setFormShelf('');
+    setGenreTags([]);
+  };
+
+  const handleEdit = (item: InventoryItem) => {
+    const book = getBook(item);
+    setEditingItem({ id: item.id, title: book?.title || '도서' });
+    setFormTitle(book?.title || '');
+    setFormAuthor(book?.author || '');
+    setGenreTags(splitBookCategories(book?.category || ''));
+    setFormVolume(
+      item.last_volume !== null
+        ? String(item.last_volume)
+        : item.volume_range.replace(/\D/g, '')
+    );
+    setFormShelf(item.shelf_location || '');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const save = async (form: FormData) => {
     if (!supabase) return;
     if (!selectedStoreId) return;
+    const titleVal = String(form.get('title') || formTitle).trim();
+    const authorVal = String(form.get('author') || formAuthor).trim();
+    const volumeVal = Number(form.get('volume') || formVolume);
+    const shelfVal = String(form.get('shelf') || formShelf).trim();
+
     const { error } = await supabase.rpc('upsert_inventory_for_store', {
       p_store_id: selectedStoreId,
-      p_title: String(form.get('title')),
-      p_author: String(form.get('author')),
+      p_title: titleVal,
+      p_author: authorVal,
       p_category: normalizeBookCategory(genreTags.join(',')),
-      p_last_volume: Number(form.get('volume')),
-      p_shelf_location: String(form.get('shelf')),
+      p_last_volume: volumeVal || null,
+      p_shelf_location: shelfVal,
     });
-    setMessage(error?.message ?? '도서 재고를 저장했습니다.');
+    setMessage(
+      error?.message ?? (editingItem ? `[${titleVal}] 도서 정보를 수정했습니다.` : '도서 재고를 저장했습니다.')
+    );
     if (!error) {
       await load();
-      form.delete('title');
-      form.delete('author');
-      form.delete('category');
-      form.delete('volume');
-      form.delete('shelf');
+      cancelEdit();
     }
   };
 
@@ -221,7 +255,9 @@ export function InventoryPage() {
             gap: '12px',
           }}
         >
-          <h2 style={{ fontSize: '17px', fontWeight: 900 }}>➕ 신규 도서 등록 및 CSV 업로드</h2>
+          <h2 style={{ fontSize: '17px', fontWeight: 900 }}>
+            {editingItem ? '✏️ 도서 정보 수정' : '➕ 신규 도서 등록 및 CSV 업로드'}
+          </h2>
           <label
             style={{
               padding: '8px 16px',
@@ -250,6 +286,44 @@ export function InventoryPage() {
           </label>
         </div>
 
+        {editingItem && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '8px',
+              padding: '10px 14px',
+              background: '#FFF9EC',
+              border: '2px solid #8A6A00',
+              borderRadius: '12px',
+              fontSize: '13px',
+              fontWeight: 800,
+              color: '#8A6A00',
+            }}
+          >
+            <span>
+              ✏️ <strong>[{editingItem.title}]</strong> 도서 정보를 수정 중입니다.
+            </span>
+            <button
+              type="button"
+              onClick={cancelEdit}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '8px',
+                border: '1.5px solid #8A6A00',
+                background: '#FFFFFF',
+                color: '#8A6A00',
+                fontSize: '11px',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              수정 취소
+            </button>
+          </div>
+        )}
+
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -259,16 +333,16 @@ export function InventoryPage() {
         >
           <input
             name="title"
-            defaultValue={defaultTitle}
+            value={formTitle}
             placeholder="도서명 *"
             required
             list="inventory-book-titles"
             onChange={(event) => {
-              const match = knownBooks.find((book) => book.title === event.currentTarget.value);
+              const val = event.currentTarget.value;
+              setFormTitle(val);
+              const match = knownBooks.find((book) => book.title === val);
               if (!match) return;
-              const form = event.currentTarget.form;
-              const author = form?.elements.namedItem('author') as HTMLInputElement | null;
-              if (author) author.value = match.author;
+              setFormAuthor(match.author);
               setGenreTags(splitBookCategories(match.category));
             }}
             style={{
@@ -287,7 +361,8 @@ export function InventoryPage() {
           </datalist>
           <input
             name="author"
-            defaultValue={defaultAuthor}
+            value={formAuthor}
+            onChange={(e) => setFormAuthor(e.target.value)}
             placeholder="작가명"
             style={{
               padding: '11px 13px',
@@ -362,7 +437,8 @@ export function InventoryPage() {
           </div>
           <input
             name="volume"
-            defaultValue={defaultVolume.replace(/\D/g, '')}
+            value={formVolume}
+            onChange={(e) => setFormVolume(e.target.value.replace(/\D/g, ''))}
             placeholder="마지막 권수 (예: 22)"
             type="number"
             min="1"
@@ -377,7 +453,9 @@ export function InventoryPage() {
           />
           <input
             name="shelf"
-            placeholder="서가 (예: A-03) *"
+            value={formShelf}
+            onChange={(e) => setFormShelf(e.target.value)}
+            placeholder="서가 (예: A-03 또는 책장 1번) *"
             required
             style={{
               padding: '11px 13px',
@@ -391,8 +469,8 @@ export function InventoryPage() {
             style={{
               padding: '11px 20px',
               borderRadius: '12px',
-              background: '#1E1E1E',
-              color: '#FED943',
+              background: editingItem ? '#FED943' : '#1E1E1E',
+              color: editingItem ? '#1E1E1E' : '#FED943',
               fontSize: '13px',
               fontWeight: 900,
               border: '2px solid #1E1E1E',
@@ -400,7 +478,7 @@ export function InventoryPage() {
               boxShadow: '2px 2px 0 #8A8175',
             }}
           >
-            저장
+            {editingItem ? '수정 완료 (저장)' : '저장'}
           </button>
         </form>
       </section>
@@ -489,6 +567,22 @@ export function InventoryPage() {
                 </div>
 
                 <div className="staff-item-row-actions">
+                  <button
+                    type="button"
+                    onClick={() => handleEdit(item)}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '8px',
+                      border: '1.5px solid #1E1E1E',
+                      background: '#FED943',
+                      color: '#1E1E1E',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    수정
+                  </button>
                   <button
                     type="button"
                     onClick={() => void removeInventory(item.id)}
