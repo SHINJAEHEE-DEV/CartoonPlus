@@ -2,6 +2,20 @@
 
 개발 과정에서 발생하는 이슈, 데이터 전처리 분석, 성능 최적화 및 트러블슈팅 내역을 체계적으로 기록합니다.
 
+## 2026-09-22 홍대점 최신 도서 재고(1,854종) 작가·11대 표준 장르 보강, 정제, 정적 CSV 재생성 및 Supabase DB 적용
+
+- **배경/요구사항**:
+  1. 최신 홍대점 서가 원본 데이터(`docs/assets/hongdaebook_2026-Sep-21_1711.csv`, 67개 서가, 930행) 분석 및 반영.
+  2. 도서명 뒤 권수 분리(`//` 및 단일 `/` 구분자, 마침표 및 붙은 권수 표기 분리) 및 중복 도서 병합 정제 (최신/최대 권수 및 서가 보존).
+  3. 전 도서에 대해 서울대입구점/잠실점 마스터 DB(2,960종) 매칭 및 작가 사전 보강, 원본 28개 장르를 서비스 11대 표준 장르(`웹툰`, `액션/모험`, `로맨스/로판`, `판타지/무협`, `일상/개그`, `스릴러/추리/호러`, `드라마/스포츠/SF`, `BL/GL`, `일반도서/소설`, `코믹스/그래픽노블`, `성인`)로 매핑.
+  4. 정제된 표준 CSV(`public/data/hongdae-inventory.csv`) 생성 및 Supabase 원격 DB(`books`, `book_inventories`)에 실시간 반영.
+- **수정 및 처리**:
+  1. `scripts/build-hongdae-master.cjs`: 1,854종 고유 도서에 대한 작가 및 장르 인덱싱 스크립트 작성.
+  2. `public/data/hongdae-inventory.csv` & `dist/data/hongdae-inventory.csv`: `도서명,보유권수,작가,목표장르,기존서가` 5열 표준 헤더 포맷으로 1,854건 전건 생성.
+  3. `src/features/book-search/catalogueRepository.ts`: 정제된 5열 CSV 형식에 대한 `parseBaselineInventory` 및 레거시 3열 형식 자동 호환 지원.
+  4. `supabase/migrations/20260922020000_seed_hongdae_enriched_inventory.sql`: `books` 및 `book_inventories` 테이블에 작가, 11대 표준 장르, 초성 검색 인덱스(`initial_consonants`), 정규화 컬럼 일괄 Upsert 및 `npx supabase db push`로 DB 반영 완료.
+- **검증**: 원격 DB 마이그레이션 적용 완료(홍대점 1,854건 적재 확인), `npm test` 회귀 테스트(19개 파일 / 105개 테스트 전체 통과), `npm run build` SSG 프로덕션 빌드 완료.
+
 ## 2026-09-21 잠실점 최신 도서 재고(2,671종) 작가·11대 표준 장르 보강, 중복 정제, 정적 CSV 재생성 및 Supabase DB 적용
 
 - **배경/요구사항**:
