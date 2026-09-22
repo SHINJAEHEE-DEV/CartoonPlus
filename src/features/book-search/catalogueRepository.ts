@@ -20,6 +20,21 @@ type CatalogueRow = {
   first_registered_at?: string;
 };
 
+export function subscribeToPublicCatalogueUpdates(onUpdate: () => void): () => void {
+  if (!supabase) return () => undefined;
+  const client = supabase;
+
+  const channel = client
+    .channel('customer-book-catalogue')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'book_inventories' }, onUpdate)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'books' }, onUpdate)
+    .subscribe();
+
+  return () => {
+    void client.removeChannel(channel);
+  };
+}
+
 function toSearchableBook(row: CatalogueRow): SearchableBook {
   return {
     id: row.inventory_id,
@@ -86,7 +101,7 @@ export async function loadPublicCatalogue(storeSlug: StoreSlug = 'snu'): Promise
       page += 1;
     }
 
-    if (allRows.length > 0) return allRows.map(toSearchableBook);
+    return allRows.map(toSearchableBook);
   }
 
   return loadBaselineCsv(storeSlug);

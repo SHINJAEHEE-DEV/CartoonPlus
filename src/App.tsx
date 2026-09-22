@@ -9,7 +9,10 @@ import {
   useParams,
 } from 'react-router-dom';
 import { BookSearchPage } from './features/book-search/BookSearchPage';
-import { loadPublicCatalogue } from './features/book-search/catalogueRepository';
+import {
+  loadPublicCatalogue,
+  subscribeToPublicCatalogueUpdates,
+} from './features/book-search/catalogueRepository';
 import { BookRequestForm } from './features/book-request/BookRequestForm';
 import { StaffAccessPage } from './features/staff/StaffAccessPage';
 import { AdminAccountsPage } from './features/staff/AdminAccountsPage';
@@ -131,23 +134,27 @@ function ProtectedStaffRoute({
   );
 }
 
-function BooksRoute() {
+export function BooksRoute() {
   const { store } = usePublicStore();
   const [books, setBooks] = useState<SearchableBook[]>([]);
   const [error, setError] = useState(false);
   useEffect(() => {
     let active = true;
-    setBooks([]);
-    setError(false);
-    void loadPublicCatalogue(store.slug)
-      .then((loadedBooks) => {
+    const load = async () => {
+      setBooks([]);
+      setError(false);
+      try {
+        const loadedBooks = await loadPublicCatalogue(store.slug);
         if (active) setBooks(loadedBooks);
-      })
-      .catch(() => {
+      } catch {
         if (active) setError(true);
-      });
+      }
+    };
+    void load();
+    const unsubscribe = subscribeToPublicCatalogueUpdates(() => void load());
     return () => {
       active = false;
+      unsubscribe();
     };
   }, [store.slug]);
   if (error)

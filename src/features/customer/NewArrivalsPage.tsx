@@ -1,5 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
-import { loadNewArrivals } from '../book-search/catalogueRepository';
+import {
+  loadNewArrivals,
+  subscribeToPublicCatalogueUpdates,
+} from '../book-search/catalogueRepository';
 import type { SearchableBook } from '../../lib/bookSearch';
 import { Pagination } from '../common/Pagination';
 import { usePageTitle } from '../../lib/usePageTitle';
@@ -14,7 +17,17 @@ export function NewArrivalsPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    void loadNewArrivals(store.slug).then(setBooks);
+    let active = true;
+    const load = async () => {
+      const loadedBooks = await loadNewArrivals(store.slug);
+      if (active) setBooks(loadedBooks);
+    };
+    void load();
+    const unsubscribe = subscribeToPublicCatalogueUpdates(() => void load());
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, [store.slug]);
 
   const paginatedBooks = useMemo(() => {
