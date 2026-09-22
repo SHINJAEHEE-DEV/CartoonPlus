@@ -106,12 +106,7 @@ describe('InventoryPage', () => {
     expect(query.rpc).not.toHaveBeenCalledWith('upsert_inventory_for_store', expect.anything());
   });
 
-  it('merges the duplicate inventory after staff confirms a title correction conflict', async () => {
-    query.rpc.mockResolvedValueOnce({
-      error: { message: 'duplicate inventory exists for this store' },
-    });
-    query.rpc.mockResolvedValueOnce({ error: null });
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+  it('updates the selected inventory by ID even when the corrected title already exists', async () => {
     render(
       <MemoryRouter>
         <InventoryPage />
@@ -125,14 +120,14 @@ describe('InventoryPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '수정 완료 (저장)' }));
 
     await waitFor(() =>
-      expect(query.rpc).toHaveBeenLastCalledWith('update_inventory_for_store', {
+      expect(query.rpc).toHaveBeenCalledWith('update_inventory_for_store', {
         p_inventory_id: 'inventory-1',
         p_title: '이미 등록된 도서',
         p_author: '오다 에이이치로',
         p_category: '소년',
         p_last_volume: 12,
         p_shelf_location: '책장 5번',
-        p_merge_duplicate: true,
+        p_merge_duplicate: false,
       })
     );
   });
