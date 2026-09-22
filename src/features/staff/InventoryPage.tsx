@@ -106,7 +106,7 @@ export function InventoryPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const save = async (form: FormData) => {
+  const save = async (form: FormData, mergeDuplicate = false) => {
     if (!supabase) return;
     if (!selectedStoreId) return;
     const titleVal = String(form.get('title') || formTitle).trim();
@@ -125,16 +125,27 @@ export function InventoryPage() {
       ? await supabase.rpc('update_inventory_for_store', {
           p_inventory_id: editingItem.id,
           ...payload,
+          p_merge_duplicate: mergeDuplicate,
         })
       : await supabase.rpc('upsert_inventory_for_store', {
           p_store_id: selectedStoreId,
           ...payload,
         });
+    if (error?.message === 'duplicate inventory exists for this store' && editingItem) {
+      if (
+        window.confirm(
+          '같은 제목과 작가의 도서가 이미 등록되어 있습니다. 현재 수정 중인 권수와 서가를 기준으로 기존 중복 재고를 통합할까요?'
+        )
+      ) {
+        return save(form, true);
+      }
+      setMessage('통합하지 않았습니다. 기존 도서를 확인한 뒤 다시 수정해 주세요.');
+      return;
+    }
+
     setMessage(
-      error?.message === 'a different book already has this title and author'
-        ? '같은 제목과 작가의 도서가 이미 등록되어 있습니다. 기존 도서를 확인한 뒤 다시 수정해 주세요.'
-        : (error?.message ??
-            (editingItem ? `[${titleVal}] 도서 정보를 수정했습니다.` : '도서 재고를 저장했습니다.'))
+      error?.message ??
+        (editingItem ? `[${titleVal}] 도서 정보를 수정했습니다.` : '도서 재고를 저장했습니다.')
     );
     if (!error) {
       await load();
