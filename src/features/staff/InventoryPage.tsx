@@ -55,14 +55,29 @@ export function InventoryPage() {
       setItems([]);
       return;
     }
-    const { data, error } = await supabase
-      .from('book_inventories')
-      .select('id,last_volume,volume_range,shelf_location,books(title,author,category)')
-      .eq('store_id', selectedStoreId)
-      .order('updated_at', { ascending: false });
+    const CHUNK_SIZE = 1000;
+    const allItems: InventoryItem[] = [];
+    let page = 0;
 
-    if (error) setMessage(error.message);
-    else setItems(data ?? []);
+    while (true) {
+      const { data, error } = await supabase
+        .from('book_inventories')
+        .select('id,last_volume,volume_range,shelf_location,books(title,author,category)')
+        .eq('store_id', selectedStoreId)
+        .order('updated_at', { ascending: false })
+        .range(page * CHUNK_SIZE, (page + 1) * CHUNK_SIZE - 1);
+
+      if (error) {
+        setMessage(error.message);
+        break;
+      }
+      if (!data || data.length === 0) break;
+      allItems.push(...data);
+      if (data.length < CHUNK_SIZE) break;
+      page += 1;
+    }
+
+    setItems(allItems);
   };
 
   useEffect(() => {

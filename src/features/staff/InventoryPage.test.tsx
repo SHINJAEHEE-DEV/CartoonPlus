@@ -8,6 +8,7 @@ const query = vi.hoisted(() => ({
   select: vi.fn(),
   eq: vi.fn(),
   order: vi.fn(),
+  range: vi.fn(),
 }));
 
 vi.mock('../../lib/supabase', () => ({ supabase: { from: query.from } }));
@@ -23,7 +24,8 @@ describe('InventoryPage', () => {
     query.from.mockReturnValue(query);
     query.select.mockReturnValue(query);
     query.eq.mockReturnValue(query);
-    query.order.mockResolvedValue({
+    query.order.mockReturnValue(query);
+    query.range.mockResolvedValue({
       data: [
         {
           id: 'inventory-1',

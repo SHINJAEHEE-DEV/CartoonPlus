@@ -63,13 +63,30 @@ async function loadBaselineCsv(storeSlug: StoreSlug): Promise<SearchableBook[]> 
 
 export async function loadPublicCatalogue(storeSlug: StoreSlug = 'snu'): Promise<SearchableBook[]> {
   if (supabase) {
-    const { data, error } = await supabase
-      .from('customer_book_catalogue')
-      .select('inventory_id,title,author,category,volume_range,shelf_location')
-      .eq('store_slug', storeSlug)
-      .order('title');
+    const CHUNK_SIZE = 1000;
+    const allRows: CatalogueRow[] = [];
+    let page = 0;
 
-    if (!error && data && data.length > 0) return data.map(toSearchableBook);
+    while (true) {
+      const { data, error } = await supabase
+        .from('customer_book_catalogue')
+        .select('inventory_id,title,author,category,volume_range,shelf_location')
+        .eq('store_slug', storeSlug)
+        .order('title')
+        .range(page * CHUNK_SIZE, (page + 1) * CHUNK_SIZE - 1);
+
+      if (error) {
+        if (allRows.length === 0) return loadBaselineCsv(storeSlug);
+        break;
+      }
+
+      if (!data || data.length === 0) break;
+      allRows.push(...data);
+      if (data.length < CHUNK_SIZE) break;
+      page += 1;
+    }
+
+    if (allRows.length > 0) return allRows.map(toSearchableBook);
   }
 
   return loadBaselineCsv(storeSlug);

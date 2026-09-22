@@ -2,6 +2,21 @@
 
 개발 과정에서 발생하는 이슈, 데이터 전처리 분석, 성능 최적화 및 트러블슈팅 내역을 체계적으로 기록합니다.
 
+## 2026-09-22 PostgREST 기본 1,000건 응답 상한으로 인한 도서 누락 및 실시간 입고 검색 불가 해결
+
+- **증상/요구사항**:
+  1. 잠실점 DB 도서가 1,000개 이상인데 고객/직원 화면에서 1,000개까지만 표시되는 문제 발생.
+  2. 직원이 새 도서를 입고 등록해도 고객 도서 검색 페이지에서 검색되지 않는 현상 발생.
+- **원인 분석**:
+  1. Supabase PostgREST 서버는 단일 HTTP 쿼리 응답의 행 수를 최대 1,000개(`max-rows = 1000`)로 제한함.
+  2. 고객 도서 카탈로그([catalogueRepository.ts](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/book-search/catalogueRepository.ts)) 및 직원 재고 목록([InventoryPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/InventoryPage.tsx))에서 `.range()` 페이징 없이 단일 `.select()`로 쿼리하여 `order('title')` 기준 앞쪽 1,000권(제목 `ㄱ`~`ㅁ` 일부)만 로드됨.
+  3. 이로 인해 1,000번째 이후 도서(`ㅂ`~`ㅎ`, 영문 등) 및 신규 등록된 도서가 브라우저 인메모리 검색 풀(`books`)에 포함되지 않아 검색되지 않았음.
+- **해결 및 반영**:
+  1. `catalogueRepository.ts`의 `loadPublicCatalogue`: `while` 루프와 `.range(page * 1000, (page + 1) * 1000 - 1)`를 적용하여 지점별 전체 도서(잠실점 5,078건, 홍대점 1,854건 등)를 누락 없이 1,000건 단위로 순차 로드하도록 개선.
+  2. `InventoryPage.tsx`의 `load`: 직원 재고 목록도 동일하게 `.range()` 청크 로드를 적용하여 지점 내 모든 도서를 로드하도록 수정.
+  3. `InventoryPage.test.tsx`: Supabase mock에 `.range()` 체이닝 함수를 추가하여 유닛 테스트 통과 보장.
+- **검증**: `npm test` 전체 19개 파일 / 105개 테스트 100% 통과, `npm run build` SSG 프로덕션 빌드 성공.
+
 ## 2026-09-22 홍대점 최신 도서 재고(1,854종) 작가·11대 표준 장르 보강, 정제, 정적 CSV 재생성 및 Supabase DB 적용
 
 - **배경/요구사항**:
