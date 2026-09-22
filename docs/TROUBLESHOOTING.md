@@ -2,6 +2,14 @@
 
 개발 과정에서 발생하는 이슈, 데이터 전처리 분석, 성능 최적화 및 트러블슈팅 내역을 체계적으로 기록합니다.
 
+## 2026-09-22 도서명 정정 시 새 재고가 생성되는 문제
+
+- **증상/재현 조건**: 직원 도서 재고 화면에서 기존 항목을 수정한 뒤 도서명을 고치고 저장하면, 원래 재고가 남은 채 정정된 제목의 새 재고가 생성된다.
+- **원인**: 수정 저장도 신규 등록·CSV 가져오기와 같은 제목·작가 기반 `upsert_inventory_for_store` RPC를 호출했다. 제목이 달라지면 기존 `Book`을 찾지 못해 새 `BookInventory`를 insert하며, 새 최초 등록일이 부여된다.
+- **해결**: 수정 모드에서는 재고 ID를 받는 `update_inventory_for_store` RPC를 호출한다. 이 RPC는 승인된 직원의 대상 지점 권한을 확인한 뒤, 기존 `BookInventory`와 연결된 `Book` 메타데이터·권수·서가만 갱신한다. 재고 ID와 `first_registered_at`은 변경하지 않는다.
+- **운영상 주의**: 정정한 제목·작가 조합이 다른 도서 마스터에 이미 있으면 자동 병합하지 않고 저장을 중단한다. 공유 도서 마스터의 정정은 그 도서를 참조하는 다른 지점 고객 화면에도 반영될 수 있으므로, 지점별로 서로 다른 제목을 유지해야 하는 경우에는 운영자가 데이터 기준을 먼저 정해야 한다.
+- **검증**: 수정 화면의 제목 변경 저장이 등록용 upsert가 아닌 수정 RPC에 기존 재고 ID를 전달하는 회귀 테스트를 추가했다. 전체 테스트·타입 검사·프로덕션 빌드가 통과해야 한다.
+
 ## 2026-09-22 잠실점 레거시 중복 데이터(2,407건) 정제 및 단일 2,672종 정합성 회복
 
 - **증상/요구사항**: Supabase 잠실점 도서 데이터가 약 2개씩 중복되어 노출되는 문제 확인 및 제거 요청.
@@ -113,7 +121,7 @@
 ## 2026-09-17 직원 운영 대시보드 데이터 로딩 실패 ("운영 데이터를 불러오지 못했습니다") 해결
 
 - **증상**: 직원 운영 대시보드(`/staff/dashboard`) 접속 시 콘솔에 `400 Bad Request (...chived_at=is.null)` 오류와 함께 "운영 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요." 오류 카드가 표시되며 KPI 통계가 로드되지 않음.
-- **원인**: 
+- **원인**:
   1. 마이그레이션(`20260917090000_tts_broadcast_presets.sql`, `20260917100000_remove_inventory_archives.sql`)에서 `scheduled_broadcasts` 및 `book_inventories` 테이블의 `archived_at` 컬럼이 완전 삭제(`DROP COLUMN`)되었음.
   2. 대시보드([DashboardPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/DashboardPage.tsx))에서 해당 두 테이블을 쿼리할 때 레거시 `.is('archived_at', null)` 필터를 여전히 전송하여 PostgREST 400 오류(`column does not exist`)가 발생하고 대시보드 통계 수신이 중단됨.
 - **수정**: `src/features/staff/DashboardPage.tsx`에서 `scheduled_broadcasts` 및 `book_inventories` 쿼리의 불필요한 `.is('archived_at', null)` 조건을 모두 제거하고, `DashboardPage.test.tsx` 단위 및 회귀 테스트를 추가함.

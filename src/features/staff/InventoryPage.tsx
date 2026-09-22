@@ -100,9 +100,7 @@ export function InventoryPage() {
     setFormAuthor(book?.author || '');
     setGenreTags(splitBookCategories(book?.category || ''));
     setFormVolume(
-      item.last_volume !== null
-        ? String(item.last_volume)
-        : item.volume_range.replace(/\D/g, '')
+      item.last_volume !== null ? String(item.last_volume) : item.volume_range.replace(/\D/g, '')
     );
     setFormShelf(item.shelf_location || '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -116,16 +114,27 @@ export function InventoryPage() {
     const volumeVal = Number(form.get('volume') || formVolume);
     const shelfVal = String(form.get('shelf') || formShelf).trim();
 
-    const { error } = await supabase.rpc('upsert_inventory_for_store', {
-      p_store_id: selectedStoreId,
+    const payload = {
       p_title: titleVal,
       p_author: authorVal,
       p_category: normalizeBookCategory(genreTags.join(',')),
       p_last_volume: volumeVal || null,
       p_shelf_location: shelfVal,
-    });
+    };
+    const { error } = editingItem
+      ? await supabase.rpc('update_inventory_for_store', {
+          p_inventory_id: editingItem.id,
+          ...payload,
+        })
+      : await supabase.rpc('upsert_inventory_for_store', {
+          p_store_id: selectedStoreId,
+          ...payload,
+        });
     setMessage(
-      error?.message ?? (editingItem ? `[${titleVal}] 도서 정보를 수정했습니다.` : '도서 재고를 저장했습니다.')
+      error?.message === 'a different book already has this title and author'
+        ? '같은 제목과 작가의 도서가 이미 등록되어 있습니다. 기존 도서를 확인한 뒤 다시 수정해 주세요.'
+        : (error?.message ??
+            (editingItem ? `[${titleVal}] 도서 정보를 수정했습니다.` : '도서 재고를 저장했습니다.'))
     );
     if (!error) {
       await load();
