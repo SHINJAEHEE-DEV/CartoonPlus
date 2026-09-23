@@ -104,6 +104,18 @@ export function getBannerImageUrl(type: ManagedEvent['bannerType'], customUrl?: 
   return EVENT_BANNERS.placeholder;
 }
 
+export async function uploadEventImage(file: File): Promise<{ url?: string; error?: string }> {
+  if (!file.type.startsWith('image/')) return { error: '이미지 파일만 업로드할 수 있습니다.' };
+  if (file.size > 5 * 1024 * 1024) return { error: '이미지 파일 크기는 5MB 이하여야 합니다.' };
+  const { supabase } = await import('./supabase');
+  if (!supabase) return { error: '서버 연결을 확인할 수 없습니다.' };
+  const extension = file.name.split('.').pop()?.toLowerCase() || 'png';
+  const path = `events/${crypto.randomUUID()}.${extension}`;
+  const { error } = await supabase.storage.from('event-images').upload(path, file, { upsert: false });
+  if (error) return { error: error.message };
+  return { url: supabase.storage.from('event-images').getPublicUrl(path).data.publicUrl };
+}
+
 export function isEventMatchingStore(event: ManagedEvent, storeSlug?: string): boolean {
   if (!storeSlug || storeSlug === 'all') return true;
   if (!event.storeSlug || event.storeSlug === 'all') {
@@ -146,37 +158,39 @@ export function saveManagedEvents(events: ManagedEvent[]): void {
   }
 }
 
-export async function syncEventsWithSupabase(storeId?: string): Promise<ManagedEvent[]> {
+export async function syncEventsWithSupabase(storeSlug?: EventStoreSlug): Promise<ManagedEvent[]> {
   const { supabase } = await import('./supabase');
-  if (!supabase || !storeId) {
+  if (!supabase) {
     return loadManagedEvents();
   }
 
   try {
     const { data, error } = await supabase
       .from('store_events')
-      .select('id, title, content, start_date, end_date, is_public, is_always_on, created_at, store_id')
-      .eq('store_id', storeId)
+      .select('id, title, content, start_date, end_date, image_url, is_public, is_always_on, is_featured, tag, target, banner_type, created_at, store_slug')
+      .or(storeSlug && storeSlug !== 'all' ? `store_slug.eq.${storeSlug},store_slug.is.null` : 'store_slug.is.null')
       .is('archived_at', null)
       .order('created_at', { ascending: false });
 
-    if (error || !data || data.length === 0) {
+    if (error || !data) {
       return loadManagedEvents();
     }
 
     const remoteEvents: ManagedEvent[] = data.map((row) => ({
       id: row.id,
       title: row.title,
-      tag: row.is_always_on ? '상시 혜택' : '이벤트',
-      target: '카툰플러스 고객',
+      tag: row.tag || (row.is_always_on ? '상시 혜택' : '이벤트'),
+      target: row.target || '카툰플러스 고객',
       detail: row.content,
-      bannerType: row.title.includes('라면') ? 'naver_ramen' : row.title.includes('서울대') ? 'snu' : 'weekday',
+      bannerType: row.banner_type || 'weekday',
+      customBannerUrl: row.image_url || undefined,
       startDate: row.start_date || undefined,
       endDate: row.end_date || undefined,
       isAlwaysOn: Boolean(row.is_always_on),
       isPublic: Boolean(row.is_public),
-      isFeatured: false,
+      isFeatured: Boolean(row.is_featured),
       createdAt: row.created_at,
+      storeSlug: row.store_slug || 'all',
     }));
 
     return remoteEvents;
@@ -186,25 +200,34 @@ export async function syncEventsWithSupabase(storeId?: string): Promise<ManagedE
 }
 
 export async function saveEventToSupabase(
-  event: ManagedEvent,
-  storeId?: string
+  event: ManagedEvent
 ): Promise<{ success: boolean; error?: string }> {
   const { supabase } = await import('./supabase');
-  if (!supabase || !storeId) {
-    return { success: true };
-  }
+  if (!supabase) return { success: false, error: '서버 연결을 확인할 수 없습니다.' };
 
   const today = new Date().toISOString().slice(0, 10);
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(event.id);
 
+  let storeId: string | null = null;
+  if (event.storeSlug && event.storeSlug !== 'all') {
+    const { data, error } = await supabase.from('stores').select('id').eq('slug', event.storeSlug).maybeSingle();
+    if (error || !data) return { success: false, error: error?.message ?? '지점 정보를 찾을 수 없습니다.' };
+    storeId = data.id;
+  }
   const payload: Record<string, unknown> = {
     store_id: storeId,
+    store_slug: event.storeSlug === 'all' ? null : event.storeSlug,
     title: event.title.trim(),
     content: event.detail.trim(),
     start_date: event.isAlwaysOn ? today : event.startDate || today,
     end_date: event.isAlwaysOn ? '2099-12-31' : event.endDate || today,
     is_always_on: event.isAlwaysOn,
     is_public: event.isPublic,
+    tag: event.tag.trim(),
+    target: event.target.trim(),
+    banner_type: event.bannerType,
+    image_url: event.customBannerUrl || null,
+    is_featured: Boolean(event.isFeatured),
     archived_at: null,
   };
 
@@ -215,7 +238,7 @@ export async function saveEventToSupabase(
   try {
     const { error } = await supabase
       .from('store_events')
-      .upsert(payload, isUuid ? { onConflict: 'id' } : { onConflict: 'store_id,title' });
+      .upsert(payload, isUuid ? { onConflict: 'id' } : { onConflict: 'scope_key,title' });
 
     if (error) {
       return { success: false, error: error.message };
@@ -227,14 +250,10 @@ export async function saveEventToSupabase(
 }
 
 export async function deleteEventFromSupabase(
-  id: string,
-  storeId?: string,
-  title?: string
+  id: string
 ): Promise<{ success: boolean; error?: string }> {
   const { supabase } = await import('./supabase');
-  if (!supabase || !storeId) {
-    return { success: true };
-  }
+  if (!supabase) return { success: false, error: '서버 연결을 확인할 수 없습니다.' };
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
@@ -243,15 +262,7 @@ export async function deleteEventFromSupabase(
       const { error } = await supabase.from('store_events').delete().eq('id', id);
       if (!error) return { success: true };
     }
-    if (title) {
-      const { error } = await supabase
-        .from('store_events')
-        .delete()
-        .eq('store_id', storeId)
-        .eq('title', title);
-      if (error) return { success: false, error: error.message };
-    }
-    return { success: true };
+    return { success: false, error: '이벤트 식별자를 찾을 수 없습니다.' };
   } catch (err: unknown) {
     return { success: false, error: (err as Error)?.message || 'Supabase delete failed' };
   }

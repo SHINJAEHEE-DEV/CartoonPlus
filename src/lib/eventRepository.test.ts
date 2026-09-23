@@ -101,11 +101,11 @@ describe('eventRepository', () => {
     const { saveEventToSupabase, deleteEventFromSupabase, syncEventsWithSupabase } = await import('./eventRepository');
     
     // With undefined storeId, should gracefully return success
-    const saveResult = await saveEventToSupabase(testEvents[0], undefined);
-    expect(saveResult.success).toBe(true);
+    const saveResult = await saveEventToSupabase(testEvents[0]);
+    expect(saveResult.success).toBe(false);
 
-    const deleteResult = await deleteEventFromSupabase('evt-1', undefined, '평일 종일권 이벤트');
-    expect(deleteResult.success).toBe(true);
+    const deleteResult = await deleteEventFromSupabase('evt-1');
+    expect(deleteResult.success).toBe(false);
 
     // With undefined storeId, syncEventsWithSupabase should fallback to local events
     const syncResult = await syncEventsWithSupabase(undefined);
@@ -113,4 +113,3 @@ describe('eventRepository', () => {
     expect(syncResult.length).toBeGreaterThan(0);
   });
 });
-

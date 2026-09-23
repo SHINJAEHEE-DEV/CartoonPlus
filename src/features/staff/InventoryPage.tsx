@@ -114,14 +114,22 @@ export function InventoryPage() {
     const volumeVal = Number(form.get('volume') || formVolume);
     const shelfVal = String(form.get('shelf') || formShelf).trim();
 
+    if (!Number.isInteger(volumeVal) || volumeVal < 1) {
+      setMessage('마지막 권수는 1 이상의 정수로 입력해 주세요.');
+      return;
+    }
+    if (!titleVal || !shelfVal) {
+      setMessage('도서명과 서가를 입력해 주세요.');
+      return;
+    }
     const payload = {
       p_title: titleVal,
       p_author: authorVal,
       p_category: normalizeBookCategory(genreTags.join(',')),
-      p_last_volume: volumeVal || null,
+      p_last_volume: volumeVal,
       p_shelf_location: shelfVal,
     };
-    const { error } = editingItem
+    let { error } = editingItem
       ? await supabase.rpc('update_inventory_for_store', {
           p_inventory_id: editingItem.id,
           ...payload,
@@ -129,8 +137,21 @@ export function InventoryPage() {
         })
       : await supabase.rpc('upsert_inventory_for_store', {
           p_store_id: selectedStoreId,
-          ...payload,
-        });
+        ...payload,
+      });
+    if (
+      editingItem &&
+      error?.message.includes('duplicate inventory exists') &&
+      window.confirm(
+        '같은 지점에 같은 도서가 이미 있습니다. 현재 입력한 권수·서가 정보로 하나의 재고로 병합할까요?'
+      )
+    ) {
+      ({ error } = await supabase.rpc('update_inventory_for_store', {
+        p_inventory_id: editingItem.id,
+        ...payload,
+        p_merge_duplicate: true,
+      }));
+    }
     setMessage(
       error?.message ??
         (editingItem ? `[${titleVal}] 도서 정보를 수정했습니다.` : '도서 재고를 저장했습니다.')

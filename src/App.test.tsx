@@ -2,10 +2,18 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import App from './App';
+import { CUSTOMER_STORE_PREFERENCE_KEY } from './lib/storeContext';
 
 afterEach(cleanup);
 
 describe('customer routes', () => {
+  it('restores the customer Store preference at the root route', async () => {
+    localStorage.setItem(CUSTOMER_STORE_PREFERENCE_KEY, 'jamsil');
+    window.history.pushState({}, '', '/');
+    render(<App />);
+    await waitFor(() => expect(screen.getAllByText('잠실점').length).toBeGreaterThan(0));
+  });
+
   it('opens Book Search at the root route', () => {
     window.history.pushState({}, '', '/');
 
@@ -92,4 +100,3 @@ describe('customer routes', () => {
     expect(screen.getByLabelText(/도서명/)).toBeTruthy();
   });
 });
-

@@ -34,8 +34,9 @@ import { StaffStoreProvider } from './features/staff/StaffStoreContext';
 import { StaffLoadingScreen } from './features/staff/StaffLoadingScreen';
 import { useGlobalBroadcastScheduler } from './lib/broadcastRunner';
 import {
-  defaultPublicStore,
   getPublicStore,
+  getPreferredPublicStore,
+  savePreferredPublicStore,
   StoreContext,
   usePublicStore,
 } from './lib/storeContext';
@@ -174,12 +175,12 @@ function BookRequestRoute() {
 function CustomerRoute({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const { storeSlug } = useParams();
-  const store = storeSlug ? getPublicStore(storeSlug) : defaultPublicStore;
+  const store = storeSlug ? getPublicStore(storeSlug) : getPreferredPublicStore();
 
   useEffect(() => {
     if (store?.slug && typeof window !== 'undefined') {
       try {
-        localStorage.setItem('cartoonplus_active_store', store.slug);
+        savePreferredPublicStore(store.slug);
       } catch {
         // ignore storage errors
       }

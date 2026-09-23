@@ -36,10 +36,31 @@ const publicStores: Record<StoreSlug, PublicStore> = {
 
 export const defaultPublicStore = publicStores.snu;
 export const publicStoreList = Object.values(publicStores);
+export const CUSTOMER_STORE_PREFERENCE_KEY = 'cartoonplus_customer_store';
 
 export function getPublicStore(slug: string | undefined): PublicStore | undefined {
   if (!slug || !(slug in publicStores)) return undefined;
   return publicStores[slug as StoreSlug];
+}
+
+export function getPreferredPublicStore(): PublicStore {
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = getPublicStore(localStorage.getItem(CUSTOMER_STORE_PREFERENCE_KEY) ?? undefined);
+      if (saved) return saved;
+    } catch {
+      // Storage can be unavailable in private or embedded browsers.
+    }
+  }
+  return defaultPublicStore;
+}
+
+export function savePreferredPublicStore(slug: StoreSlug): void {
+  try {
+    localStorage.setItem(CUSTOMER_STORE_PREFERENCE_KEY, slug);
+  } catch {
+    // Preference persistence is optional.
+  }
 }
 
 export function storePath(store: PublicStore, path = ''): string {

@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useMemo, useEffect, type ReactNode
 import { defaultPublicStore, getPublicStore, publicStoreList, type PublicStore, type StoreSlug } from '../../lib/storeContext';
 import { supabase } from '../../lib/supabase';
 
+const STAFF_STORE_PREFERENCE_KEY = 'cartoonplus_staff_store';
+
 type StaffStoreContextValue = {
   selectedStoreSlug: StoreSlug;
   currentStore: PublicStore;
@@ -21,7 +23,7 @@ export function StaffStoreProvider({
 }) {
   const [selectedStoreSlug, setSelectedStoreSlug] = useState<StoreSlug>(() => {
     if (isAdmin && typeof window !== 'undefined') {
-      const saved = localStorage.getItem('cartoonplus_active_store') as StoreSlug | null;
+      const saved = localStorage.getItem(STAFF_STORE_PREFERENCE_KEY) as StoreSlug | null;
       if (saved && (saved === 'snu' || saved === 'jamsil' || saved === 'hongdae')) {
         return saved;
       }
@@ -43,7 +45,7 @@ export function StaffStoreProvider({
         if (isAdmin) {
           setSelectedStoreSlug(slug);
           try {
-            localStorage.setItem('cartoonplus_active_store', slug);
+            localStorage.setItem(STAFF_STORE_PREFERENCE_KEY, slug);
           } catch {
             // ignore storage errors
           }

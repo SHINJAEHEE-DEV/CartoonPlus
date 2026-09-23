@@ -19,6 +19,14 @@ type Item = {
   quantity?: number;
   content?: string | null;
   is_always_on?: boolean;
+  is_featured?: boolean;
+  tag?: string | null;
+  target?: string | null;
+  banner_type?: ManagedEvent['bannerType'];
+  image_url?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  store_slug?: ManagedEvent['storeSlug'];
 };
 
 const GUIDE_STEPS = [
@@ -152,8 +160,8 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
         } else if (kind === 'events') {
           const { data } = await client
             .from('store_events')
-            .select('id,title,content,is_always_on,store_id')
-            .or(`store_id.eq.${store.id},store_id.is.null`)
+            .select('id,title,content,is_always_on,is_featured,tag,target,banner_type,image_url,start_date,end_date,store_slug')
+            .or(`store_slug.eq.${selectedStore.slug},store_slug.is.null`)
             .eq('is_public', true)
             .is('archived_at', null)
             .or(
@@ -308,31 +316,23 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
   if (kind === 'events') {
     let publicEvents: ManagedEvent[] = [];
 
-    if (items && items.length > 0) {
+    if (items !== null) {
       publicEvents = items.map((event) => {
-        const matchingInitial = INITIAL_EVENTS.find((ie) => ie.title === event.title);
-        let bannerType: ManagedEvent['bannerType'] = 'weekday';
-        if (event.title.includes('라면') || event.title.includes('리뷰')) {
-          bannerType = 'naver_ramen';
-        } else if (event.title.includes('서울대')) {
-          bannerType = 'snu';
-        } else if (matchingInitial) {
-          bannerType = matchingInitial.bannerType;
-        }
-
         return {
           id: event.id,
           title: event.title,
           detail: event.content ?? '',
           isAlwaysOn: Boolean(event.is_always_on),
           isPublic: true,
-          startDate: matchingInitial?.startDate ?? '',
-          endDate: matchingInitial?.endDate ?? '',
-          tag: matchingInitial?.tag ?? (event.is_always_on ? '상시 혜택' : 'EVENT'),
-          target: matchingInitial?.target ?? '카툰플러스 방문 고객',
-          isFeatured: matchingInitial?.isFeatured ?? false,
-          bannerType,
-          createdAt: matchingInitial?.createdAt ?? '2026-01-01',
+          startDate: event.start_date ?? '',
+          endDate: event.end_date ?? '',
+          tag: event.tag ?? (event.is_always_on ? '상시 혜택' : 'EVENT'),
+          target: event.target ?? '카툰플러스 방문 고객',
+          isFeatured: Boolean(event.is_featured),
+          bannerType: event.banner_type ?? 'weekday',
+          customBannerUrl: event.image_url ?? undefined,
+          storeSlug: event.store_slug ?? 'all',
+          createdAt: '2026-01-01',
         };
       });
     } else {

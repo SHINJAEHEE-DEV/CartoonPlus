@@ -6,10 +6,11 @@ import {
   syncEventsWithSupabase,
   saveEventToSupabase,
   deleteEventFromSupabase,
+  uploadEventImage,
   type ManagedEvent,
   type EventStoreSlug,
 } from '../../lib/eventRepository';
-import { useStaffStore, useSelectedStaffStoreId } from './StaffStoreContext';
+import { useStaffStore } from './StaffStoreContext';
 import { publicStoreList } from '../../lib/storeContext';
 
 const STORE_NAME_MAP: Record<EventStoreSlug, string> = {
@@ -21,7 +22,6 @@ const STORE_NAME_MAP: Record<EventStoreSlug, string> = {
 
 export function EventsPage() {
   const { selectedStoreSlug } = useStaffStore();
-  const selectedStoreId = useSelectedStaffStoreId();
   const currentStore =
     publicStoreList.find((s) => s.slug === selectedStoreSlug) ?? publicStoreList[0];
 
@@ -41,6 +41,7 @@ export function EventsPage() {
   const [customBannerUrl, setCustomBannerUrl] = useState('');
   const [imageMode, setImageMode] = useState<'upload' | 'url' | 'preset'>('upload');
   const [fileName, setFileName] = useState<string>('');
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isAlwaysOn, setIsAlwaysOn] = useState(true);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -53,19 +54,16 @@ export function EventsPage() {
     let active = true;
     setEvents(loadManagedEvents());
 
-    if (selectedStoreId) {
-      void syncEventsWithSupabase(selectedStoreId).then((remote) => {
-        if (active && remote.length > 0) {
+    void syncEventsWithSupabase(selectedStoreSlug).then((remote) => {
+        if (active) {
           setEvents(remote);
-          saveManagedEvents(remote);
         }
       });
-    }
 
     return () => {
       active = false;
     };
-  }, [selectedStoreId, selectedStoreSlug]);
+  }, [selectedStoreSlug]);
 
   // 지점 컨텍스트 변경 시 폼 디폴트도 동기화 (수정 중이 아닐 때)
   useEffect(() => {
@@ -83,6 +81,7 @@ export function EventsPage() {
     setCustomBannerUrl('');
     setImageMode('preset');
     setFileName('');
+    setUploadedFile(null);
     setIsAlwaysOn(true);
     setStartDate('');
     setEndDate('');
@@ -132,6 +131,7 @@ export function EventsPage() {
     }
 
     setFileName(file.name);
+    setUploadedFile(file);
     const reader = new FileReader();
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
@@ -242,12 +242,21 @@ export function EventsPage() {
       setMessage('새로운 이벤트가 등록되었습니다.');
     }
 
-    if (selectedStoreId) {
-      void saveEventToSupabase(eventToPersist, selectedStoreId);
+    if (uploadedFile) {
+      const upload = await uploadEventImage(uploadedFile);
+      if (!upload.url) {
+        setMessage(upload.error ?? '이미지를 업로드하지 못했습니다.');
+        return;
+      }
+      eventToPersist = { ...eventToPersist, customBannerUrl: upload.url, bannerType: 'custom' };
     }
-
-    setEvents(updatedEvents);
-    saveManagedEvents(updatedEvents);
+    const result = await saveEventToSupabase(eventToPersist);
+    if (!result.success) {
+      setMessage(result.error ?? '이벤트를 저장하지 못했습니다.');
+      return;
+    }
+    const refreshed = await syncEventsWithSupabase(selectedStoreSlug);
+    setEvents(refreshed);
     resetForm();
     setTimeout(() => setMessage(''), 4000);
   };
@@ -255,12 +264,12 @@ export function EventsPage() {
   // 삭제 (Delete)
   const handleDelete = async (id: string, eventTitle: string) => {
     if (window.confirm("'" + eventTitle + "' 이벤트를 정말로 삭제하시겠습니까?")) {
-      if (selectedStoreId) {
-        void deleteEventFromSupabase(id, selectedStoreId, eventTitle);
+      const result = await deleteEventFromSupabase(id);
+      if (!result.success) {
+        setMessage(result.error ?? '이벤트를 삭제하지 못했습니다.');
+        return;
       }
-      const filtered = events.filter((ev) => ev.id !== id);
-      setEvents(filtered);
-      saveManagedEvents(filtered);
+      setEvents(await syncEventsWithSupabase(selectedStoreSlug));
       setMessage('이벤트가 삭제되었습니다.');
       if (isEditing === id) resetForm();
       setTimeout(() => setMessage(''), 4000);
@@ -268,16 +277,19 @@ export function EventsPage() {
   };
 
   // 공개/비공개 토글
-  const handleTogglePublic = (id: string) => {
+  const handleTogglePublic = async (id: string) => {
     const updated = events.map((ev) => (ev.id === id ? { ...ev, isPublic: !ev.isPublic } : ev));
-    setEvents(updated);
-    saveManagedEvents(updated);
+    const target = updated.find((event) => event.id === id);
+    if (!target) return;
+    const result = await saveEventToSupabase(target);
+    if (!result.success) return setMessage(result.error ?? '공개 상태를 저장하지 못했습니다.');
+    setEvents(await syncEventsWithSupabase(selectedStoreSlug));
     setMessage('공개 상태가 변경되었습니다.');
     setTimeout(() => setMessage(''), 3000);
   };
 
   // 홈 메인 대표 이벤트로 지정 (해당 이벤트의 대상 지점 기준)
-  const handleSetFeatured = (targetItem: ManagedEvent) => {
+  const handleSetFeatured = async (targetItem: ManagedEvent) => {
     const targetStore = targetItem.storeSlug || 'all';
     const updated = events.map((ev) => {
       if (ev.id === targetItem.id) {
@@ -288,8 +300,10 @@ export function EventsPage() {
       }
       return ev;
     });
-    setEvents(updated);
-    saveManagedEvents(updated);
+    const result = await Promise.all(updated.filter((event) => event.storeSlug === targetStore).map(saveEventToSupabase));
+    const failure = result.find((entry) => !entry.success);
+    if (failure) return setMessage(failure.error ?? '대표 이벤트를 저장하지 못했습니다.');
+    setEvents(await syncEventsWithSupabase(selectedStoreSlug));
     setMessage(
       `'${targetItem.title}'이(가) [${STORE_NAME_MAP[targetStore]}] 대표 이벤트로 설정되었습니다.`
     );
@@ -297,7 +311,7 @@ export function EventsPage() {
   };
 
   // 이벤트 복사 (종료된 이벤트를 새 초안으로 복제)
-  const handleCopy = (source: ManagedEvent) => {
+  const handleCopy = async (source: ManagedEvent) => {
     const copy: ManagedEvent = {
       ...source,
       id: 'evt-' + Date.now(),
@@ -309,9 +323,9 @@ export function EventsPage() {
       storeSlug: selectedStoreSlug,
       createdAt: new Date().toISOString(),
     };
-    const updated = [copy, ...events];
-    setEvents(updated);
-    saveManagedEvents(updated);
+    const result = await saveEventToSupabase(copy);
+    if (!result.success) return setMessage(result.error ?? '이벤트 사본을 저장하지 못했습니다.');
+    setEvents(await syncEventsWithSupabase(selectedStoreSlug));
     setMessage(`'${source.title}' 이벤트를 복사했습니다. [${currentStore.name}] 비공개 초안으로 생성되었습니다.`);
     setTimeout(() => setMessage(''), 4000);
   };
@@ -1302,4 +1316,3 @@ export function EventsPage() {
     </main>
   );
 }
-
