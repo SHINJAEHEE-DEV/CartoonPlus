@@ -250,7 +250,8 @@ export async function saveEventToSupabase(
 }
 
 export async function deleteEventFromSupabase(
-  id: string
+  id: string,
+  imageUrl?: string
 ): Promise<{ success: boolean; error?: string }> {
   const { supabase } = await import('./supabase');
   if (!supabase) return { success: false, error: '서버 연결을 확인할 수 없습니다.' };
@@ -260,12 +261,23 @@ export async function deleteEventFromSupabase(
   try {
     if (isUuid) {
       const { error } = await supabase.from('store_events').delete().eq('id', id);
-      if (!error) return { success: true };
+      if (!error) {
+        if (imageUrl) await deleteEventImage(imageUrl);
+        return { success: true };
+      }
     }
     return { success: false, error: '이벤트 식별자를 찾을 수 없습니다.' };
   } catch (err: unknown) {
     return { success: false, error: (err as Error)?.message || 'Supabase delete failed' };
   }
+}
+
+async function deleteEventImage(url: string): Promise<void> {
+  const marker = '/storage/v1/object/public/event-images/';
+  const path = url.includes(marker) ? url.split(marker)[1] : null;
+  if (!path) return;
+  const { supabase } = await import('./supabase');
+  if (supabase) await supabase.storage.from('event-images').remove([path]);
 }
 
 export function getFeaturedEvent(

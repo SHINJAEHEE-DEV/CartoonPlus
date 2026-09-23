@@ -28,6 +28,8 @@ export function EventsPage() {
   const [events, setEvents] = useState<ManagedEvent[]>([]);
   const [message, setMessage] = useState<string>('');
   const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedEventId, setSavedEventId] = useState<string | null>(null);
   const [listStoreFilter, setListStoreFilter] = useState<string>('ALL');
 
   // 폼 상태
@@ -161,6 +163,7 @@ export function EventsPage() {
       return;
     }
 
+    setIsSaving(true);
     let updatedEvents = [...events];
     let eventToPersist: ManagedEvent;
 
@@ -246,6 +249,7 @@ export function EventsPage() {
       const upload = await uploadEventImage(uploadedFile);
       if (!upload.url) {
         setMessage(upload.error ?? '이미지를 업로드하지 못했습니다.');
+        setIsSaving(false);
         return;
       }
       eventToPersist = { ...eventToPersist, customBannerUrl: upload.url, bannerType: 'custom' };
@@ -253,18 +257,21 @@ export function EventsPage() {
     const result = await saveEventToSupabase(eventToPersist);
     if (!result.success) {
       setMessage(result.error ?? '이벤트를 저장하지 못했습니다.');
+      setIsSaving(false);
       return;
     }
     const refreshed = await syncEventsWithSupabase(selectedStoreSlug);
     setEvents(refreshed);
+    setSavedEventId(eventToPersist.id);
     resetForm();
+    setIsSaving(false);
     setTimeout(() => setMessage(''), 4000);
   };
 
   // 삭제 (Delete)
   const handleDelete = async (id: string, eventTitle: string) => {
     if (window.confirm("'" + eventTitle + "' 이벤트를 정말로 삭제하시겠습니까?")) {
-      const result = await deleteEventFromSupabase(id);
+      const result = await deleteEventFromSupabase(id, events.find((event) => event.id === id)?.customBannerUrl);
       if (!result.success) {
         setMessage(result.error ?? '이벤트를 삭제하지 못했습니다.');
         return;
@@ -991,6 +998,7 @@ export function EventsPage() {
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
             <button
               type="submit"
+              disabled={isSaving}
               style={{
                 padding: '12px 28px',
                 borderRadius: '999px',
@@ -1002,7 +1010,7 @@ export function EventsPage() {
                 cursor: 'pointer',
               }}
             >
-              {isEditing ? '이벤트 수정 저장' : '이벤트 등록 완료'}
+              {isSaving ? '저장 중…' : isEditing ? '이벤트 수정 저장' : '이벤트 등록 완료'}
             </button>
           </div>
         </form>
@@ -1081,9 +1089,10 @@ export function EventsPage() {
               return (
                 <div
                   key={ev.id}
+                  tabIndex={savedEventId === ev.id ? -1 : undefined}
                   style={{
                     background: '#FFFFFF',
-                    border: ev.isFeatured ? '3px solid #FED943' : '2.5px solid #1E1E1E',
+                    border: savedEventId === ev.id ? '3px solid #3B82F6' : ev.isFeatured ? '3px solid #FED943' : '2.5px solid #1E1E1E',
                     borderRadius: '20px',
                     padding: '20px',
                     display: 'flex',
