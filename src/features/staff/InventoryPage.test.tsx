@@ -70,13 +70,13 @@ describe('InventoryPage', () => {
     const authorInput = screen.getByPlaceholderText('작가명') as HTMLInputElement;
     const volumeInput = screen.getByPlaceholderText('마지막 권수 (예: 22)') as HTMLInputElement;
     const shelfInput = screen.getByPlaceholderText(
-      '서가 (예: A-03 또는 책장 1번) *'
+      '서가 번호 (예: 52 → 책장 52번) *'
     ) as HTMLInputElement;
 
     expect(titleInput.value).toBe('원피스');
     expect(authorInput.value).toBe('오다 에이이치로');
     expect(volumeInput.value).toBe('12');
-    expect(shelfInput.value).toBe('책장 5번');
+    expect(shelfInput.value).toBe('5');
   });
 
   it('keeps the selected inventory when correcting its title', async () => {
@@ -132,7 +132,7 @@ describe('InventoryPage', () => {
     );
   });
 
-  it('keeps new book registration on the inventory upsert path', async () => {
+  it('keeps new book registration on the inventory upsert path and formats shelf as 책장 N번', async () => {
     render(
       <MemoryRouter>
         <InventoryPage />
@@ -145,8 +145,8 @@ describe('InventoryPage', () => {
     fireEvent.change(screen.getByPlaceholderText('마지막 권수 (예: 22)'), {
       target: { value: '3' },
     });
-    fireEvent.change(screen.getByPlaceholderText('서가 (예: A-03 또는 책장 1번) *'), {
-      target: { value: 'B-2' },
+    fireEvent.change(screen.getByPlaceholderText('서가 번호 (예: 52 → 책장 52번) *'), {
+      target: { value: '52' },
     });
     fireEvent.click(screen.getByRole('button', { name: '저장' }));
 
@@ -157,7 +157,7 @@ describe('InventoryPage', () => {
         p_author: '신규 작가',
         p_category: '',
         p_last_volume: 3,
-        p_shelf_location: 'B-2',
+        p_shelf_location: '책장 52번',
       })
     );
   });

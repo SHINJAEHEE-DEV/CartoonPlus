@@ -37,9 +37,7 @@ export function EventsPage() {
   const [tag, setTag] = useState('한정 이벤트');
   const [target, setTarget] = useState('');
   const [detail, setDetail] = useState('');
-  const [bannerType, setBannerType] = useState<'weekday' | 'naver_ramen' | 'snu' | 'custom'>(
-    'weekday'
-  );
+  const [bannerType, setBannerType] = useState<ManagedEvent['bannerType']>('weekday');
   const [customBannerUrl, setCustomBannerUrl] = useState('');
   const [imageMode, setImageMode] = useState<'upload' | 'url' | 'preset'>('upload');
   const [fileName, setFileName] = useState<string>('');
@@ -54,18 +52,18 @@ export function EventsPage() {
   // 로드 및 Supabase 원격 동기화
   useEffect(() => {
     let active = true;
-    setEvents(loadManagedEvents());
+    setEvents(loadManagedEvents('all'));
 
-    void syncEventsWithSupabase(selectedStoreSlug).then((remote) => {
-        if (active) {
-          setEvents(remote);
-        }
-      });
+    void syncEventsWithSupabase('all').then((remote) => {
+      if (active) {
+        setEvents(remote);
+      }
+    });
 
     return () => {
       active = false;
     };
-  }, [selectedStoreSlug]);
+  }, []);
 
   // 지점 컨텍스트 변경 시 폼 디폴트도 동기화 (수정 중이 아닐 때)
   useEffect(() => {
@@ -260,7 +258,7 @@ export function EventsPage() {
       setIsSaving(false);
       return;
     }
-    const refreshed = await syncEventsWithSupabase(selectedStoreSlug);
+    const refreshed = await syncEventsWithSupabase('all');
     setEvents(refreshed);
     setSavedEventId(eventToPersist.id);
     resetForm();
@@ -276,7 +274,7 @@ export function EventsPage() {
         setMessage(result.error ?? '이벤트를 삭제하지 못했습니다.');
         return;
       }
-      setEvents(await syncEventsWithSupabase(selectedStoreSlug));
+      setEvents(await syncEventsWithSupabase('all'));
       setMessage('이벤트가 삭제되었습니다.');
       if (isEditing === id) resetForm();
       setTimeout(() => setMessage(''), 4000);
@@ -290,7 +288,7 @@ export function EventsPage() {
     if (!target) return;
     const result = await saveEventToSupabase(target);
     if (!result.success) return setMessage(result.error ?? '공개 상태를 저장하지 못했습니다.');
-    setEvents(await syncEventsWithSupabase(selectedStoreSlug));
+    setEvents(await syncEventsWithSupabase('all'));
     setMessage('공개 상태가 변경되었습니다.');
     setTimeout(() => setMessage(''), 3000);
   };
@@ -310,7 +308,7 @@ export function EventsPage() {
     const result = await Promise.all(updated.filter((event) => event.storeSlug === targetStore).map(saveEventToSupabase));
     const failure = result.find((entry) => !entry.success);
     if (failure) return setMessage(failure.error ?? '대표 이벤트를 저장하지 못했습니다.');
-    setEvents(await syncEventsWithSupabase(selectedStoreSlug));
+    setEvents(await syncEventsWithSupabase('all'));
     setMessage(
       `'${targetItem.title}'이(가) [${STORE_NAME_MAP[targetStore]}] 대표 이벤트로 설정되었습니다.`
     );
@@ -332,7 +330,7 @@ export function EventsPage() {
     };
     const result = await saveEventToSupabase(copy);
     if (!result.success) return setMessage(result.error ?? '이벤트 사본을 저장하지 못했습니다.');
-    setEvents(await syncEventsWithSupabase(selectedStoreSlug));
+    setEvents(await syncEventsWithSupabase('all'));
     setMessage(`'${source.title}' 이벤트를 복사했습니다. [${currentStore.name}] 비공개 초안으로 생성되었습니다.`);
     setTimeout(() => setMessage(''), 4000);
   };
@@ -800,6 +798,10 @@ export function EventsPage() {
                       <option value="weekday">평일 종일권 (15,000원 + 젤라또/라면 무료)</option>
                       <option value="naver_ramen">네이버 영수증 리뷰 (라면무료+토핑무료 쿠폰)</option>
                       <option value="snu">2026 서울대학교 공식 제휴 배너 (서울대점 전용)</option>
+                      <option value="nanta">난타 홍대극장 X 카툰플러스 특별 패키지 (홍대점)</option>
+                      <option value="peach_pit">PEACH-PIT 25주년 특별전 기념 티켓 이벤트</option>
+                      <option value="otamaker">오타메이커 보드게임 플레이 & 리뷰 이벤트</option>
+                      <option value="mommom">맘맘(MomMom) 멤버십 제휴 배너</option>
                     </select>
                   </div>
                 )}

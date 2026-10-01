@@ -85,6 +85,37 @@ describe('parseHongdaeInventoryCsv', () => {
       expect.objectContaining({ title: '갱스타', volumeRange: '1~7권' }),
     ]);
   });
+
+  it('handles leading and trailing slashes and trims them safely', () => {
+    const result = parseHongdaeInventoryCsv(
+      '"a_","a_1","a_2"\n"/ 미생 시즌2 13 // 녹두전 4/","28","웹툰"'
+    );
+    expect(result.books).toEqual([
+      expect.objectContaining({ title: '미생 시즌2', volumeRange: '1~13권' }),
+      expect.objectContaining({ title: '녹두전', volumeRange: '1~4권' }),
+    ]);
+  });
+
+  it('splits titles separated by single slash without numeric suffixes on either side', () => {
+    const result = parseHongdaeInventoryCsv(
+      '"a_","a_1","a_2"\n"귀멸의 칼날 한쪽 날개의 나비/ 귀멸의 칼날 귀살대 견문록","57","인기도서"'
+    );
+    expect(result.books).toHaveLength(2);
+    expect(result.books).toEqual([
+      expect.objectContaining({ title: '귀멸의 칼날 한쪽 날개의 나비' }),
+      expect.objectContaining({ title: '귀멸의 칼날 귀살대 견문록' }),
+    ]);
+  });
+
+  it('correctly parses dot-separated volumes and attached numbers', () => {
+    const result = parseHongdaeInventoryCsv(
+      '"a_","a_1","a_2"\n"3월의 라이온.18 // 바키31","9","격투"'
+    );
+    expect(result.books).toEqual([
+      expect.objectContaining({ title: '3월의 라이온', volumeRange: '1~18권' }),
+      expect.objectContaining({ title: '바키', volumeRange: '1~31권' }),
+    ]);
+  });
 });
 
 describe('parseInventoryCsv', () => {

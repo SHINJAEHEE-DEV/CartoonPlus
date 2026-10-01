@@ -8,7 +8,15 @@ export interface ManagedEvent {
   tag: string;
   target: string;
   detail: string;
-  bannerType: 'weekday' | 'naver_ramen' | 'snu' | 'custom';
+  bannerType:
+    | 'weekday'
+    | 'naver_ramen'
+    | 'snu'
+    | 'nanta'
+    | 'peach_pit'
+    | 'otamaker'
+    | 'mommom'
+    | 'custom';
   customBannerUrl?: string;
   startDate?: string;
   endDate?: string;
@@ -23,42 +31,45 @@ export const STORAGE_KEY = 'cartoonplus_managed_events';
 
 export const INITIAL_EVENTS: ManagedEvent[] = [
   {
-    id: 'evt-1',
-    title: '평일 종일 이용권 추가 혜택 이벤트',
-    tag: '10월 말까지 한정',
-    target: '평일 종일 이용권 결제 고객 전원',
-    detail: '음료 포함 15,000원 특가 이용 + 젤라또(무료) 또는 라면(무료) 택 1 추가 증정',
-    bannerType: 'weekday',
+    id: 'evt-nanta',
+    title: '난타 홍대극장 X 카툰플러스 홍대점 특별 패키지',
+    tag: '홍대점 제휴',
+    target: '난타 홍대극장 관람객 및 카툰플러스 홍대점 이용 고객',
+    detail:
+      '난타 홍대극장 X 카툰플러스 홍대점 특별 패키지 판매 진행 중\n난타 티켓 + 카툰플러스 이용권 특별 할인 패키지\n예매 및 상세 안내: [난타 예매 링크](https://www.nanta.co.kr:452/index.php)',
+    bannerType: 'nanta',
     startDate: '2026-09-01',
-    endDate: '2026-10-31',
+    endDate: '2026-12-31',
+    isAlwaysOn: false,
+    isPublic: true,
+    isFeatured: true,
+    storeSlug: 'hongdae',
+    createdAt: '2026-09-30T00:00:00.000Z',
+  },
+  {
+    id: 'evt-peach-pit',
+    title: 'PEACH-PIT 25주년 기념 특별전 티켓 당첨 이벤트 (예정)',
+    tag: '티켓 증정 이벤트',
+    target: '매장 방문 후 인스타그램 인증 참여 고객 전원',
+    detail:
+      'PEACH-PIT 25주년 기념 특별전 (10.09 ~ 10.22)\n카툰플러스 매장 방문 후 인스타그램 인증 참여 시 추첨을 통해 특별전 티켓 증정\n진행 일정: 2026년 10월 9일 ~ 10월 22일 (예정)',
+    bannerType: 'peach_pit',
+    startDate: '2026-10-09',
+    endDate: '2026-10-22',
     isAlwaysOn: false,
     isPublic: true,
     isFeatured: false,
     storeSlug: 'all',
-    createdAt: '2026-09-01T00:00:00.000Z',
+    createdAt: '2026-09-30T00:00:00.000Z',
   },
   {
-    id: 'evt-2',
-    title: '네이버 영수증 포토 리뷰 — 라면 무료 쿠폰',
-    tag: '상시 리뷰 쿠폰',
-    target: '네이버 플레이스 영수증 인증 후 포토 리뷰 작성 고객 전원',
-    detail:
-      '즉석 한강 라면 무료 + 대파·콩나물·청양고추·떡사리·만두·비엔나소시지·치즈·어묵 8종 무제한 토핑 바 100% 무료 제공',
-    bannerType: 'naver_ramen',
-    isAlwaysOn: true,
-    isPublic: true,
-    isFeatured: true,
-    storeSlug: 'all',
-    createdAt: '2026-09-01T00:00:00.000Z',
-  },
-  {
-    id: 'evt-3',
+    id: 'evt-mommom',
     title: '맘맘(MomMom) 멤버십 제휴 — 젤라또 & 무제한 토핑 무료',
     tag: '네이버·멤버십 제휴',
     target: '맘맘(MomMom) 멤버십 QR 인증 고객 전원 (타 이벤트 중복 가능)',
     detail:
-      '현장에서 맘맘 멤버십 QR 제시 시 프리미엄 젤라또 1개 무료 + 라면 토핑 바 무제한 무료 이용',
-    bannerType: 'weekday',
+      '매장 방문하여 어플리케이션 내 멤버십 QR코드 제시 시 젤라또 1개 무료 + 라면 무제한 토핑 바 증정\n홍대점, 잠실점, 서울대입구역점, 사당점 동일 적용 (타 이벤트 중복 가능)\n지점별 상세: [홍대점](https://mom-mom.net/travel/places/68a4587babc6bae6ac20c968) · [잠실점](https://mom-mom.net/travel/places/69cf866dcdb5885d8f358d3e) · [서울대입구역점](https://mom-mom.net/travel/places/69fa986f2b26c07cbf7b1af2) · [사당점](https://mom-mom.net/travel/places/6a474e5d3484d9ce4290e5d8)',
+    bannerType: 'mommom',
     isAlwaysOn: true,
     isPublic: true,
     isFeatured: false,
@@ -66,41 +77,49 @@ export const INITIAL_EVENTS: ManagedEvent[] = [
     createdAt: '2026-09-01T00:00:00.000Z',
   },
   {
-    id: 'evt-4',
-    title: '잠실 직관 티켓 인증 — 4,000원 음료 무료 증정',
-    tag: '잠실점 단독 이벤트',
-    target: '잠실 야구장 경기 또는 종합운동장 공연/콘서트 당일 티켓 소지 고객',
-    detail:
-      '당일 실물 또는 모바일 티켓 인증 시 카툰플러스 4,000원 상당 음료(아메리카노/아이스티 등) 무료 증정',
-    bannerType: 'weekday',
-    isAlwaysOn: true,
-    isPublic: true,
-    isFeatured: true,
-    storeSlug: 'jamsil',
-    createdAt: '2026-09-01T00:00:00.000Z',
-  },
-  {
-    id: 'evt-5',
-    title: '2026 서울대학교 단과대학생회장연석회의 공식 제휴',
+    id: 'evt-snu',
+    title: '서울대학교 학생증 인증 — 아이스크림 무료 증정',
     tag: '서울대점 단독 제휴',
-    target: '서울대학교 학부생 및 대학원생 전원 (학생증 제시)',
-    detail: '패키지 요금제 10% 현장 즉시 할인 + 평일 종일권 결제 시 기본 음료 무료 업그레이드',
+    target: '서울대학교 학생 방문 및 학생증 인증 고객 전원',
+    detail:
+      '서울대학교 학생 방문하여 학생증 인증 시 아이스크림 무료 증정 (~11.20)\n모바일 또는 실물 학생증 카운터 제시 시 즉시 제공\n단과대 연석회의 패키지 할인과 중복 혜택 가능',
     bannerType: 'snu',
-    startDate: '2026-01-01',
-    endDate: '2026-12-31',
-    isAlwaysOn: true,
+    startDate: '2026-09-01',
+    endDate: '2026-11-20',
+    isAlwaysOn: false,
     isPublic: true,
     isFeatured: true,
     storeSlug: 'snu',
-    createdAt: '2026-01-01T00:00:00.000Z',
+    createdAt: '2026-09-30T00:00:00.000Z',
+  },
+  {
+    id: 'evt-otamaker',
+    title: '오타메이커 보드게임 협업 — 플레이 & 리뷰 작성 이벤트 (예정)',
+    tag: '보드게임 이벤트',
+    target: '매장 내 오타메이커 보드게임 이용 및 리뷰 작성 고객',
+    detail:
+      '매장 내 오타메이커 보드게임 즐긴 후 리뷰 작성 시 특별 경품 증정\n오타메이커 보드게임 자유 플레이 체험\n리뷰 작성 후 카운터 인증 시 현장 경품 증정 (진행 예정)',
+    bannerType: 'otamaker',
+    startDate: '2026-10-01',
+    endDate: '2026-12-31',
+    isAlwaysOn: true,
+    isPublic: true,
+    isFeatured: false,
+    storeSlug: 'all',
+    createdAt: '2026-09-30T00:00:00.000Z',
   },
 ];
 
 export function getBannerImageUrl(type: ManagedEvent['bannerType'], customUrl?: string): string {
+  if (type === 'nanta') return EVENT_BANNERS.nanta;
+  if (type === 'snu') return EVENT_BANNERS.snu;
+  if (type === 'peach_pit') return EVENT_BANNERS.peachPit;
+  if (type === 'otamaker') return EVENT_BANNERS.otamaker;
+  if (type === 'mommom') return EVENT_BANNERS.mommom;
   if (type === 'weekday') return EVENT_BANNERS.weekday;
   if (type === 'naver_ramen') return EVENT_BANNERS.naverRamen;
-  if (type === 'snu') return EVENT_BANNERS.snu;
-  if (type === 'custom' && customUrl) return customUrl;
+  if (type === 'custom' && customUrl && customUrl.trim() !== '') return customUrl;
+  if (customUrl && customUrl.trim() !== '' && !customUrl.includes('/mascot/')) return customUrl;
   return EVENT_BANNERS.placeholder;
 }
 
@@ -161,19 +180,24 @@ export function saveManagedEvents(events: ManagedEvent[]): void {
 export async function syncEventsWithSupabase(storeSlug?: EventStoreSlug): Promise<ManagedEvent[]> {
   const { supabase } = await import('./supabase');
   if (!supabase) {
-    return loadManagedEvents();
+    return loadManagedEvents(storeSlug);
   }
 
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('store_events')
       .select('id, title, content, start_date, end_date, image_url, is_public, is_always_on, is_featured, tag, target, banner_type, created_at, store_slug')
-      .or(storeSlug && storeSlug !== 'all' ? `store_slug.eq.${storeSlug},store_slug.is.null` : 'store_slug.is.null')
       .is('archived_at', null)
       .order('created_at', { ascending: false });
 
-    if (error || !data) {
-      return loadManagedEvents();
+    if (storeSlug && storeSlug !== 'all') {
+      query = query.or(`store_slug.eq.${storeSlug},store_slug.is.null`);
+    }
+
+    const { data, error } = await query;
+
+    if (error || !data || data.length === 0) {
+      return loadManagedEvents(storeSlug);
     }
 
     const remoteEvents: ManagedEvent[] = data.map((row) => ({

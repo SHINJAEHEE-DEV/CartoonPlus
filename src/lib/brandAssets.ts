@@ -57,7 +57,11 @@ export const EVENT_BANNERS = {
   naverRamen: '/assets/events/event_naver_ramen_coupon.svg',
   naverReview: '/assets/events/naver_review_banner.svg',
   snu: '/assets/banners/snu_partnership_banner.png',
-  placeholder: '/assets/events/placeholder.svg',
+  nanta: '/assets/events/event_nanta_hongdae.jpg',
+  peachPit: MASCOT_ASSETS.reading,
+  otamaker: MASCOT_ASSETS.gaming,
+  mommom: MASCOT_ASSETS.relaxing,
+  placeholder: MASCOT_ASSETS.logoCircle,
 } as const;
 
 export type StaticGameItem = {

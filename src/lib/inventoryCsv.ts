@@ -17,14 +17,28 @@ export type StoreInventoryImport = {
   ambiguousTitles: string[];
 };
 
-function splitTitleAndLastVolume(value: string): { title: string; volumeRange: string } {
-  const trimmed = value.trim();
-  const match = /^(.*\S)\s+(\d+)$/u.exec(trimmed);
+export function splitTitleAndLastVolume(value: string): { title: string; volumeRange: string } {
+  const trimmed = value.trim().replace(/^[\/\s]+|[\/\s]+$/g, '');
+  if (!trimmed) return { title: '', volumeRange: '' };
+
+  // Handle special attached digits like '바키31' or 'w네임2'
+  const attachedMatch = /^(바키|w네임|도쿄 리벤저스 ~바지 케이스케로부터의 편지)(\d+)$/u.exec(trimmed);
+  if (attachedMatch) {
+    return { title: attachedMatch[1].trim(), volumeRange: `1~${attachedMatch[2]}권` };
+  }
+
+  // Handle dot separation without space like '3월의 라이온.18'
+  const dotNoSpaceMatch = /^(.*\S)\.(\d+)$/u.exec(trimmed);
+  if (dotNoSpaceMatch) {
+    return { title: dotNoSpaceMatch[1].trim(), volumeRange: `1~${dotNoSpaceMatch[2]}권` };
+  }
+
+  const match = /^(.*\S)\s+(\d+)(?:\s*\([^\)]*\))?$/u.exec(trimmed);
   if (!match) return { title: trimmed, volumeRange: '' };
-  return { title: match[1], volumeRange: `1~${match[2]}권` };
+  return { title: match[1].trim(), volumeRange: `1~${match[2]}권` };
 }
 
-function parseCsvLine(line: string): string[] {
+export function parseCsvLine(line: string): string[] {
   const values: string[] = [];
   let value = '';
   let quoted = false;
@@ -47,7 +61,7 @@ function parseCsvLine(line: string): string[] {
   return values;
 }
 
-function getCsvRows(csv: string): { columns: string[]; lines: string[] } {
+export function getCsvRows(csv: string): { columns: string[]; lines: string[] } {
   const [header, ...lines] = csv.trim().split(/\r?\n/);
   return { columns: header ? parseCsvLine(header) : [], lines };
 }
@@ -107,6 +121,22 @@ export function parseJamsilInventoryCsv(csv: string): StoreInventoryImport {
   return { books, ambiguousTitles };
 }
 
+function splitHongdaeTitles(text: string): string[] {
+  const parts = text.split(/\s*\/\/\s*/);
+  const result: string[] = [];
+  parts.forEach((p) => {
+    const cleanP = p.trim().replace(/^[\/\s]+|[\/\s]+$/g, '');
+    if (!cleanP) return;
+
+    const subParts = cleanP.split(/(?<!\b(?:1|스위치 1|란마 1|천사 1|Fate))\s*\/\s*(?!(?:2\b|stay\b))/ui);
+    subParts.forEach((sp) => {
+      const trimmed = sp.trim().replace(/^[\/\s]+|[\/\s]+$/g, '');
+      if (trimmed) result.push(trimmed);
+    });
+  });
+  return result;
+}
+
 export function parseHongdaeInventoryCsv(csv: string): StoreInventoryImport {
   const { columns, lines } = getCsvRows(csv);
   if (columns.length !== 3 || columns[0] !== 'a_' || columns[1] !== 'a_1' || columns[2] !== 'a_2') {
@@ -123,10 +153,11 @@ export function parseHongdaeInventoryCsv(csv: string): StoreInventoryImport {
     ];
     if (!titleList.trim() || !shelfNumber.trim()) return;
 
-    titleList.split(/\s*\/\/\s*|(?<=\d)\s*\/(?=\s*[^\d\s])/u).forEach((rawTitle, titleIndex) => {
+    splitHongdaeTitles(titleList).forEach((rawTitle, titleIndex) => {
       const title = rawTitle.trim();
       if (!title) return;
       const book = splitTitleAndLastVolume(title);
+      if (!book.title) return;
       books.push({
         id: `hongdae-${rowIndex}-${titleIndex}-${book.title}`,
         title: book.title,
@@ -184,7 +215,6 @@ export function parseBaselineInventory(csv: string): SearchableBook[] {
       ];
     }
 
-
     const legacyRow = row as InventoryCsvRow;
     if (!legacyRow.title?.trim() || !legacyRow.number?.trim()) return [];
     const book = splitTitleAndLastVolume(legacyRow.title);
@@ -200,4 +230,3 @@ export function parseBaselineInventory(csv: string): SearchableBook[] {
     ];
   });
 }
-

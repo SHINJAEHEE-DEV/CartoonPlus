@@ -29,6 +29,61 @@ type Item = {
   store_slug?: ManagedEvent['storeSlug'];
 };
 
+function renderFormattedEventText(text: string) {
+  const markdownRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
+  const parts: (string | React.ReactNode)[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = markdownRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    if (match[1] && match[2]) {
+      parts.push(
+        <a
+          key={match.index}
+          href={match[2]}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            color: '#1B64DA',
+            textDecoration: 'underline',
+            fontWeight: 900,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {match[1]}
+        </a>
+      );
+    } else if (match[3]) {
+      parts.push(
+        <a
+          key={match.index}
+          href={match[3]}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            color: '#1B64DA',
+            textDecoration: 'underline',
+            fontWeight: 900,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          링크
+        </a>
+      );
+    }
+    lastIndex = markdownRegex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : text;
+}
+
 const GUIDE_STEPS = [
   { n: '1', title: '키오스크에서 입실', desc: '이용 시간과 음료를 선택한 뒤 결제해 주세요.' },
   { n: '2', title: '배정받은 락카에 신발 넣기', desc: '신발은 배정된 락카에 보관해 주세요.' },
@@ -164,9 +219,7 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
             .or(`store_slug.eq.${selectedStore.slug},store_slug.is.null`)
             .eq('is_public', true)
             .is('archived_at', null)
-            .or(
-              'is_always_on.eq.true,and(start_date.lte.' + today + ',end_date.gte.' + today + ')'
-            );
+            .or('is_always_on.eq.true,end_date.gte.' + today);
           if (active) setItems((data ?? []) as Item[]);
         }
       } catch {
@@ -352,12 +405,23 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
         {publicEvents.length > 0 ? (
           publicEvents.map((ev) => {
             const bullets = ev.detail
-              .split(/[+\n·]/)
+              .split(/\n+/)
               .map((s) => s.trim())
               .filter(Boolean);
+            const isFullBanner =
+              ev.bannerType === 'nanta' ||
+              ev.bannerType === 'snu' ||
+              Boolean(ev.customBannerUrl && !ev.customBannerUrl.includes('/mascot/'));
+
             return (
               <div key={ev.id} className="event-poster-row">
-                <div className="poster-box" style={{ background: '#2A2A2A', padding: '10px' }}>
+                <div
+                  className="poster-box"
+                  style={{
+                    background: isFullBanner ? '#2A2A2A' : '#FFF9EC',
+                    padding: isFullBanner ? '8px' : '20px',
+                  }}
+                >
                   <img
                     src={getBannerImageUrl(ev.bannerType, ev.customBannerUrl)}
                     alt={ev.title}
@@ -426,9 +490,10 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
                           borderRadius: '12px',
                           fontSize: '13px',
                           fontWeight: 800,
+                          lineHeight: 1.5,
                         }}
                       >
-                        {bullet}
+                        {renderFormattedEventText(bullet)}
                       </div>
                     ))}
                   </div>

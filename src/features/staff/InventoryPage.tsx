@@ -102,7 +102,7 @@ export function InventoryPage() {
     setFormVolume(
       item.last_volume !== null ? String(item.last_volume) : item.volume_range.replace(/\D/g, '')
     );
-    setFormShelf(item.shelf_location || '');
+    setFormShelf(item.shelf_location ? item.shelf_location.replace(/\D/g, '') : '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -111,17 +111,23 @@ export function InventoryPage() {
     if (!selectedStoreId) return;
     const titleVal = String(form.get('title') || formTitle).trim();
     const authorVal = String(form.get('author') || formAuthor).trim();
-    const volumeVal = Number(form.get('volume') || formVolume);
-    const shelfVal = String(form.get('shelf') || formShelf).trim();
+    const volumeVal = Number(String(form.get('volume') || formVolume).replace(/\D/g, ''));
+    const rawShelf = String(form.get('shelf') || formShelf).replace(/\D/g, '');
+    const shelfNum = Number(rawShelf);
 
+    if (!titleVal) {
+      setMessage('도서명을 입력해 주세요.');
+      return;
+    }
     if (!Number.isInteger(volumeVal) || volumeVal < 1) {
-      setMessage('마지막 권수는 1 이상의 정수로 입력해 주세요.');
+      setMessage('마지막 권수는 1 이상의 숫자로 입력해 주세요.');
       return;
     }
-    if (!titleVal || !shelfVal) {
-      setMessage('도서명과 서가를 입력해 주세요.');
+    if (!rawShelf || !Number.isInteger(shelfNum) || shelfNum < 1) {
+      setMessage('서가 번호는 1 이상의 숫자로 입력해 주세요.');
       return;
     }
+    const shelfVal = `책장 ${shelfNum}번`;
     const payload = {
       p_title: titleVal,
       p_author: authorVal,
@@ -498,8 +504,11 @@ export function InventoryPage() {
           <input
             name="shelf"
             value={formShelf}
-            onChange={(e) => setFormShelf(e.target.value)}
-            placeholder="서가 (예: A-03 또는 책장 1번) *"
+            onChange={(e) => setFormShelf(e.target.value.replace(/\D/g, ''))}
+            placeholder="서가 번호 (예: 52 → 책장 52번) *"
+            type="number"
+            min="1"
+            inputMode="numeric"
             required
             style={{
               padding: '11px 13px',

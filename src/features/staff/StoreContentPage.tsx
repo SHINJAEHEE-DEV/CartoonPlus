@@ -58,6 +58,11 @@ export function StoreContentPage() {
   const [foodCategoryFilter, setFoodCategoryFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // 수정 모달 상태
+  const [editingPackage, setEditingPackage] = useState<{ index: number; data: PricePackage } | null>(null);
+  const [editingBeverage, setEditingBeverage] = useState<BeverageItem | null>(null);
+  const [editingFood, setEditingFood] = useState<MenuItem | null>(null);
+
   // 지점(selectedStoreSlug / selectedStoreId) 변경 시 로컬스토리지 및 Supabase 데이터 재로드
   useEffect(() => {
     const slug = selectedStoreSlug || 'snu';
@@ -216,6 +221,18 @@ export function StoreContentPage() {
     setMessage('인기 요금제 뱃지 설정을 변경했습니다.');
   };
 
+  const handleUpdatePackage = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingPackage) return;
+    const { index, data } = editingPackage;
+    if (!data.name.trim() || !data.price.trim()) return;
+
+    const updated = packages.map((pkg, idx) => (idx === index ? { ...data } : pkg));
+    void savePackagesToStorage(updated);
+    setMessage(`'${data.name}' 요금제 정보를 수정했습니다.`);
+    setEditingPackage(null);
+  };
+
   // --- 2. 음료 핸들러 ---
   const handleAddBeverage = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -256,6 +273,17 @@ export function StoreContentPage() {
     const updated = beverages.filter((b) => b.id !== id);
     void saveBeveragesToStorage(updated);
     setMessage('음료 메뉴를 삭제했습니다.');
+  };
+
+  const handleUpdateBeverage = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingBeverage) return;
+    if (!editingBeverage.nameKo.trim()) return;
+
+    const updated = beverages.map((b) => (b.id === editingBeverage.id ? { ...editingBeverage } : b));
+    void saveBeveragesToStorage(updated);
+    setMessage(`'${editingBeverage.nameKo}' 음료 정보를 수정했습니다.`);
+    setEditingBeverage(null);
   };
 
   // --- 3. 음식/디저트 핸들러 ---
@@ -305,6 +333,28 @@ export function StoreContentPage() {
     const updated = foods.filter((item) => item.id !== id);
     void saveFoodsToStorage(updated);
     setMessage('상품을 삭제했습니다.');
+  };
+
+  const handleUpdateFood = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingFood) return;
+    if (!editingFood.name.trim()) return;
+
+    const categoryKoMap: Record<string, string> = {
+      meal: '라면/음식',
+      dessert: '젤라또/디저트',
+      snack: '과자/음료',
+    };
+
+    const updatedItem: MenuItem = {
+      ...editingFood,
+      categoryKo: categoryKoMap[editingFood.category] || editingFood.categoryKo,
+    };
+
+    const updated = foods.map((item) => (item.id === editingFood.id ? updatedItem : item));
+    void saveFoodsToStorage(updated);
+    setMessage(`'${editingFood.name}' 상품 정보를 수정했습니다.`);
+    setEditingFood(null);
   };
 
   const filteredBeverages = beverages.filter((b) => {
@@ -702,13 +752,15 @@ export function StoreContentPage() {
                   <div
                     style={{
                       display: 'flex',
-                      justifyContent: 'flex-end',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
                       gap: '8px',
                       paddingTop: '10px',
                       borderTop: '1px dashed #D3CEC4',
                     }}
                   >
                     <button
+                      type="button"
                       onClick={() => handleTogglePopularPackage(idx)}
                       style={{
                         padding: '5px 10px',
@@ -722,21 +774,39 @@ export function StoreContentPage() {
                     >
                       {pkg.isPopular ? '인기 해제' : '인기 지정'}
                     </button>
-                    <button
-                      onClick={() => handleDeletePackage(idx)}
-                      style={{
-                        padding: '5px 10px',
-                        borderRadius: '6px',
-                        background: '#FFF',
-                        color: '#C92A2A',
-                        border: '1.5px solid #1E1E1E',
-                        fontSize: '11px',
-                        fontWeight: 800,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      삭제
-                    </button>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setEditingPackage({ index: idx, data: { ...pkg } })}
+                        style={{
+                          padding: '5px 10px',
+                          borderRadius: '6px',
+                          background: '#FED943',
+                          border: '1.5px solid #1E1E1E',
+                          fontSize: '11px',
+                          fontWeight: 900,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        수정
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePackage(idx)}
+                        style={{
+                          padding: '5px 10px',
+                          borderRadius: '6px',
+                          background: '#FFF',
+                          color: '#C92A2A',
+                          border: '1.5px solid #1E1E1E',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        삭제
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1121,12 +1191,14 @@ export function StoreContentPage() {
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
+                      gap: '8px',
                       paddingTop: '10px',
                       borderTop: '1px dashed #D3CEC4',
                       marginTop: '10px',
                     }}
                   >
                     <button
+                      type="button"
                       onClick={() => handleToggleSoldOutBeverage(bev.id)}
                       style={{
                         padding: '4px 10px',
@@ -1140,21 +1212,39 @@ export function StoreContentPage() {
                     >
                       {bev.isSoldOut ? '품절 해제 ⟲' : '품절 처리'}
                     </button>
-                    <button
-                      onClick={() => handleDeleteBeverage(bev.id)}
-                      style={{
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        background: '#FFF',
-                        color: '#C92A2A',
-                        border: '1.5px solid #1E1E1E',
-                        fontSize: '11px',
-                        fontWeight: 800,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      삭제
-                    </button>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setEditingBeverage({ ...bev })}
+                        style={{
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          background: '#FED943',
+                          border: '1.5px solid #1E1E1E',
+                          fontSize: '11px',
+                          fontWeight: 900,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        수정
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteBeverage(bev.id)}
+                        style={{
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          background: '#FFF',
+                          color: '#C92A2A',
+                          border: '1.5px solid #1E1E1E',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        삭제
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1496,12 +1586,14 @@ export function StoreContentPage() {
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
+                      gap: '8px',
                       paddingTop: '10px',
                       borderTop: '1px dashed #D3CEC4',
                       marginTop: '10px',
                     }}
                   >
                     <button
+                      type="button"
                       onClick={() => handleToggleSoldOutFood(item.id)}
                       style={{
                         padding: '4px 10px',
@@ -1515,21 +1607,39 @@ export function StoreContentPage() {
                     >
                       {item.isSoldOut ? '품절 해제 ⟲' : '품절 처리'}
                     </button>
-                    <button
-                      onClick={() => handleDeleteFood(item.id)}
-                      style={{
-                        padding: '4px 8px',
-                        borderRadius: '6px',
-                        background: '#FFF',
-                        color: '#C92A2A',
-                        border: '1.5px solid #1E1E1E',
-                        fontSize: '11px',
-                        fontWeight: 800,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      삭제
-                    </button>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setEditingFood({ ...item })}
+                        style={{
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          background: '#FED943',
+                          border: '1.5px solid #1E1E1E',
+                          fontSize: '11px',
+                          fontWeight: 900,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        수정
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteFood(item.id)}
+                        style={{
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          background: '#FFF',
+                          color: '#C92A2A',
+                          border: '1.5px solid #1E1E1E',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        삭제
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1710,6 +1820,765 @@ export function StoreContentPage() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+      {/* ========================================================
+          수정 모달 1: 요금제 수정 모달
+      ======================================================== */}
+      {editingPackage && (
+        <div
+          role="presentation"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setEditingPackage(null);
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100,
+            display: 'grid',
+            placeItems: 'center',
+            padding: '20px',
+            background: 'rgba(30, 30, 30, 0.65)',
+            backdropFilter: 'blur(2px)',
+          }}
+        >
+          <form
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-package-modal-title"
+            onSubmit={handleUpdatePackage}
+            style={{
+              width: 'min(100%, 480px)',
+              padding: '24px',
+              background: '#FFFDF7',
+              border: '3px solid #1E1E1E',
+              borderRadius: '20px',
+              boxShadow: '7px 7px 0 #1E1E1E',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 id="edit-package-modal-title" style={{ margin: 0, fontSize: '18px', fontWeight: 900 }}>
+                💳 요금제 수정
+              </h2>
+              <button
+                type="button"
+                onClick={() => setEditingPackage(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '18px',
+                  fontWeight: 900,
+                  cursor: 'pointer',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div>
+              <label
+                htmlFor="edit-package-name"
+                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+              >
+                요금제 명칭
+              </label>
+              <input
+                id="edit-package-name"
+                required
+                value={editingPackage.data.name}
+                onChange={(e) =>
+                  setEditingPackage({
+                    ...editingPackage,
+                    data: { ...editingPackage.data, name: e.target.value },
+                  })
+                }
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  border: '2px solid #1E1E1E',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="edit-package-price"
+                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+              >
+                가격 표기
+              </label>
+              <input
+                id="edit-package-price"
+                required
+                value={editingPackage.data.price}
+                onChange={(e) =>
+                  setEditingPackage({
+                    ...editingPackage,
+                    data: { ...editingPackage.data, price: e.target.value },
+                  })
+                }
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  border: '2px solid #1E1E1E',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="edit-package-note"
+                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+              >
+                안내 / 혜택 문구
+              </label>
+              <input
+                id="edit-package-note"
+                value={editingPackage.data.note}
+                onChange={(e) =>
+                  setEditingPackage({
+                    ...editingPackage,
+                    data: { ...editingPackage.data, note: e.target.value },
+                  })
+                }
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  border: '2px solid #1E1E1E',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <div>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={!!editingPackage.data.isPopular}
+                  onChange={(e) =>
+                    setEditingPackage({
+                      ...editingPackage,
+                      data: { ...editingPackage.data, isPopular: e.target.checked },
+                    })
+                  }
+                  style={{ width: '18px', height: '18px' }}
+                />
+                인기 뱃지 부여
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setEditingPackage(null)}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '10px',
+                  background: '#FFF',
+                  border: '2px solid #1E1E1E',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                }}
+              >
+                취소
+              </button>
+              <button
+                type="submit"
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '10px',
+                  background: '#FED943',
+                  border: '2px solid #1E1E1E',
+                  fontWeight: 900,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  boxShadow: '2px 2px 0 #1E1E1E',
+                }}
+              >
+                수정 저장
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ========================================================
+          수정 모달 2: 음료 메뉴 수정 모달
+      ======================================================== */}
+      {editingBeverage && (
+        <div
+          role="presentation"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setEditingBeverage(null);
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100,
+            display: 'grid',
+            placeItems: 'center',
+            padding: '20px',
+            background: 'rgba(30, 30, 30, 0.65)',
+            backdropFilter: 'blur(2px)',
+          }}
+        >
+          <form
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-beverage-modal-title"
+            onSubmit={handleUpdateBeverage}
+            style={{
+              width: 'min(100%, 520px)',
+              padding: '24px',
+              background: '#FFFDF7',
+              border: '3px solid #1E1E1E',
+              borderRadius: '20px',
+              boxShadow: '7px 7px 0 #1E1E1E',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 id="edit-beverage-modal-title" style={{ margin: 0, fontSize: '18px', fontWeight: 900 }}>
+                ☕ 음료 메뉴 수정
+              </h2>
+              <button
+                type="button"
+                onClick={() => setEditingBeverage(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '18px',
+                  fontWeight: 900,
+                  cursor: 'pointer',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div>
+                <label
+                  htmlFor="edit-bev-nameKo"
+                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+                >
+                  한글 음료명
+                </label>
+                <input
+                  id="edit-bev-nameKo"
+                  required
+                  value={editingBeverage.nameKo}
+                  onChange={(e) =>
+                    setEditingBeverage({ ...editingBeverage, nameKo: e.target.value })
+                  }
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: '2px solid #1E1E1E',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="edit-bev-nameEn"
+                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+                >
+                  영문명 (옵션)
+                </label>
+                <input
+                  id="edit-bev-nameEn"
+                  value={editingBeverage.nameEn || ''}
+                  onChange={(e) =>
+                    setEditingBeverage({ ...editingBeverage, nameEn: e.target.value })
+                  }
+                  placeholder="CHOCO LATTE"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: '2px solid #1E1E1E',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div>
+                <label
+                  htmlFor="edit-bev-subCategory"
+                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+                >
+                  카테고리
+                </label>
+                <select
+                  id="edit-bev-subCategory"
+                  value={editingBeverage.subCategory}
+                  onChange={(e) =>
+                    setEditingBeverage({
+                      ...editingBeverage,
+                      subCategory: e.target.value as BeverageItem['subCategory'],
+                    })
+                  }
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: '2px solid #1E1E1E',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <option value="COFFEE">COFFEE (커피)</option>
+                  <option value="LATTE">LATTE (라떼)</option>
+                  <option value="TEA">TEA (티 &amp; 아이스티)</option>
+                  <option value="KOMBU TEA">KOMBU TEA (콤부차)</option>
+                  <option value="ADE">ADE (에이드)</option>
+                  <option value="Fruit Juice">Fruit Juice (생과일 주스)</option>
+                  <option value="SMOOTHIE">SMOOTHIE (스무디)</option>
+                  <option value="SHAKE">SHAKE (쉐이크)</option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="edit-bev-temp"
+                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+                >
+                  제공 온도
+                </label>
+                <select
+                  id="edit-bev-temp"
+                  value={editingBeverage.temp}
+                  onChange={(e) =>
+                    setEditingBeverage({
+                      ...editingBeverage,
+                      temp: e.target.value as 'HOT' | 'ICED' | 'BOTH',
+                    })
+                  }
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: '2px solid #1E1E1E',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <option value="ICED">ICED</option>
+                  <option value="HOT">HOT</option>
+                  <option value="BOTH">HOT &amp; ICED</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div>
+                <label
+                  htmlFor="edit-bev-singlePrice"
+                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+                >
+                  단품 가격 (원)
+                </label>
+                <input
+                  id="edit-bev-singlePrice"
+                  type="number"
+                  required
+                  step={100}
+                  value={editingBeverage.singlePrice}
+                  onChange={(e) =>
+                    setEditingBeverage({
+                      ...editingBeverage,
+                      singlePrice: Number(e.target.value) || 0,
+                    })
+                  }
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: '2px solid #1E1E1E',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="edit-bev-packageDiff"
+                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+                >
+                  패키지 추가금 (원)
+                </label>
+                <select
+                  id="edit-bev-packageDiff"
+                  value={editingBeverage.packageDiff}
+                  onChange={(e) =>
+                    setEditingBeverage({
+                      ...editingBeverage,
+                      packageDiff: Number(e.target.value) || 0,
+                    })
+                  }
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: '2px solid #1E1E1E',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <option value={0}>+0원 (기본 제공)</option>
+                  <option value={200}>+200원 (프리미엄 티)</option>
+                  <option value={500}>+500원 (과일차/아샷추)</option>
+                  <option value={1500}>+1,500원 (에이드)</option>
+                  <option value={2000}>+2,000원 (스무디/쉐이크)</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={!!editingBeverage.isSoldOut}
+                  onChange={(e) =>
+                    setEditingBeverage({
+                      ...editingBeverage,
+                      isSoldOut: e.target.checked,
+                    })
+                  }
+                  style={{ width: '18px', height: '18px' }}
+                />
+                품절 처리
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setEditingBeverage(null)}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '10px',
+                  background: '#FFF',
+                  border: '2px solid #1E1E1E',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                }}
+              >
+                취소
+              </button>
+              <button
+                type="submit"
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '10px',
+                  background: '#FED943',
+                  border: '2px solid #1E1E1E',
+                  fontWeight: 900,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  boxShadow: '2px 2px 0 #1E1E1E',
+                }}
+              >
+                수정 저장
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ========================================================
+          수정 모달 3: 식사 / 디저트 / 스낵 수정 모달
+      ======================================================== */}
+      {editingFood && (
+        <div
+          role="presentation"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setEditingFood(null);
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100,
+            display: 'grid',
+            placeItems: 'center',
+            padding: '20px',
+            background: 'rgba(30, 30, 30, 0.65)',
+            backdropFilter: 'blur(2px)',
+          }}
+        >
+          <form
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-food-modal-title"
+            onSubmit={handleUpdateFood}
+            style={{
+              width: 'min(100%, 500px)',
+              padding: '24px',
+              background: '#FFFDF7',
+              border: '3px solid #1E1E1E',
+              borderRadius: '20px',
+              boxShadow: '7px 7px 0 #1E1E1E',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 id="edit-food-modal-title" style={{ margin: 0, fontSize: '18px', fontWeight: 900 }}>
+                🍜 식사·디저트·스낵 수정
+              </h2>
+              <button
+                type="button"
+                onClick={() => setEditingFood(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '18px',
+                  fontWeight: 900,
+                  cursor: 'pointer',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div>
+                <label
+                  htmlFor="edit-food-name"
+                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+                >
+                  상품명
+                </label>
+                <input
+                  id="edit-food-name"
+                  required
+                  value={editingFood.name}
+                  onChange={(e) => setEditingFood({ ...editingFood, name: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: '2px solid #1E1E1E',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="edit-food-category"
+                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+                >
+                  카테고리
+                </label>
+                <select
+                  id="edit-food-category"
+                  value={editingFood.category}
+                  onChange={(e) =>
+                    setEditingFood({
+                      ...editingFood,
+                      category: e.target.value as MenuItem['category'],
+                    })
+                  }
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: '2px solid #1E1E1E',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <option value="meal">라면 / 식사류</option>
+                  <option value="dessert">젤라또 / 디저트</option>
+                  <option value="snack">과자 / 캔음료</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="edit-food-price"
+                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+              >
+                판매 가격 (원)
+              </label>
+              <input
+                id="edit-food-price"
+                type="number"
+                required
+                step={100}
+                value={editingFood.price}
+                onChange={(e) =>
+                  setEditingFood({ ...editingFood, price: Number(e.target.value) || 0 })
+                }
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  border: '2px solid #1E1E1E',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="edit-food-note"
+                style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+              >
+                비고 / 혜택 문구
+              </label>
+              <input
+                id="edit-food-note"
+                value={editingFood.note || ''}
+                onChange={(e) => setEditingFood({ ...editingFood, note: e.target.value })}
+                placeholder="예: 대파·숙주·계란 토핑 바 무료"
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  border: '2px solid #1E1E1E',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={!!editingFood.isPopular}
+                  onChange={(e) =>
+                    setEditingFood({ ...editingFood, isPopular: e.target.checked })
+                  }
+                  style={{ width: '18px', height: '18px' }}
+                />
+                인기 뱃지
+              </label>
+
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={!!editingFood.isSoldOut}
+                  onChange={(e) =>
+                    setEditingFood({ ...editingFood, isSoldOut: e.target.checked })
+                  }
+                  style={{ width: '18px', height: '18px' }}
+                />
+                품절 처리
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setEditingFood(null)}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '10px',
+                  background: '#FFF',
+                  border: '2px solid #1E1E1E',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                }}
+              >
+                취소
+              </button>
+              <button
+                type="submit"
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: '10px',
+                  background: '#FED943',
+                  border: '2px solid #1E1E1E',
+                  fontWeight: 900,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  boxShadow: '2px 2px 0 #1E1E1E',
+                }}
+              >
+                수정 저장
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>

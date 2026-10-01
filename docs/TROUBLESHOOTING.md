@@ -2,6 +2,64 @@
 
 개발 과정에서 발생하는 이슈, 데이터 전처리 분석, 성능 최적화 및 트러블슈팅 내역을 체계적으로 기록합니다.
 
+## 2026-09-30 신규 협업 및 제휴 이벤트 등록 (난타 홍대점, 서울대 학생증 아이스크림, PEACH-PIT 특별전, 오타메이커, 맘맘 제휴 최신화 및 공식 마스코트/마크다운 하이퍼링크 적용)
+
+- **요구사항**:
+  1. 기등록된 이벤트는 유지하고 미등록된 협업 및 제휴 이벤트를 배포 서버(Supabase DB)와 클라이언트에 등록.
+  2. `<협업>`: 난타 홍대극장 X 카툰플러스 홍대점(~12.31, 사용자 제공 공식 포스터 적용), PEACH-PIT 25주년 기념 특별전(10.09~10.22, 만화 독서 마스코트 적용), 오타메이커 협업(플레이 & 리뷰, 게임 마스코트 적용).
+  3. `<제휴>`: 맘맘 멤버십 제휴(휴식/힐링 마스코트 적용, 지점별 텍스트 하이퍼링크 연동), 서울대학교 학생증 인증 아이스크림 무료 증정(~11.20, 공식 snu 제휴 배너 유지).
+  4. 관계없는 외부/AI 생성 이미지를 배제하고, 공식 제공 배너가 없는 일반 이벤트는 **카툰플러스 공식 마스코트 에셋(`MASCOT_ASSETS`)**으로 통일하여 렌더링.
+  5. 이벤트 상세 내용에 노출되는 링크 URL을 마크다운 형태(`[지점명](URL)` 또는 `[링크](URL)`)로 파싱하여 클릭 가능한 직관적 하이퍼링크로 렌더링.
+- **수정 및 처리**:
+  1. `src/lib/brandAssets.ts`: 공식 배너가 있는 난타(`event_nanta_hongdae.jpg`), 서울대(`snu_partnership_banner.png`) 외 일반 이벤트는 `MASCOT_ASSETS` 독서/게임/휴식/로고 마스코트로 매핑.
+  2. `src/features/customer/PublicInfoPage.tsx`: `isFullBanner` 구분을 통해 마스코트 이미지는 산뜻한 브랜드 크림 톤(`#FFF9EC`) 박스에 마스코트를 중앙 정렬 렌더링하도록 개선.
+  3. `supabase/migrations/20260930180000_use_official_mascots_for_general_events.sql`: DB 레코드의 `image_url`을 공식 마스코트 경로로 일괄 갱신 및 `npx supabase db push` 적용.
+- **검증**: `npx supabase db push` 완료, `npm test` 23개 파일 / 119개 테스트 100% 통과, `npm run build` SSG 프로덕션 빌드 성공.
+
+## 2026-09-28 최신 홍대점 원본 DB(hongdaebook_2026-Sep-28_0714) 정합성 정제, 작가 대량 보강 및 Supabase 실시간 동기화
+
+- **요구사항**:
+  1. 다운로드 폴더의 최신 홍대점 DB 원본(`docs/assets/hongdaebook_2026-Sep-28_0714.csv`, 929행) 분석 및 적재.
+  2. 도서명 뒤 권수 분리, 다중 슬래시 분할 및 중복 도서 병합 정제 (최대/최신 권수 및 서가 보존).
+  3. 주요 한국/일본 만화, 웹툰, 순정, 소년, 드라마 200여 종 이상의 작가 사전 확충 및 전 도서 11대 표준 장르 부여.
+  4. 정제된 표준 CSV(`public/data/hongdae-inventory.csv`) 갱신 및 Supabase 원격 DB(`books`, `book_inventories`) 실시간 마이그레이션 적용.
+- **수정 및 처리**:
+  1. `scripts/build-hongdae-master.cjs`: 1,881종 고유 도서에 대한 대규모 작가/장르 사전 확장 및 전처리 파이프라인 가동.
+  2. `public/data/hongdae-inventory.csv` & `dist/data/hongdae-inventory.csv`: 표준 5열 포맷으로 1,881건 전건 재생성.
+  3. `supabase/migrations/20260928163000_apply_hongdae_master_inventory.sql`: 원격 DB에 1,881종 작가·장르·초성색인·권수·서가 일괄 Upsert 및 `npx supabase db push` 실행 완료.
+- **검증**: 원격 DB 마이그레이션 적용 완료, `npm test` 23개 테스트 파일 / 119개 테스트 통과, `npm run build` SSG 프로덕션 빌드 성공.
+
+## 2026-09-28 신규 도서 등록 시 ON CONFLICT 제약조건 오류 ("there is no unique or exclusion constraint matching the ON CONFLICT specification") 해결
+
+- **증상/재현 조건**: 직원 도서 재고 관리 화면(`/staff/inventory`)에서 신규 도서를 입력하고 [저장] 버튼 클릭 시 `"there is no unique or exclusion constraint matching the ON CONFLICT specification"` 오류가 발생하며 등록 실패.
+- **원인 분석**:
+  1. 마이그레이션(`20260922216000_update_books_by_inventory_id.sql`)에서 `books` 테이블의 `(title, author)` 고유 제약조건(`books_title_author_key`)을 삭제(`DROP CONSTRAINT`)함.
+  2. 신규 도서 등록 RPC(`upsert_inventory_for_store`) 내부에서는 `INSERT INTO public.books ... ON CONFLICT (title, author)`를 실행하여, PostgreSQL 엔진이 매칭되는 UNIQUE 제약조건이 없어 400 SQL 에러를 반환함.
+- **해결 및 조치**:
+  1. `20260928160000_fix_upsert_inventory_unique_conflict.sql`:
+     - `public.books (title, author)`에 고유 인덱스(`books_title_author_idx`)를 복구/보장.
+     - `upsert_inventory_for_store` RPC를 수정하여 `SELECT id FROM public.books WHERE title = ... AND author = ... LIMIT 1`로 기존 도서 유무를 안전하게 확인하고, 존재 시 `UPDATE`, 미존재 시 `INSERT`하도록 방어 로직 적용.
+- **검증**:
+  - `npm test`: 전체 23개 테스트 파일 / 119개 테스트 100% 통과.
+  - `npm run build`: SSG 프로덕션 빌드 성공.
+
+## 2026-09-28 홍대점 도서 데이터 조회 이상 및 파싱·정합성 결함 해결
+
+- **증상/재현 조건**: 홍대점 도서 DB 및 CSV 조회 시 단문 제목(`E`, `와!`, `화`, `체크` 등)에 엉뚱한 작가·장르가 부여되고, 일부 슬래시(`/`) 구분 도서(`귀멸의 칼날 한쪽 날개의 나비/ 귀멸의 칼날 귀살대 견문록` 등)가 분리되지 않고 병합되거나 선두/후미 슬래시가 도서명에 잔존하는 현상 발생.
+- **원인 분석**:
+  1. **부분 문자열 오매칭 (Partial Match Bug)**: `build-hongdae-master.cjs`의 `key.includes(normTitle)` 조건으로 인해 1~2글자 제목이 긴 사전 키(`슈팅KOREA`, `명탐정코난범인한자와씨` 등)에 오매칭되어 엉뚱한 작가/장르가 할당됨.
+  2. **슬래시(`/`) 구분자 파싱 누락**: `//` 외 단일 `/`로 연결된 비숫자형 도서 구분이 미흡하여 2종의 도서가 1종으로 결합되거나 앞뒤 슬래시가 도서명에 포함됨.
+  3. **마스터 DB 우선순위 역전**: `KNOWN_AUTHORS_GENRES` 사전보다 이전 `jamsil-inventory.csv`의 미정제(`author = '미상'`) 데이터가 `masterMap`에 먼저 적재되어 사전 정의를 덮어씀 (`홀리랜드`, `고고한 사람`, `터프 외전` 등).
+  4. **클라이언트 파서(`src/lib/inventoryCsv.ts`) 불일치**: CSV 임포트 시 슬래시 및 점(`.`) 권수 분리 정규식이 미비하여 업로드 시 도서명 오염 발생 가능.
+- **해결 및 조치**:
+  1. `src/lib/inventoryCsv.ts`: `splitHongdaeTitles` 정규식을 고도화하여 `1/2` 분수 및 `Fate/stay` 등 제목 내 고유 슬래시를 보호하면서 단일 슬래시 도서를 정확히 분리하고, 선두/후미 슬래시를 자동 트리밍하도록 개선. `splitTitleAndLastVolume`에서 마침표(`.`) 및 붙은 권수 표기 분리 지원.
+  2. `src/lib/inventoryCsv.test.ts`: 선두/후미 슬래시 제거, 단일 슬래시 복합 도서 분리, 점(`.`) 구분 권수 파싱에 대한 재현 유닛 테스트 추가 및 통과.
+  3. `scripts/build-hongdae-master.cjs`: `KNOWN_AUTHORS_GENRES` 사전 최우선 매칭 및 부분 매칭 길이(최소 3글자 이상 + `normTitle.includes(key)`) 제약 적용, 정제된 홍대점 마스터(1,881종) CSV 및 Supabase 마이그레이션 SQL(`20260922020000_seed_hongdae_enriched_inventory.sql`) 전면 재생성.
+- **검증**:
+  - `npm test`: 23개 테스트 파일 / 119개 테스트 100% 통과.
+  - `npm run build`: SSG 정적 빌드 및 배포 번들 생성 완료.
+  - 홍대점 고유 도서 1,881종 전건에 대해 단문 오매칭 0건, 슬래시 결합 0건, 정합성 100% 검증 완료.
+
 ## 2026-09-22 도서명 정정 시 새 재고가 생성되는 문제
 
 - **증상/재현 조건**: 직원 도서 재고 화면에서 기존 항목을 수정한 뒤 도서명을 고치고 저장하면, 원래 재고가 남은 채 정정된 제목의 새 재고가 생성된다.
