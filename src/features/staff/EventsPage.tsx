@@ -349,9 +349,9 @@ export function EventsPage() {
   }, [events, listStoreFilter, selectedStoreSlug]);
 
   const customerEventsUrl =
-    selectedStoreSlug === 'snu' ? '/#events' : `/stores/${selectedStoreSlug}/events`;
+    selectedStoreSlug === 'snu' ? '/events' : `/stores/${selectedStoreSlug}/events`;
   const customerHomeUrl =
-    selectedStoreSlug === 'snu' ? '/#' : `/stores/${selectedStoreSlug}`;
+    selectedStoreSlug === 'snu' ? '/' : `/stores/${selectedStoreSlug}`;
 
   return (
     <main
@@ -401,7 +401,7 @@ export function EventsPage() {
               textDecoration: 'none',
             }}
           >
-            {currentStore.name} 홈 화면 ↗
+            고객 홈 화면 ↗
           </a>
           <a
             href={customerEventsUrl}
@@ -418,7 +418,7 @@ export function EventsPage() {
               textDecoration: 'none',
             }}
           >
-            {currentStore.name} 이벤트 페이지 ↗
+            고객 이벤트 페이지로 이동 ↗
           </a>
         </div>
       </div>
