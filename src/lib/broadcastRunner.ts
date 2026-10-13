@@ -38,9 +38,13 @@ export function getSchedulesDueBetween(
 }
 
 export const NOTIFY_SCHEDULE_UPDATE_EVENT = 'cartoonplus_broadcast_schedules_updated';
+export const BROADCAST_CHANNEL_NAME = 'cartoonplus_broadcast_channel';
 const LAST_BROADCAST_CHECK_KEY = 'cartoonplus_last_broadcast_check';
 const SELECTED_STORE_KEY = 'cartoonplus_selected_store';
-const SILENT_AUDIO_DATA_URI = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+const STAFF_STORE_PREFERENCE_KEY = 'cartoonplus_staff_store';
+const CUSTOMER_STORE_PREFERENCE_KEY = 'cartoonplus_customer_store';
+const SILENT_AUDIO_DATA_URI =
+  'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
 
 let playbackQueue = Promise.resolve();
 let isAudioUnlocked = false;
@@ -56,11 +60,13 @@ export function unlockAudioEngine(): void {
     audio.volume = 0.001;
     const playPromise = audio.play();
     if (playPromise && typeof playPromise.then === 'function') {
-      playPromise.then(() => {
-        isAudioUnlocked = true;
-      }).catch(() => {
-        // ignore
-      });
+      playPromise
+        .then(() => {
+          isAudioUnlocked = true;
+        })
+        .catch(() => {
+          // ignore
+        });
     } else {
       isAudioUnlocked = true;
     }
@@ -75,7 +81,9 @@ if (typeof window !== 'undefined') {
     unlockAudioEngine();
     unlockEvents.forEach((evt) => window.removeEventListener(evt, handleUserGesture));
   };
-  unlockEvents.forEach((evt) => window.addEventListener(evt, handleUserGesture, { once: true, passive: true }));
+  unlockEvents.forEach((evt) =>
+    window.addEventListener(evt, handleUserGesture, { once: true, passive: true })
+  );
 }
 
 let cachedStoreMap: Record<string, string> | null = null;
@@ -106,9 +114,19 @@ export function detectCurrentStoreSlug(): StoreSlug {
   if (match?.[1]) return match[1] as StoreSlug;
 
   try {
-    const saved = window.localStorage ? window.localStorage.getItem(SELECTED_STORE_KEY) : null;
-    if (saved && (saved === 'snu' || saved === 'jamsil' || saved === 'hongdae')) {
-      return saved as StoreSlug;
+    if (window.localStorage) {
+      const staffSaved = window.localStorage.getItem(STAFF_STORE_PREFERENCE_KEY);
+      if (staffSaved && (staffSaved === 'snu' || staffSaved === 'jamsil' || staffSaved === 'hongdae')) {
+        return staffSaved as StoreSlug;
+      }
+      const customerSaved = window.localStorage.getItem(CUSTOMER_STORE_PREFERENCE_KEY);
+      if (customerSaved && (customerSaved === 'snu' || customerSaved === 'jamsil' || customerSaved === 'hongdae')) {
+        return customerSaved as StoreSlug;
+      }
+      const saved = window.localStorage.getItem(SELECTED_STORE_KEY);
+      if (saved && (saved === 'snu' || saved === 'jamsil' || saved === 'hongdae')) {
+        return saved as StoreSlug;
+      }
     }
   } catch {
     // ignore
@@ -133,6 +151,15 @@ async function claimPlaybackLease(storeId: string, tabId: string): Promise<boole
 export function notifyScheduleUpdated(): void {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event(NOTIFY_SCHEDULE_UPDATE_EVENT));
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const channel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+        channel.postMessage({ type: NOTIFY_SCHEDULE_UPDATE_EVENT, timestamp: Date.now() });
+        channel.close();
+      }
+    } catch {
+      // BroadcastChannel may not be supported in older or restricted environments
+    }
   }
 }
 
@@ -141,7 +168,9 @@ export async function fetchActiveSchedules(): Promise<StoredSchedule[]> {
   try {
     const { data, error } = await supabase
       .from('scheduled_broadcasts')
-      .select('id, store_id, message_text, broadcast_preset_id, schedule_type, target_time, target_days, target_date, is_enabled')
+      .select(
+        'id, store_id, message_text, broadcast_preset_id, schedule_type, target_time, target_days, target_date, is_enabled'
+      )
       .eq('is_enabled', true)
       .order('target_time');
 
@@ -238,7 +267,9 @@ export async function finishBroadcastRun(
   try {
     await supabase
       .from('broadcast_runs')
-      .update(status === 'failure' ? { status, error_message: '오디오 파일 재생 실패' } : { status })
+      .update(
+        status === 'failure' ? { status, error_message: '오디오 파일 재생 실패' } : { status }
+      )
       .eq('id', id);
   } catch {
     // ignore
@@ -329,7 +360,10 @@ export function useGlobalBroadcastScheduler(): void {
 
   useEffect(() => {
     try {
-      const storedCheck = typeof window !== 'undefined' && window.localStorage ? window.localStorage.getItem(LAST_BROADCAST_CHECK_KEY) : null;
+      const storedCheck =
+        typeof window !== 'undefined' && window.localStorage
+          ? window.localStorage.getItem(LAST_BROADCAST_CHECK_KEY)
+          : null;
       if (storedCheck) {
         const parsed = new Date(storedCheck);
         if (!Number.isNaN(parsed.getTime())) lastCheckedAtRef.current = parsed;
@@ -339,9 +373,34 @@ export function useGlobalBroadcastScheduler(): void {
     }
     void reloadSchedules();
 
-    // 1. 스케줄 변경 이벤트 수신 시 즉시 갱신
+    // 1. 스케줄 변경 이벤트 수신 시 즉시 갱신 (동일 탭 CustomEvent + 타 탭 BroadcastChannel & storage)
     const handleUpdate = () => void reloadSchedules();
     window.addEventListener(NOTIFY_SCHEDULE_UPDATE_EVENT, handleUpdate);
+
+    let channel: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        channel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+        channel.onmessage = (event) => {
+          if (event.data?.type === NOTIFY_SCHEDULE_UPDATE_EVENT) {
+            void reloadSchedules();
+          }
+        };
+      }
+    } catch {
+      // ignore
+    }
+
+    const handleStorage = (event: StorageEvent) => {
+      if (
+        event.key === STAFF_STORE_PREFERENCE_KEY ||
+        event.key === CUSTOMER_STORE_PREFERENCE_KEY ||
+        event.key === SELECTED_STORE_KEY
+      ) {
+        void reloadSchedules();
+      }
+    };
+    window.addEventListener('storage', handleStorage);
 
     // 2. 30분마다 만약을 대비한 백업 재동기화
     const resyncInterval = setInterval(() => void reloadSchedules(), 30 * 60 * 1000);
@@ -370,7 +429,13 @@ export function useGlobalBroadcastScheduler(): void {
             if (!executedKeysRef.current.has(executionKey)) {
               if (await claimPlaybackLease(item.storeId, playbackTabIdRef.current)) {
                 executedKeysRef.current.add(executionKey);
-                void recordBroadcastRun(item.message_text, item.id, 'missed', item.storeId, item.dueAt);
+                void recordBroadcastRun(
+                  item.message_text,
+                  item.id,
+                  'missed',
+                  item.storeId,
+                  item.dueAt
+                );
               }
             }
           }
@@ -391,7 +456,12 @@ export function useGlobalBroadcastScheduler(): void {
           if (isDue(item, now)) {
             if (await claimPlaybackLease(item.storeId, playbackTabIdRef.current)) {
               executedKeysRef.current.add(executionKey);
-              void playBroadcast(item.message_text, item.id, item.storeId, item.broadcast_preset_id);
+              void playBroadcast(
+                item.message_text,
+                item.id,
+                item.storeId,
+                item.broadcast_preset_id
+              );
             }
           }
         }
@@ -403,6 +473,10 @@ export function useGlobalBroadcastScheduler(): void {
 
     return () => {
       window.removeEventListener(NOTIFY_SCHEDULE_UPDATE_EVENT, handleUpdate);
+      window.removeEventListener('storage', handleStorage);
+      if (channel) {
+        channel.close();
+      }
       clearInterval(resyncInterval);
       stopWorker();
     };

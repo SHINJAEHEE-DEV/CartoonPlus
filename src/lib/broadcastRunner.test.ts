@@ -164,6 +164,18 @@ describe('broadcastRunner (MP3 & Scheduled Broadcasts)', () => {
     expect(broadcastRunnerModule.detectCurrentStoreSlug()).toBe('snu');
   });
 
+  it('detects store slug from staff and customer preferences when pathname has no store', () => {
+    localStorage.setItem('cartoonplus_staff_store', 'hongdae');
+    expect(broadcastRunnerModule.detectCurrentStoreSlug()).toBe('hongdae');
+
+    localStorage.removeItem('cartoonplus_staff_store');
+    localStorage.setItem('cartoonplus_customer_store', 'jamsil');
+    expect(broadcastRunnerModule.detectCurrentStoreSlug()).toBe('jamsil');
+
+    localStorage.removeItem('cartoonplus_customer_store');
+    expect(broadcastRunnerModule.detectCurrentStoreSlug()).toBe('snu');
+  });
+
   it('fetches store map from supabase stores table', async () => {
     const storeMap = await broadcastRunnerModule.fetchStoreMap();
     expect(typeof storeMap).toBe('object');
@@ -173,5 +185,3 @@ describe('broadcastRunner (MP3 & Scheduled Broadcasts)', () => {
     expect(() => broadcastRunnerModule.unlockAudioEngine()).not.toThrow();
   });
 });
-
-
