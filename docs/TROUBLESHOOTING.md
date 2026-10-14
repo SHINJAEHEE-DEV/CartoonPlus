@@ -2,6 +2,33 @@
 
 개발 과정에서 발생하는 이슈, 데이터 전처리 분석, 성능 최적화 및 트러블슈팅 내역을 체계적으로 기록합니다.
 
+## 2026-10-14 도서 정보 수정 시 고유 키 충돌(`books_title_author_idx`) 해결 및 에러 메시지 한국어화
+
+- **증상/재현 조건**:
+  - 직원 도서 재고 관리 화면(`/staff/inventory`)에서 특정 도서명(예: 홍대점 `/ 슈가슈가룬` $\rightarrow$ `슈가슈가룬`)을 기존에 다른 지점/도서로 존재하는 `(제목, 작가)` 조합으로 수정하고 [수정 완료 (저장)] 클릭 시 `duplicate key value violates unique constraint "books_title_author_idx"` 영어 DB 에러가 노출되며 수정 실패.
+- **원인 분석**:
+  1. **RPC 로직(`update_inventory_for_store`)의 `UPDATE books` 직접 수정 결함**:
+     - 수정 시 대상 재고에 연결된 `books` 레코드의 `title`과 `author`를 직접 `UPDATE`함.
+     - 이미 마스터 테이블에 동일한 `(title, author)` 레코드가 존재하는 경우(예: 잠실점의 `슈가슈가룬 / 미상`), 고유 인덱스(`books_title_author_idx`) 충돌로 400 SQL 에러가 발생함.
+  2. **타 지점 공유 도서 수정 시 부작용 방지 필요**:
+     - `books` 마스터를 복수 지점 재고가 공유하는 상태에서 한 지점의 수정을 위해 `books` 레코드를 변경하면 타 지점 데이터까지 오염되거나 충돌함.
+  3. **UI 에러 메시지 한국어화 부재**:
+     - DB 수준의 제약조건 예외 메시지가 필터링 없이 화면에 원문(영어) 그대로 노출됨.
+- **해결 및 조치**:
+  1. `supabase/migrations/20261014140000_safe_inventory_update_and_repoint.sql`:
+     - 수정하려는 `(제목, 작가)`를 가진 도서가 이미 `books`에 존재할 경우, 충돌을 피하기 위해 해당 `books`의 ID로 현재 재고의 `book_id`를 안전하게 재지정(re-point) 및 중복 시 병합 처리.
+     - 새 도서인 경우, 타 지점 재고가 참조 중인지 확인하여 공유 중이면 격리된 새 `books` 레코드를 생성하고 단독 참조 시에만 in-place `UPDATE`.
+     - 참조가 끊어진 고아(orphan) `books` 레코드 자동 청소.
+     - `npx supabase db push`로 프로덕션 DB에 실시간 적용 완료.
+  2. `src/features/staff/InventoryPage.tsx`:
+     - `formatDatabaseError()` 헬퍼 함수를 신설하여 DB 제약조건 에러를 `동일한 제목과 작가명을 가진 도서가 이미 등록되어 있습니다.` 등 명확한 한국어 안내 메시지로 번역 표시.
+  3. `src/features/staff/InventoryPage.test.tsx`:
+     - 한국어 에러 번역 및 고유 키 충돌 시의 UI 안내 메시지 렌더링 검증 유닛 테스트 추가.
+- **검증**:
+  - `npx supabase db push` 완료.
+  - `npm test`: 전체 23개 테스트 파일 / 122개 테스트 100% 통과.
+  - `npm run build`: 정적 타입 검사 및 SSG 프로덕션 빌드 성공.
+
 ## 2026-10-13 전역 예약 방송 스케줄러 지점 격리 불일치 및 다중 탭 동기화 결함 해결
 
 - **증상/재현 조건**:

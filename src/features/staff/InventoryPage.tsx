@@ -28,6 +28,29 @@ function getBook(item: InventoryItem): InventoryBook | undefined {
   return Array.isArray(item.books) ? item.books[0] : (item.books ?? undefined);
 }
 
+export function formatDatabaseError(errorMessage: string | undefined): string {
+  if (!errorMessage) return '작업을 완료하지 못했습니다.';
+  if (errorMessage.includes('books_title_author_idx') || errorMessage.includes('duplicate key value')) {
+    return '동일한 제목과 작가명을 가진 도서가 이미 등록되어 있습니다.';
+  }
+  if (errorMessage.includes('duplicate inventory exists')) {
+    return '같은 지점에 동일한 도서 재고가 이미 존재합니다.';
+  }
+  if (errorMessage.includes('store access denied')) {
+    return '해당 지점의 재고 관리 권한이 없습니다.';
+  }
+  if (errorMessage.includes('inventory not found')) {
+    return '수정할 재고 정보를 찾을 수 없습니다.';
+  }
+  if (errorMessage.includes('title cannot be empty')) {
+    return '도서명을 입력해 주세요.';
+  }
+  if (errorMessage.includes('last volume must be positive')) {
+    return '마지막 권수는 1 이상의 숫자로 입력해 주세요.';
+  }
+  return errorMessage;
+}
+
 export function InventoryPage() {
   const selectedStoreId = useSelectedStaffStoreId();
   const [searchParams] = useSearchParams();
@@ -68,7 +91,7 @@ export function InventoryPage() {
         .range(page * CHUNK_SIZE, (page + 1) * CHUNK_SIZE - 1);
 
       if (error) {
-        setMessage(error.message);
+        setMessage(formatDatabaseError(error.message));
         break;
       }
       if (!data || data.length === 0) break;
@@ -143,11 +166,12 @@ export function InventoryPage() {
         })
       : await supabase.rpc('upsert_inventory_for_store', {
           p_store_id: selectedStoreId,
-        ...payload,
-      });
+          ...payload,
+        });
     if (
       editingItem &&
-      error?.message.includes('duplicate inventory exists') &&
+      (error?.message.includes('duplicate inventory exists') ||
+        error?.message.includes('동일한 도서 재고가 이미 존재합니다')) &&
       window.confirm(
         '같은 지점에 같은 도서가 이미 있습니다. 현재 입력한 권수·서가 정보로 하나의 재고로 병합할까요?'
       )
@@ -159,8 +183,9 @@ export function InventoryPage() {
       }));
     }
     setMessage(
-      error?.message ??
-        (editingItem ? `[${titleVal}] 도서 정보를 수정했습니다.` : '도서 재고를 저장했습니다.')
+      error
+        ? formatDatabaseError(error.message)
+        : (editingItem ? `[${titleVal}] 도서 정보를 수정했습니다.` : '도서 재고를 저장했습니다.')
     );
     if (!error) {
       await load();
@@ -227,7 +252,7 @@ export function InventoryPage() {
     if (!supabase) return;
     if (!window.confirm('이 지점의 재고만 영구 삭제합니다. 복구할 수 없습니다.')) return;
     const { error } = await supabase.from('book_inventories').delete().eq('id', id);
-    setMessage(error?.message ?? '재고를 삭제했습니다.');
+    setMessage(error ? formatDatabaseError(error.message) : '재고를 삭제했습니다.');
     if (!error) await load();
   };
 

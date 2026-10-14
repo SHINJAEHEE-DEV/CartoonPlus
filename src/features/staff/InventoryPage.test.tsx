@@ -17,7 +17,7 @@ vi.mock('./StaffStoreContext', () => ({
   useSelectedStaffStoreId: () => selectedStoreId.value,
 }));
 
-import { InventoryPage } from './InventoryPage';
+import { InventoryPage, formatDatabaseError } from './InventoryPage';
 
 describe('InventoryPage', () => {
   beforeEach(() => {
@@ -162,4 +162,34 @@ describe('InventoryPage', () => {
     );
   });
 
+  it('translates database unique conflict and duplicate errors to clear Korean messages', () => {
+    expect(
+      formatDatabaseError('duplicate key value violates unique constraint "books_title_author_idx"')
+    ).toBe('동일한 제목과 작가명을 가진 도서가 이미 등록되어 있습니다.');
+    expect(formatDatabaseError('duplicate inventory exists for this store')).toBe(
+      '같은 지점에 동일한 도서 재고가 이미 존재합니다.'
+    );
+    expect(formatDatabaseError('store access denied')).toBe('해당 지점의 재고 관리 권한이 없습니다.');
+  });
+
+  it('displays friendly Korean message when inventory update fails with unique constraint error', async () => {
+    query.rpc.mockResolvedValueOnce({
+      error: {
+        message: 'duplicate key value violates unique constraint "books_title_author_idx"',
+      },
+    });
+
+    render(
+      <MemoryRouter>
+        <InventoryPage />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: '수정' }));
+    fireEvent.click(screen.getByRole('button', { name: '수정 완료 (저장)' }));
+
+    expect(
+      await screen.findByText('동일한 제목과 작가명을 가진 도서가 이미 등록되어 있습니다.')
+    ).toBeTruthy();
+  });
 });
