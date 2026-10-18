@@ -184,4 +184,32 @@ describe('broadcastRunner (MP3 & Scheduled Broadcasts)', () => {
   it('safely runs unlockAudioEngine without throwing', () => {
     expect(() => broadcastRunnerModule.unlockAudioEngine()).not.toThrow();
   });
+
+  it('detects mobile devices based on user agent string', () => {
+    const originalNavigator = window.navigator;
+    try {
+      Object.defineProperty(window, 'navigator', {
+        value: { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)' },
+        configurable: true,
+      });
+      expect(broadcastRunnerModule.isMobileDevice()).toBe(true);
+
+      Object.defineProperty(window, 'navigator', {
+        value: { userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8)' },
+        configurable: true,
+      });
+      expect(broadcastRunnerModule.isMobileDevice()).toBe(true);
+
+      Object.defineProperty(window, 'navigator', {
+        value: { userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' },
+        configurable: true,
+      });
+      expect(broadcastRunnerModule.isMobileDevice()).toBe(false);
+    } finally {
+      Object.defineProperty(window, 'navigator', {
+        value: originalNavigator,
+        configurable: true,
+      });
+    }
+  });
 });

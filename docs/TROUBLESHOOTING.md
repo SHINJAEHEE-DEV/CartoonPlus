@@ -2,6 +2,23 @@
 
 개발 과정에서 발생하는 이슈, 데이터 전처리 분석, 성능 최적화 및 트러블슈팅 내역을 체계적으로 기록합니다.
 
+## 2026-10-18 모바일 기기 안내 방송 원천 차단 및 지점별 바로가기 URL 정리
+
+- **증상/요구사항**:
+  - 관리자 및 고객 모바일 브라우저(스마트폰/태블릿)에서 매장용 안내 방송이 실행되지 않도록 차단 요청.
+  - PC 데스크톱 앱(Chrome 바로가기 창/PWA) 환경에서 각 지점별로 지정하여 실행할 수 있는 URL 가이드 요청.
+- **원인 분석**:
+  - `useGlobalBroadcastScheduler()`가 반응형 모바일 브라우저에서도 구동되어, 사용자가 모바일로 사이트 접속 중 첫 터치(제스처)를 할 경우 오디오 엔진이 언락되어 방송이 모바일 스피커로 출력될 수 있었음.
+- **해결 및 조치**:
+  1. `src/lib/broadcastRunner.ts`:
+     - `isMobileDevice()` 헬퍼를 추가하여 User-Agent 기반으로 Android, iOS(iPhone/iPad), 모바일 기기를 판별.
+     - `useGlobalBroadcastScheduler()` 상단에서 모바일 기기 감지 시 스케줄러 등록 및 Web Worker 타이머를 즉시 조기 종료(Early return)하도록 수정.
+  2. `src/lib/broadcastRunner.test.ts`:
+     - iOS/Android/Desktop User-Agent에 대한 `isMobileDevice()` 판별 유닛 테스트 추가.
+- **검증**:
+  - `npm test`: 전체 23개 테스트 파일 / 123개 테스트 100% 통과.
+  - `npm run build`: TypeScript 정적 타입 검사 및 SSG 프로덕션 빌드 성공.
+
 ## 2026-10-14 도서 정보 수정 시 고유 키 충돌(`books_title_author_idx`) 해결 및 에러 메시지 한국어화
 
 - **증상/재현 조건**:

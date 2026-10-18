@@ -107,6 +107,12 @@ export async function fetchStoreMap(): Promise<Record<string, string>> {
   return {};
 }
 
+export function isMobileDevice(): boolean {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+  const userAgent = navigator.userAgent || navigator.vendor || (window as unknown as { opera?: string }).opera || '';
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(userAgent);
+}
+
 export function detectCurrentStoreSlug(): StoreSlug {
   if (typeof window === 'undefined') return defaultPublicStore.slug;
   const pathname = window.location.pathname;
@@ -359,6 +365,11 @@ export function useGlobalBroadcastScheduler(): void {
   };
 
   useEffect(() => {
+    // 모바일 기기(스마트폰/태블릿 등)에서는 매장 방송 재생 스케줄러를 구동하지 않음
+    if (isMobileDevice()) {
+      return;
+    }
+
     try {
       const storedCheck =
         typeof window !== 'undefined' && window.localStorage
