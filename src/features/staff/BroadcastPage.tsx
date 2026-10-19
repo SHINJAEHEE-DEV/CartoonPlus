@@ -8,6 +8,7 @@ import {
   unlockAudioEngine,
 } from '../../lib/broadcastRunner';
 import { useSelectedStaffStoreId, useStaffStore } from './StaffStoreContext';
+import { usePageTitle } from '../../lib/usePageTitle';
 import {
   DEFAULT_STATIC_PRESETS,
   MAX_UPLOAD_PRESETS_PER_STORE,
@@ -78,6 +79,7 @@ function isValidUuid(value?: string | null): boolean {
 export function BroadcastPage() {
   const storeId = useSelectedStaffStoreId();
   const { currentStore } = useStaffStore();
+  usePageTitle('매장 안내 방송', currentStore.name);
   const [isReceiverEnabled, setIsReceiverEnabled] = useState<boolean>(() =>
     isBroadcastReceiverEnabled()
   );

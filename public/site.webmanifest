@@ -26,5 +26,25 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "홍대점 도서 검색",
+      "short_name": "홍대점",
+      "url": "./stores/hongdae/books",
+      "description": "카툰플러스 홍대점 도서 검색 바로가기"
+    },
+    {
+      "name": "잠실점 도서 검색",
+      "short_name": "잠실점",
+      "url": "./stores/jamsil/books",
+      "description": "카툰플러스 잠실점 도서 검색 바로가기"
+    },
+    {
+      "name": "서울대입구역점 도서 검색",
+      "short_name": "서울대점",
+      "url": "./stores/snu/books",
+      "description": "카툰플러스 서울대입구역점 도서 검색 바로가기"
+    }
   ]
 }

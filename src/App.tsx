@@ -34,6 +34,7 @@ import { getApprovedStaffContext, signOutStaff } from './features/staff/staffAut
 import { StaffStoreProvider } from './features/staff/StaffStoreContext';
 import { StaffLoadingScreen } from './features/staff/StaffLoadingScreen';
 import { useGlobalBroadcastScheduler } from './lib/broadcastRunner';
+import { useDynamicManifest } from './lib/useDynamicManifest';
 import {
   getPublicStore,
   getPreferredPublicStore,
@@ -265,6 +266,11 @@ function GlobalBroadcastService() {
   return null;
 }
 
+function DynamicManifestService() {
+  useDynamicManifest();
+  return null;
+}
+
 function StoreContentPendingPage() {
   return <p className="state-card">이 지점의 콘텐츠는 점검 중입니다.</p>;
 }
@@ -273,6 +279,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <InternalLinkInterceptor />
+      <DynamicManifestService />
       <GlobalBroadcastService />
       <Routes>
         {/* Legacy Redirects */}
