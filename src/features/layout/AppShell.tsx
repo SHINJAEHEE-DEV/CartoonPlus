@@ -6,6 +6,7 @@ import {
   publicStoreList,
   storePath,
   type PublicStore,
+  type StoreSlug,
 } from '../../lib/storeContext';
 import { isStoreOpen } from '../../lib/storeHours';
 import { StaffStoreSelector, useStaffStore } from '../staff/StaffStoreContext';
@@ -19,15 +20,19 @@ const customerLinks = [
   ['매장 안내', '/store'],
 ] as const;
 
-const staffLinks = [
-  ['대시보드', '/staff/dashboard'],
-  ['도서·입고', '/staff/inventory'],
-  ['입고 신청', '/staff/requests'],
-  ['메뉴·요금 관리', '/staff/content'],
-  ['게임 관리', '/staff/games'],
-  ['이벤트 관리', '/staff/events'],
-  ['방송', '/staff/broadcast'],
-] as const;
+export function getStaffLinks(storeSlug: StoreSlug = 'snu') {
+  return [
+    ['대시보드', `/staff/${storeSlug}/dashboard`],
+    ['도서·입고', `/staff/${storeSlug}/inventory`],
+    ['입고 신청', `/staff/${storeSlug}/requests`],
+    ['메뉴·요금 관리', `/staff/${storeSlug}/content`],
+    ['게임 관리', `/staff/${storeSlug}/games`],
+    ['이벤트 관리', `/staff/${storeSlug}/events`],
+    ['방송', `/staff/${storeSlug}/broadcast`],
+  ] as const;
+}
+
+export const staffLinks = getStaffLinks('snu');
 
 const STAFF_ENTRY_HOLD_MS = 2000;
 
@@ -371,7 +376,6 @@ export function CustomerShell({
               </a>
             )}
           </div>
-
         </div>
       </header>
 
@@ -432,6 +436,9 @@ export function StaffShell({
 }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { currentStore } = useStaffStore();
+
+  const currentStaffLinks = getStaffLinks(currentStore.slug);
+  const accountsPath = `/staff/${currentStore.slug}/accounts`;
 
   useEffect(() => {
     if (isDrawerOpen) {
@@ -544,7 +551,7 @@ export function StaffShell({
 
             <div className="staff-drawer-body">
               <nav className="staff-drawer-nav" aria-label="직원 메뉴">
-                {staffLinks.map(([label, href]) => (
+                {currentStaffLinks.map(([label, href]) => (
                   <a
                     key={href}
                     href={href}
@@ -558,11 +565,11 @@ export function StaffShell({
 
                 {isAdmin && (
                   <a
-                    href="/staff/accounts"
-                    aria-current={currentPath === '/staff/accounts' ? 'page' : undefined}
+                    href={accountsPath}
+                    aria-current={currentPath === accountsPath ? 'page' : undefined}
                     onClick={() => setIsDrawerOpen(false)}
                     className={`staff-drawer-link admin-link ${
-                      currentPath === '/staff/accounts' ? 'active' : ''
+                      currentPath === accountsPath ? 'active' : ''
                     }`}
                   >
                     ⚙️ 계정 관리 (관리자)
@@ -605,10 +612,10 @@ export function StaffShell({
           {isAdmin ? 'ADMIN · 전체 지점 권한' : `STAFF · ${storeName ?? '소속 지점 확인 중'}`}
         </div>
         <StaffStoreSelector />
-        <Nav links={staffLinks} currentPath={currentPath} />
+        <Nav links={currentStaffLinks} currentPath={currentPath} />
         {isAdmin && (
           <a
-            href="/staff/accounts"
+            href={accountsPath}
             style={{
               padding: '10px 14px',
               borderRadius: '12px',

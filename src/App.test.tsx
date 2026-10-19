@@ -7,20 +7,23 @@ import { CUSTOMER_STORE_PREFERENCE_KEY } from './lib/storeContext';
 afterEach(cleanup);
 
 describe('customer routes', () => {
-  it('restores the customer Store preference at the root route', async () => {
-    localStorage.setItem(CUSTOMER_STORE_PREFERENCE_KEY, 'jamsil');
+  it('renders Brand Landing Page at the root route', () => {
     window.history.pushState({}, '', '/');
+
     render(<App />);
-    await waitFor(() => expect(screen.getAllByText('잠실점').length).toBeGreaterThan(0));
+
+    expect(screen.getByRole('heading', { name: /만화, 게임, 그리고/ })).toBeTruthy();
+    expect(screen.getByText('가맹 및 창업 상담 신청')).toBeTruthy();
+    expect(screen.getByText('서울대입구역점')).toBeTruthy();
+    expect(screen.getByText('잠실점')).toBeTruthy();
+    expect(screen.getByText('홍대점')).toBeTruthy();
   });
 
-  it('opens Book Search at the root route', () => {
-    window.history.pushState({}, '', '/');
-
+  it('restores the customer Store preference at /books', async () => {
+    localStorage.setItem(CUSTOMER_STORE_PREFERENCE_KEY, 'jamsil');
+    window.history.pushState({}, '', '/books');
     render(<App />);
-
-    expect(screen.getByRole('heading', { name: '도서 검색' })).toBeTruthy();
-    expect(screen.getByRole('searchbox')).toBeTruthy();
+    await waitFor(() => expect(screen.getAllByText('잠실점').length).toBeGreaterThan(0));
   });
 
   it('keeps the former Home content at Store Introduction', () => {
@@ -98,5 +101,25 @@ describe('customer routes', () => {
 
     await waitFor(() => expect(screen.getByText(expectedHeading)).toBeTruthy());
     expect(screen.getByLabelText(/도서명/)).toBeTruthy();
+  });
+
+  it('renders staff login prompt when accessing scoped staff routes while unauthenticated', async () => {
+    window.history.pushState({}, '', '/staff/hongdae/broadcast');
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('승인된 직원 계정으로 로그인해 주세요.')).toBeTruthy();
+    });
+  });
+
+  it('renders staff login prompt when accessing legacy staff routes while unauthenticated', async () => {
+    window.history.pushState({}, '', '/staff/broadcast');
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('승인된 직원 계정으로 로그인해 주세요.')).toBeTruthy();
+    });
   });
 });

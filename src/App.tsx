@@ -9,6 +9,7 @@ import {
   useParams,
 } from 'react-router-dom';
 import { BookSearchPage } from './features/book-search/BookSearchPage';
+import { BrandLandingPage } from './features/brand/BrandLandingPage';
 import {
   loadPublicCatalogue,
   subscribeToPublicCatalogueUpdates,
@@ -39,6 +40,7 @@ import {
   savePreferredPublicStore,
   StoreContext,
   usePublicStore,
+  type StoreSlug,
 } from './lib/storeContext';
 
 function InternalLinkInterceptor() {
@@ -88,6 +90,33 @@ function InternalLinkInterceptor() {
   return null;
 }
 
+function StaffLegacyRedirect({ subPath }: { subPath: string }) {
+  const [targetSlug, setTargetSlug] = useState<StoreSlug | null>(null);
+
+  useEffect(() => {
+    void getApprovedStaffContext().then((context) => {
+      if (context?.role === 'staff') {
+        setTargetSlug(context.storeSlug);
+      } else {
+        const saved = (typeof window !== 'undefined'
+          ? localStorage.getItem('cartoonplus_staff_store')
+          : null) as StoreSlug | null;
+        if (saved && (saved === 'snu' || saved === 'jamsil' || saved === 'hongdae')) {
+          setTargetSlug(saved);
+        } else {
+          setTargetSlug(context?.storeSlug ?? 'snu');
+        }
+      }
+    });
+  }, []);
+
+  if (!targetSlug) {
+    return <StaffLoadingScreen message="페이지를 이동하는 중입니다." />;
+  }
+
+  return <Navigate to={`/staff/${targetSlug}/${subPath}`} replace />;
+}
+
 function ProtectedStaffRoute({
   children,
   requiredRole,
@@ -97,15 +126,16 @@ function ProtectedStaffRoute({
 }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const params = useParams<{ storeSlug?: string }>();
   const [role, setRole] = useState<'staff' | 'admin' | null | undefined>(undefined);
   const [storeName, setStoreName] = useState<string | null>(null);
-  const [storeSlug, setStoreSlug] = useState<'snu' | 'jamsil' | 'hongdae'>('snu');
+  const [accountStoreSlug, setAccountStoreSlug] = useState<StoreSlug>('snu');
 
   useEffect(() => {
     void getApprovedStaffContext().then((context) => {
       setRole(context?.role ?? null);
       setStoreName(context?.storeName ?? null);
-      setStoreSlug(context?.storeSlug ?? 'snu');
+      setAccountStoreSlug(context?.storeSlug ?? 'snu');
     });
   }, []);
 
@@ -119,12 +149,45 @@ function ProtectedStaffRoute({
   if (requiredRole === 'admin' && role !== 'admin')
     return <p className="state-card">관리자만 직원 계정을 관리할 수 있습니다.</p>;
 
+  const validSlugs: StoreSlug[] = ['snu', 'jamsil', 'hongdae'];
+  const urlStoreSlug =
+    params.storeSlug && validSlugs.includes(params.storeSlug as StoreSlug)
+      ? (params.storeSlug as StoreSlug)
+      : undefined;
+
+  // 일반 직원은 본인 소속 지점 URL만 접근 허용 (타 지점 접근 시 본인 지점으로 리다이렉트)
+  if (role === 'staff' && urlStoreSlug && urlStoreSlug !== accountStoreSlug) {
+    const correctedPath = location.pathname.replace(
+      new RegExp(`^/staff/${urlStoreSlug}`),
+      `/staff/${accountStoreSlug}`
+    );
+    return <Navigate to={correctedPath} replace />;
+  }
+
+  const effectiveStoreSlug =
+    role === 'admin' ? urlStoreSlug ?? accountStoreSlug : accountStoreSlug;
+
+  const handleStoreChange = (newSlug: StoreSlug) => {
+    if (urlStoreSlug && urlStoreSlug !== newSlug) {
+      const targetPath = location.pathname.replace(
+        new RegExp(`^/staff/${urlStoreSlug}`),
+        `/staff/${newSlug}`
+      );
+      navigate(targetPath);
+    }
+  };
+
   return (
-    <StaffStoreProvider isAdmin={role === 'admin'} defaultStoreSlug={storeSlug}>
+    <StaffStoreProvider
+      isAdmin={role === 'admin'}
+      defaultStoreSlug={accountStoreSlug}
+      storeSlug={effectiveStoreSlug}
+      onStoreChange={handleStoreChange}
+    >
       <StaffShell
         currentPath={location.pathname}
         isAdmin={role === 'admin'}
-        storeName={storeName}
+        storeName={role === 'admin' ? null : storeName}
         onSignOut={() => {
           void signOutStaff().then(() => navigate('/', { replace: true }));
         }}
@@ -217,15 +280,8 @@ export default function App() {
         <Route path="/entertainment" element={<Navigate to="/games" replace />} />
         <Route path="/event" element={<Navigate to="/events" replace />} />
 
-        {/* Customer Routes */}
-        <Route
-          path="/"
-          element={
-            <CustomerRoute>
-              <BooksRoute />
-            </CustomerRoute>
-          }
-        />
+        {/* Brand Landing Route */}
+        <Route path="/" element={<BrandLandingPage />} />
         <Route
           path="/books"
           element={
@@ -372,8 +428,13 @@ export default function App() {
             </div>
           }
         />
+        {/* Scoped Staff Routes */}
         <Route
-          path="/staff/dashboard"
+          path="/staff/:storeSlug"
+          element={<Navigate to="dashboard" replace />}
+        />
+        <Route
+          path="/staff/:storeSlug/dashboard"
           element={
             <ProtectedStaffRoute>
               <DashboardPage />
@@ -381,7 +442,7 @@ export default function App() {
           }
         />
         <Route
-          path="/staff/accounts"
+          path="/staff/:storeSlug/accounts"
           element={
             <ProtectedStaffRoute requiredRole="admin">
               <AdminAccountsPage />
@@ -389,7 +450,7 @@ export default function App() {
           }
         />
         <Route
-          path="/staff/inventory"
+          path="/staff/:storeSlug/inventory"
           element={
             <ProtectedStaffRoute>
               <InventoryPage />
@@ -397,7 +458,7 @@ export default function App() {
           }
         />
         <Route
-          path="/staff/requests"
+          path="/staff/:storeSlug/requests"
           element={
             <ProtectedStaffRoute>
               <BookRequestsPage />
@@ -405,7 +466,7 @@ export default function App() {
           }
         />
         <Route
-          path="/staff/content"
+          path="/staff/:storeSlug/content"
           element={
             <ProtectedStaffRoute>
               <StoreContentPage />
@@ -413,7 +474,7 @@ export default function App() {
           }
         />
         <Route
-          path="/staff/events"
+          path="/staff/:storeSlug/events"
           element={
             <ProtectedStaffRoute>
               <EventsPage />
@@ -421,7 +482,7 @@ export default function App() {
           }
         />
         <Route
-          path="/staff/games"
+          path="/staff/:storeSlug/games"
           element={
             <ProtectedStaffRoute>
               <GamesPage />
@@ -429,13 +490,23 @@ export default function App() {
           }
         />
         <Route
-          path="/staff/broadcast"
+          path="/staff/:storeSlug/broadcast"
           element={
             <ProtectedStaffRoute>
               <BroadcastPage />
             </ProtectedStaffRoute>
           }
         />
+
+        {/* Legacy Staff Redirects */}
+        <Route path="/staff/dashboard" element={<StaffLegacyRedirect subPath="dashboard" />} />
+        <Route path="/staff/accounts" element={<StaffLegacyRedirect subPath="accounts" />} />
+        <Route path="/staff/inventory" element={<StaffLegacyRedirect subPath="inventory" />} />
+        <Route path="/staff/requests" element={<StaffLegacyRedirect subPath="requests" />} />
+        <Route path="/staff/content" element={<StaffLegacyRedirect subPath="content" />} />
+        <Route path="/staff/events" element={<StaffLegacyRedirect subPath="events" />} />
+        <Route path="/staff/games" element={<StaffLegacyRedirect subPath="games" />} />
+        <Route path="/staff/broadcast" element={<StaffLegacyRedirect subPath="broadcast" />} />
 
         {/* Not Found */}
         <Route

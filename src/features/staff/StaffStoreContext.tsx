@@ -1,5 +1,11 @@
 import { createContext, useContext, useState, useMemo, useEffect, type ReactNode } from 'react';
-import { defaultPublicStore, getPublicStore, publicStoreList, type PublicStore, type StoreSlug } from '../../lib/storeContext';
+import {
+  defaultPublicStore,
+  getPublicStore,
+  publicStoreList,
+  type PublicStore,
+  type StoreSlug,
+} from '../../lib/storeContext';
 import { supabase } from '../../lib/supabase';
 
 const STAFF_STORE_PREFERENCE_KEY = 'cartoonplus_staff_store';
@@ -15,13 +21,18 @@ const StaffStoreContext = createContext<StaffStoreContextValue | null>(null);
 export function StaffStoreProvider({
   isAdmin,
   defaultStoreSlug,
+  storeSlug,
+  onStoreChange,
   children,
 }: {
   isAdmin: boolean;
   defaultStoreSlug: StoreSlug;
+  storeSlug?: StoreSlug;
+  onStoreChange?: (newSlug: StoreSlug) => void;
   children: ReactNode;
 }) {
   const [selectedStoreSlug, setSelectedStoreSlug] = useState<StoreSlug>(() => {
+    if (storeSlug) return storeSlug;
     if (isAdmin && typeof window !== 'undefined') {
       const saved = localStorage.getItem(STAFF_STORE_PREFERENCE_KEY) as StoreSlug | null;
       if (saved && (saved === 'snu' || saved === 'jamsil' || saved === 'hongdae')) {
@@ -30,6 +41,12 @@ export function StaffStoreProvider({
     }
     return defaultStoreSlug;
   });
+
+  useEffect(() => {
+    if (storeSlug && storeSlug !== selectedStoreSlug) {
+      setSelectedStoreSlug(storeSlug);
+    }
+  }, [storeSlug, selectedStoreSlug]);
 
   const currentStore = useMemo(
     () => getPublicStore(selectedStoreSlug) ?? publicStoreList[0],
@@ -49,14 +66,14 @@ export function StaffStoreProvider({
           } catch {
             // ignore storage errors
           }
+          onStoreChange?.(slug);
         }
       },
     }),
-    [isAdmin, selectedStoreSlug, currentStore]
+    [isAdmin, selectedStoreSlug, currentStore, onStoreChange]
   );
   return <StaffStoreContext value={value}>{children}</StaffStoreContext>;
 }
-
 
 export function useStaffStore() {
   const context = useContext(StaffStoreContext);
@@ -128,7 +145,9 @@ export function StaffStoreSelector({
         }}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ color: isHeader ? '#8A6A00' : '#FED943', fontSize: '11px', fontWeight: 900 }}>
+          <span
+            style={{ color: isHeader ? '#8A6A00' : '#FED943', fontSize: '11px', fontWeight: 900 }}
+          >
             {isHeader ? '지점' : '관리 지점'}
           </span>
           <span>{currentStore.name}</span>

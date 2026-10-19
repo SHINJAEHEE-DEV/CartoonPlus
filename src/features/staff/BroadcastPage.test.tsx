@@ -4,11 +4,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as voiceAssetsModule from '../../lib/voiceAssets';
 
 const selectedStoreId = vi.hoisted(() => ({ value: 'store-uuid-1' }));
-const mockStorageUpload = vi.hoisted(() => vi.fn().mockResolvedValue({ data: { path: 'store-uuid-1/test.mp3' }, error: null }));
+const mockStorageUpload = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ data: { path: 'store-uuid-1/test.mp3' }, error: null })
+);
 const mockStorageRemove = vi.hoisted(() => vi.fn().mockResolvedValue({ data: [], error: null }));
-const mockStorageGetPublicUrl = vi.hoisted(() => vi.fn().mockReturnValue({
-  data: { publicUrl: 'https://storage.test/broadcast-audio/store-uuid-1/test.mp3' },
-}));
+const mockStorageGetPublicUrl = vi.hoisted(() =>
+  vi.fn().mockReturnValue({
+    data: { publicUrl: 'https://storage.test/broadcast-audio/store-uuid-1/test.mp3' },
+  })
+);
 
 const mockPresetsData = [
   {
@@ -33,9 +37,7 @@ const presetsQuery = {
   delete: vi.fn().mockReturnValue({
     eq: vi.fn().mockResolvedValue({ data: [], error: null }),
   }),
-  then: vi.fn((resolve: (val: unknown) => void) =>
-    resolve({ data: mockPresetsData, error: null })
-  ),
+  then: vi.fn((resolve: (val: unknown) => void) => resolve({ data: mockPresetsData, error: null })),
 };
 
 const scheduledBroadcastsQuery = {
@@ -49,9 +51,7 @@ const scheduledBroadcastsQuery = {
   delete: vi.fn().mockReturnValue({
     eq: vi.fn().mockResolvedValue({ data: [], error: null }),
   }),
-  then: vi.fn((resolve: (val: unknown) => void) =>
-    resolve({ data: [], error: null })
-  ),
+  then: vi.fn((resolve: (val: unknown) => void) => resolve({ data: [], error: null })),
 };
 
 const broadcastRunsQuery = {
@@ -72,9 +72,7 @@ const broadcastRunsQuery = {
       }),
     }),
   }),
-  then: vi.fn((resolve: (val: unknown) => void) =>
-    resolve({ data: [], error: null })
-  ),
+  then: vi.fn((resolve: (val: unknown) => void) => resolve({ data: [], error: null })),
 };
 
 const fromMock = vi.fn((table: string) => {
@@ -98,7 +96,11 @@ vi.mock('../../lib/supabase', () => ({
 }));
 
 vi.mock('./StaffStoreContext', () => ({
-  useStaffStore: () => ({ selectedStoreSlug: 'snu', setSelectedStoreSlug: vi.fn() }),
+  useStaffStore: () => ({
+    selectedStoreSlug: 'snu',
+    setSelectedStoreSlug: vi.fn(),
+    currentStore: { name: '서울대입구역점', slug: 'snu' },
+  }),
   useSelectedStaffStoreId: () => selectedStoreId.value,
 }));
 
@@ -185,7 +187,6 @@ describe('BroadcastPage MP3 preset management', () => {
     });
   });
 
-
   it('allows opening edit title modal and updating preset title', async () => {
     render(
       <MemoryRouter>
@@ -222,7 +223,9 @@ describe('BroadcastPage MP3 preset management', () => {
     fireEvent.click(deleteBtn);
 
     await waitFor(() => {
-      expect(deleteStorageSpy).toHaveBeenCalledWith('https://storage.test/broadcast-audio/store-uuid-1/event.mp3');
+      expect(deleteStorageSpy).toHaveBeenCalledWith(
+        'https://storage.test/broadcast-audio/store-uuid-1/event.mp3'
+      );
     });
   });
 
@@ -249,5 +252,27 @@ describe('BroadcastPage MP3 preset management', () => {
     await waitFor(() => {
       expect(screen.getByText('예약 방송을 저장했습니다.')).toBeTruthy();
     });
+  });
+
+  it('allows toggling broadcast receiver device registration', async () => {
+    localStorage.removeItem('cartoonplus_broadcast_receiver_enabled');
+    render(
+      <MemoryRouter>
+        <BroadcastPage />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText(/현재 기기: 방송 송출 비활성화 상태/)).toBeTruthy();
+    const registerBtn = screen.getByRole('button', { name: /\+ 이 PC를 방송 송출 기기로 등록/ });
+    fireEvent.click(registerBtn);
+
+    expect(localStorage.getItem('cartoonplus_broadcast_receiver_enabled')).toBe('true');
+    expect(screen.getByText(/현재 기기: \[서울대입구역점\] 안내 방송 송출 기기로 등록됨/)).toBeTruthy();
+
+    const unregisterBtn = screen.getByRole('button', { name: /✓ 송출 기기 등록 해제/ });
+    fireEvent.click(unregisterBtn);
+
+    expect(localStorage.getItem('cartoonplus_broadcast_receiver_enabled')).toBeNull();
+    expect(screen.getByText(/현재 기기: 방송 송출 비활성화 상태/)).toBeTruthy();
   });
 });

@@ -1,8 +1,13 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { type ScheduledBroadcast } from '../../lib/broadcastSchedule';
 import { supabase } from '../../lib/supabase';
-import { notifyScheduleUpdated } from '../../lib/broadcastRunner';
-import { useSelectedStaffStoreId } from './StaffStoreContext';
+import {
+  isBroadcastReceiverEnabled,
+  notifyScheduleUpdated,
+  setBroadcastReceiverEnabled,
+  unlockAudioEngine,
+} from '../../lib/broadcastRunner';
+import { useSelectedStaffStoreId, useStaffStore } from './StaffStoreContext';
 import {
   DEFAULT_STATIC_PRESETS,
   MAX_UPLOAD_PRESETS_PER_STORE,
@@ -19,10 +24,15 @@ const STATUS_THEME: Record<
   '대기' | '재생 중' | '성공' | '실패',
   { pillBg: string; pillColor: string; dotBg: string; dotPulse: boolean }
 > = {
-  '대기': { pillBg: '#333333', pillColor: '#FFFFFF', dotBg: '#8A8175', dotPulse: false },
-  '재생 중': { pillBg: 'var(--color-yellow, #FED943)', pillColor: '#1E1E1E', dotBg: '#E65100', dotPulse: true },
-  '성공': { pillBg: '#2FA14B', pillColor: '#FFFFFF', dotBg: '#A3E635', dotPulse: false },
-  '실패': { pillBg: '#E03131', pillColor: '#FFFFFF', dotBg: '#FFA8A8', dotPulse: false },
+  대기: { pillBg: '#333333', pillColor: '#FFFFFF', dotBg: '#8A8175', dotPulse: false },
+  '재생 중': {
+    pillBg: 'var(--color-yellow, #FED943)',
+    pillColor: '#1E1E1E',
+    dotBg: '#E65100',
+    dotPulse: true,
+  },
+  성공: { pillBg: '#2FA14B', pillColor: '#FFFFFF', dotBg: '#A3E635', dotPulse: false },
+  실패: { pillBg: '#E03131', pillColor: '#FFFFFF', dotBg: '#FFA8A8', dotPulse: false },
 };
 
 type StoredSchedule = ScheduledBroadcast & { id: string; message_text: string; presetId?: string };
@@ -67,7 +77,47 @@ function isValidUuid(value?: string | null): boolean {
 
 export function BroadcastPage() {
   const storeId = useSelectedStaffStoreId();
-  const [staticPresets, setStaticPresets] = useState<BroadcastPresetItem[]>([...DEFAULT_STATIC_PRESETS]);
+  const { currentStore } = useStaffStore();
+  const [isReceiverEnabled, setIsReceiverEnabled] = useState<boolean>(() =>
+    isBroadcastReceiverEnabled()
+  );
+  const [audioTestStatus, setAudioTestStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleReceiverChange = () => {
+      setIsReceiverEnabled(isBroadcastReceiverEnabled());
+    };
+    window.addEventListener('cartoonplus_broadcast_receiver_changed', handleReceiverChange);
+    return () => {
+      window.removeEventListener('cartoonplus_broadcast_receiver_changed', handleReceiverChange);
+    };
+  }, []);
+
+  const handleToggleReceiver = () => {
+    const nextState = !isReceiverEnabled;
+    setBroadcastReceiverEnabled(nextState);
+    setIsReceiverEnabled(nextState);
+  };
+
+  const handleAudioTest = async () => {
+    unlockAudioEngine();
+    setAudioTestStatus('사운드 테스트 음원 재생 중...');
+    try {
+      const testAudio = DEFAULT_STATIC_PRESETS[0];
+      if (testAudio.audio_url) {
+        await playVoiceAsset(testAudio.audio_url);
+        setAudioTestStatus('스피커 사운드 정상 출력 및 오디오 엔진 활성화 완료');
+      } else {
+        setAudioTestStatus('오디오 엔진이 활성화되었습니다.');
+      }
+    } catch {
+      setAudioTestStatus('사운드 테스트 실패: 브라우저 오디오 권한을 확인해 주세요.');
+    }
+  };
+
+  const [staticPresets, setStaticPresets] = useState<BroadcastPresetItem[]>([
+    ...DEFAULT_STATIC_PRESETS,
+  ]);
   const [uploadedPresets, setUploadedPresets] = useState<BroadcastPresetItem[]>([]);
   const [status, setStatus] = useState<'대기' | '재생 중' | '성공' | '실패'>('대기');
   const [currentPlaying, setCurrentPlaying] = useState<string | null>(null);
@@ -86,7 +136,11 @@ export function BroadcastPage() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const [editTitleModal, setEditTitleModal] = useState<{ id?: string; title: string; source_type: 'static' | 'upload' } | null>(null);
+  const [editTitleModal, setEditTitleModal] = useState<{
+    id?: string;
+    title: string;
+    source_type: 'static' | 'upload';
+  } | null>(null);
   const [isSavingTitle, setIsSavingTitle] = useState(false);
 
   const scheduleFormRef = useRef<HTMLFormElement>(null);
@@ -147,7 +201,9 @@ export function BroadcastPage() {
     if (!supabase || !targetStoreId) return;
     const { data, error } = await supabase
       .from('scheduled_broadcasts')
-      .select('id, message_text, broadcast_preset_id, schedule_type, target_time, target_days, target_date, is_enabled')
+      .select(
+        'id, message_text, broadcast_preset_id, schedule_type, target_time, target_days, target_date, is_enabled'
+      )
       .eq('store_id', targetStoreId)
       .order('target_time');
     if (error) {
@@ -246,7 +302,11 @@ export function BroadcastPage() {
         });
         if (error) throw error;
       }
-      setScheduleStatus(nextHiddenAt ? `'${preset.title}' 프리셋을 숨겼습니다.` : `'${preset.title}' 프리셋을 복구했습니다.`);
+      setScheduleStatus(
+        nextHiddenAt
+          ? `'${preset.title}' 프리셋을 숨겼습니다.`
+          : `'${preset.title}' 프리셋을 복구했습니다.`
+      );
       await loadPresets();
     } catch (err) {
       setScheduleStatus(`프리셋 숨김/복구 실패: ${formatError(err)}`);
@@ -264,7 +324,9 @@ export function BroadcastPage() {
       return;
     }
     if (!canRegisterUploadedPreset(uploadedPresets.length)) {
-      setUploadError(`지점별 활성 업로드 프리셋은 최대 ${MAX_UPLOAD_PRESETS_PER_STORE}개까지 등록할 수 있습니다.`);
+      setUploadError(
+        `지점별 활성 업로드 프리셋은 최대 ${MAX_UPLOAD_PRESETS_PER_STORE}개까지 등록할 수 있습니다.`
+      );
       return;
     }
     const validationError = validateVoiceAssetUpload(uploadFile);
@@ -325,7 +387,11 @@ export function BroadcastPage() {
 
   const deleteUploadedPreset = async (preset: BroadcastPresetItem) => {
     if (!supabase || !preset.id) return;
-    if (!window.confirm(`'${preset.title}' 업로드 프리셋과 MP3 원본 파일, 연결된 예약 방송을 모두 삭제할까요?`)) {
+    if (
+      !window.confirm(
+        `'${preset.title}' 업로드 프리셋과 MP3 원본 파일, 연결된 예약 방송을 모두 삭제할까요?`
+      )
+    ) {
       return;
     }
     try {
@@ -390,7 +456,7 @@ export function BroadcastPage() {
       target_days: schedule.type === 'weekdays' ? schedule.weekdays : null,
       target_date: schedule.type === 'once' ? schedule.date : null,
       is_enabled: editingScheduleId
-        ? schedules.find((item) => item.id === editingScheduleId)?.isEnabled ?? true
+        ? (schedules.find((item) => item.id === editingScheduleId)?.isEnabled ?? true)
         : true,
     };
     const { error } = editingScheduleId
@@ -402,7 +468,9 @@ export function BroadcastPage() {
     }
     setSchedule(emptySchedule);
     setEditingScheduleId(null);
-    setScheduleStatus(editingScheduleId ? '예약 방송을 수정했습니다.' : '예약 방송을 저장했습니다.');
+    setScheduleStatus(
+      editingScheduleId ? '예약 방송을 수정했습니다.' : '예약 방송을 저장했습니다.'
+    );
     await loadSchedules();
     notifyScheduleUpdated();
   };
@@ -463,7 +531,10 @@ export function BroadcastPage() {
   const currentTheme = STATUS_THEME[status];
 
   return (
-    <div className="staff-page-container" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div
+      className="staff-page-container"
+      style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+    >
       {/* 1. 상단 마스터 헤더 & 실시간 컨트롤 */}
       <div
         className="staff-section-card"
@@ -594,21 +665,140 @@ export function BroadcastPage() {
               gap: '6px',
             }}
           >
-            <span style={{ color: 'var(--color-yellow, #FED943)' }}>💡</span> 카운터 PC 탭을 열어 두시면 백그라운드에서도 고품질 MP3 예약 방송이 자동 송출됩니다.
+            <span style={{ color: 'var(--color-yellow, #FED943)' }}>💡</span> 카운터 PC 탭을 열어
+            두시면 백그라운드에서도 고품질 MP3 예약 방송이 자동 송출됩니다.
           </div>
+        </div>
+
+        {/* 매장 방송 송출 기기(Player) 등록 및 연결 카드 */}
+        <div
+          style={{
+            padding: '16px 20px',
+            borderRadius: '16px',
+            background: isReceiverEnabled ? '#152E1B' : '#2A2418',
+            border: `2px solid ${isReceiverEnabled ? '#2FA14B' : '#8A6A00'}`,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '12px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '22px' }}>{isReceiverEnabled ? '🔊' : '🔇'}</span>
+              <div>
+                <div
+                  style={{
+                    fontSize: '15px',
+                    fontWeight: 900,
+                    color: isReceiverEnabled ? '#A3E635' : '#FED943',
+                  }}
+                >
+                  {isReceiverEnabled
+                    ? `현재 기기: [${currentStore.name}] 안내 방송 송출 기기로 등록됨`
+                    : `현재 기기: 방송 송출 비활성화 상태`}
+                </div>
+                <div style={{ fontSize: '12px', color: '#FFF9EC', opacity: 0.85, marginTop: '2px' }}>
+                  {isReceiverEnabled
+                    ? `이 PC에서 정해진 시각에 매장 앰프 스피커로 안내 방송이 자동 송출됩니다.`
+                    : `도서 검색 전용 PC나 개인 PC에서는 이 스위치를 꺼두세요. 앰프 스피커와 연결된 방송 PC만 켭니다.`}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={handleToggleReceiver}
+                style={{
+                  padding: '9px 18px',
+                  borderRadius: '999px',
+                  border: '2px solid #1E1E1E',
+                  background: isReceiverEnabled ? '#2FA14B' : '#4A4438',
+                  color: '#FFFFFF',
+                  fontWeight: 900,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  boxShadow: '2px 2px 0 #1E1E1E',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {isReceiverEnabled ? '✓ 송출 기기 등록 해제' : '+ 이 PC를 방송 송출 기기로 등록'}
+              </button>
+
+              {isReceiverEnabled && (
+                <button
+                  type="button"
+                  onClick={handleAudioTest}
+                  style={{
+                    padding: '9px 16px',
+                    borderRadius: '999px',
+                    border: '2px solid #FED943',
+                    background: '#1E1E1E',
+                    color: '#FED943',
+                    fontWeight: 800,
+                    fontSize: '12.5px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  🔔 스피커 사운드 테스트
+                </button>
+              )}
+            </div>
+          </div>
+
+          {audioTestStatus && (
+            <div
+              style={{
+                fontSize: '12px',
+                fontWeight: 700,
+                color: audioTestStatus.includes('실패') ? '#FFA8A8' : '#A3E635',
+                paddingTop: '6px',
+                borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+              }}
+            >
+              {audioTestStatus}
+            </div>
+          )}
         </div>
       </div>
 
       {/* 2. 안내 방송 프리셋 관리 (정적 기본 + 지점 업로드) */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {/* 2-1. 정적 기본 안내 방송 */}
-        <div className="staff-section-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <div
+          className="staff-section-card"
+          style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '8px',
+            }}
+          >
             <div>
-              <div style={{ fontSize: '17px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
+              <div
+                style={{ fontSize: '17px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}
+              >
                 📻 기본 정적 안내 방송 (6종)
               </div>
-              <div style={{ fontSize: '12.5px', color: 'var(--color-text-muted, #6B6354)', fontWeight: 600 }}>
+              <div
+                style={{
+                  fontSize: '12.5px',
+                  color: 'var(--color-text-muted, #6B6354)',
+                  fontWeight: 600,
+                }}
+              >
                 표준 검수된 기본 안내 음성을 즉시 송출하거나 필요에 따라 숨김 처리할 수 있습니다.
               </div>
             </div>
@@ -636,18 +826,35 @@ export function BroadcastPage() {
                     background: isHidden
                       ? '#F0EDE6'
                       : isPlayingThis
-                      ? 'var(--color-yellow-light, #FFF3C9)'
-                      : 'var(--color-panel-cream, #FFF9EC)',
-                    border: isPlayingThis ? '2.5px solid #E65100' : '2px solid var(--color-border, #1E1E1E)',
+                        ? 'var(--color-yellow-light, #FFF3C9)'
+                        : 'var(--color-panel-cream, #FFF9EC)',
+                    border: isPlayingThis
+                      ? '2.5px solid #E65100'
+                      : '2px solid var(--color-border, #1E1E1E)',
                     borderRadius: '16px',
                     opacity: isHidden ? 0.6 : 1,
-                    boxShadow: isPlayingThis ? '3px 3px 0 #E65100' : '3px 3px 0 var(--color-border, #1E1E1E)',
+                    boxShadow: isPlayingThis
+                      ? '3px 3px 0 #E65100'
+                      : '3px 3px 0 var(--color-border, #1E1E1E)',
                     transition: 'all 0.15s ease',
                   }}
                 >
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '15.5px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '15.5px',
+                          fontWeight: 900,
+                          color: 'var(--color-dark, #1E1E1E)',
+                        }}
+                      >
                         {preset.title}
                       </span>
                       <button
@@ -671,8 +878,12 @@ export function BroadcastPage() {
                         width: '100%',
                         padding: '9px 12px',
                         borderRadius: '10px',
-                        background: isPlayingThis ? 'var(--color-dark, #1E1E1E)' : 'var(--color-yellow, #FED943)',
-                        color: isPlayingThis ? 'var(--color-yellow, #FED943)' : 'var(--color-dark, #1E1E1E)',
+                        background: isPlayingThis
+                          ? 'var(--color-dark, #1E1E1E)'
+                          : 'var(--color-yellow, #FED943)',
+                        color: isPlayingThis
+                          ? 'var(--color-yellow, #FED943)'
+                          : 'var(--color-dark, #1E1E1E)',
                         border: '2px solid var(--color-border, #1E1E1E)',
                         fontWeight: 900,
                         fontSize: '13px',
@@ -681,7 +892,9 @@ export function BroadcastPage() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '6px',
-                        boxShadow: isPlayingThis ? 'none' : '2px 2px 0 var(--color-border, #1E1E1E)',
+                        boxShadow: isPlayingThis
+                          ? 'none'
+                          : '2px 2px 0 var(--color-border, #1E1E1E)',
                       }}
                     >
                       <span>{isPlayingThis ? '🔊 송출 중...' : '▶ 즉시 방송'}</span>
@@ -694,11 +907,24 @@ export function BroadcastPage() {
         </div>
 
         {/* 2-2. 지점 업로드 안내 방송 (최대 10개) */}
-        <div className="staff-section-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <div
+          className="staff-section-card"
+          style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '8px',
+            }}
+          >
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '17px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
+                <span
+                  style={{ fontSize: '17px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}
+                >
                   🎙️ 지점 업로드 안내 방송
                 </span>
                 <span
@@ -707,15 +933,25 @@ export function BroadcastPage() {
                     fontWeight: 900,
                     padding: '2px 8px',
                     borderRadius: 'var(--radius-pill, 999px)',
-                    background: uploadedPresets.length >= MAX_UPLOAD_PRESETS_PER_STORE ? '#FFA8A8' : '#FFF3C9',
+                    background:
+                      uploadedPresets.length >= MAX_UPLOAD_PRESETS_PER_STORE
+                        ? '#FFA8A8'
+                        : '#FFF3C9',
                     border: '1.5px solid var(--color-border, #1E1E1E)',
                   }}
                 >
                   {uploadedPresets.length} / {MAX_UPLOAD_PRESETS_PER_STORE}개
                 </span>
               </div>
-              <div style={{ fontSize: '12.5px', color: 'var(--color-text-muted, #6B6354)', fontWeight: 600 }}>
-                매장에서 직접 제작한 음성 안내 파일을 등록하고 송출합니다. (3MB 이하 MP3, WAV, M4A 등)
+              <div
+                style={{
+                  fontSize: '12.5px',
+                  color: 'var(--color-text-muted, #6B6354)',
+                  fontWeight: 600,
+                }}
+              >
+                매장에서 직접 제작한 음성 안내 파일을 등록하고 송출합니다. (3MB 이하 MP3, WAV, M4A
+                등)
               </div>
             </div>
 
@@ -731,13 +967,19 @@ export function BroadcastPage() {
               style={{
                 padding: '8px 16px',
                 borderRadius: '10px',
-                background: canRegisterUploadedPreset(uploadedPresets.length) ? 'var(--color-yellow, #FED943)' : '#E0DCD3',
+                background: canRegisterUploadedPreset(uploadedPresets.length)
+                  ? 'var(--color-yellow, #FED943)'
+                  : '#E0DCD3',
                 border: '2px solid var(--color-border, #1E1E1E)',
                 fontSize: '12.5px',
                 fontWeight: 900,
                 color: 'var(--color-dark, #1E1E1E)',
-                cursor: canRegisterUploadedPreset(uploadedPresets.length) ? 'pointer' : 'not-allowed',
-                boxShadow: canRegisterUploadedPreset(uploadedPresets.length) ? '2px 2px 0 var(--color-border, #1E1E1E)' : 'none',
+                cursor: canRegisterUploadedPreset(uploadedPresets.length)
+                  ? 'pointer'
+                  : 'not-allowed',
+                boxShadow: canRegisterUploadedPreset(uploadedPresets.length)
+                  ? '2px 2px 0 var(--color-border, #1E1E1E)'
+                  : 'none',
                 transition: 'all 0.15s ease',
               }}
             >
@@ -746,8 +988,17 @@ export function BroadcastPage() {
           </div>
 
           {uploadedPresets.length === 0 ? (
-            <div style={{ padding: '24px', textAlign: 'center', color: '#8A8175', fontSize: '13px', fontWeight: 600 }}>
-              등록된 지점 업로드 프리셋이 없습니다. (+ 새 음성 프리셋 업로드 버튼을 눌러 등록하세요.)
+            <div
+              style={{
+                padding: '24px',
+                textAlign: 'center',
+                color: '#8A8175',
+                fontSize: '13px',
+                fontWeight: 600,
+              }}
+            >
+              등록된 지점 업로드 프리셋이 없습니다. (+ 새 음성 프리셋 업로드 버튼을 눌러
+              등록하세요.)
             </div>
           ) : (
             <div
@@ -768,16 +1019,36 @@ export function BroadcastPage() {
                       justifyContent: 'space-between',
                       gap: '12px',
                       padding: '14px 16px',
-                      background: isPlayingThis ? 'var(--color-yellow-light, #FFF3C9)' : 'var(--color-panel-cream, #FFF9EC)',
-                      border: isPlayingThis ? '2.5px solid #E65100' : '2px solid var(--color-border, #1E1E1E)',
+                      background: isPlayingThis
+                        ? 'var(--color-yellow-light, #FFF3C9)'
+                        : 'var(--color-panel-cream, #FFF9EC)',
+                      border: isPlayingThis
+                        ? '2.5px solid #E65100'
+                        : '2px solid var(--color-border, #1E1E1E)',
                       borderRadius: '16px',
-                      boxShadow: isPlayingThis ? '3px 3px 0 #E65100' : '3px 3px 0 var(--color-border, #1E1E1E)',
+                      boxShadow: isPlayingThis
+                        ? '3px 3px 0 #E65100'
+                        : '3px 3px 0 var(--color-border, #1E1E1E)',
                       transition: 'all 0.15s ease',
                     }}
                   >
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '15.5px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '6px',
+                          marginBottom: '8px',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '15.5px',
+                            fontWeight: 900,
+                            color: 'var(--color-dark, #1E1E1E)',
+                          }}
+                        >
                           {preset.title}
                         </span>
                         <div style={{ display: 'flex', gap: '4px' }}>
@@ -785,7 +1056,13 @@ export function BroadcastPage() {
                             type="button"
                             className="btn-neo-sub"
                             aria-label={`${preset.title} 제목 수정`}
-                            onClick={() => setEditTitleModal({ id: preset.id, title: preset.title, source_type: 'upload' })}
+                            onClick={() =>
+                              setEditTitleModal({
+                                id: preset.id,
+                                title: preset.title,
+                                source_type: 'upload',
+                              })
+                            }
                           >
                             수정
                           </button>
@@ -810,8 +1087,12 @@ export function BroadcastPage() {
                         width: '100%',
                         padding: '9px 12px',
                         borderRadius: '10px',
-                        background: isPlayingThis ? 'var(--color-dark, #1E1E1E)' : 'var(--color-yellow, #FED943)',
-                        color: isPlayingThis ? 'var(--color-yellow, #FED943)' : 'var(--color-dark, #1E1E1E)',
+                        background: isPlayingThis
+                          ? 'var(--color-dark, #1E1E1E)'
+                          : 'var(--color-yellow, #FED943)',
+                        color: isPlayingThis
+                          ? 'var(--color-yellow, #FED943)'
+                          : 'var(--color-dark, #1E1E1E)',
                         border: '2px solid var(--color-border, #1E1E1E)',
                         fontWeight: 900,
                         fontSize: '13px',
@@ -820,7 +1101,9 @@ export function BroadcastPage() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '6px',
-                        boxShadow: isPlayingThis ? 'none' : '2px 2px 0 var(--color-border, #1E1E1E)',
+                        boxShadow: isPlayingThis
+                          ? 'none'
+                          : '2px 2px 0 var(--color-border, #1E1E1E)',
                       }}
                     >
                       <span>{isPlayingThis ? '🔊 송출 중...' : '▶ 즉시 방송'}</span>
@@ -834,13 +1117,31 @@ export function BroadcastPage() {
       </div>
 
       {/* 3. 예약 방송 스케줄러 & 등록 폼 */}
-      <div className="staff-section-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+      <div
+        className="staff-section-card"
+        style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '8px',
+          }}
+        >
           <div>
             <div style={{ fontSize: '18px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
               ⏰ 자동 예약 방송 스케줄러
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-text-muted, #6B6354)', fontWeight: 600, marginTop: '2px' }}>
+            <div
+              style={{
+                fontSize: '13px',
+                color: 'var(--color-text-muted, #6B6354)',
+                fontWeight: 600,
+                marginTop: '2px',
+              }}
+            >
               매일 반복되거나 특정 요일/날짜에 송출할 방송 일정을 등록하고 관리합니다.
             </div>
           </div>
@@ -866,7 +1167,9 @@ export function BroadcastPage() {
           ref={scheduleFormRef}
           onSubmit={(event) => void saveSchedule(event)}
           style={{
-            background: editingScheduleId ? 'var(--color-yellow-light, #FFF3C9)' : 'var(--color-panel-cream, #FFF9EC)',
+            background: editingScheduleId
+              ? 'var(--color-yellow-light, #FFF3C9)'
+              : 'var(--color-panel-cream, #FFF9EC)',
             border: '2.5px solid var(--color-border, #1E1E1E)',
             borderRadius: '16px',
             padding: '20px',
@@ -881,11 +1184,7 @@ export function BroadcastPage() {
               {editingScheduleId ? '✏️ 예약 방송 스케줄 수정' : '➕ 새 스케줄 등록'}
             </div>
             {editingScheduleId && (
-              <button
-                type="button"
-                className="btn-neo-sub"
-                onClick={resetScheduleEditing}
-              >
+              <button type="button" className="btn-neo-sub" onClick={resetScheduleEditing}>
                 수정 취소
               </button>
             )}
@@ -893,7 +1192,10 @@ export function BroadcastPage() {
 
           <div className="staff-form-grid">
             <div>
-              <label htmlFor="schedule-preset-select" style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}>
+              <label
+                htmlFor="schedule-preset-select"
+                style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}
+              >
                 방송 프리셋 선택
               </label>
               <select
@@ -902,7 +1204,9 @@ export function BroadcastPage() {
                 value={schedule.presetId}
                 onChange={(event) => {
                   const selectedId = event.target.value;
-                  const selected = allAvailablePresets.find((p) => p.id === selectedId || p.title === selectedId);
+                  const selected = allAvailablePresets.find(
+                    (p) => p.id === selectedId || p.title === selectedId
+                  );
                   setSchedule({
                     ...schedule,
                     presetId: selected?.id ?? (isValidUuid(selectedId) ? selectedId : ''),
@@ -929,7 +1233,10 @@ export function BroadcastPage() {
             </div>
 
             <div>
-              <label htmlFor="schedule-type-select" style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}>
+              <label
+                htmlFor="schedule-type-select"
+                style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}
+              >
                 반복 방식
               </label>
               <select
@@ -960,7 +1267,10 @@ export function BroadcastPage() {
             </div>
 
             <div>
-              <label htmlFor="schedule-time-input" style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}>
+              <label
+                htmlFor="schedule-time-input"
+                style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}
+              >
                 송출 시간
               </label>
               <input
@@ -986,7 +1296,9 @@ export function BroadcastPage() {
 
           {schedule.type === 'weekdays' && (
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '8px' }}>
+              <label
+                style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '8px' }}
+              >
                 송출 요일 선택
               </label>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -1022,7 +1334,9 @@ export function BroadcastPage() {
 
           {schedule.type === 'once' && (
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}>
+              <label
+                style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px' }}
+              >
                 송출 일자
               </label>
               <input
@@ -1054,7 +1368,9 @@ export function BroadcastPage() {
                 fontWeight: 900,
                 fontSize: '13px',
                 cursor: schedule.message.trim() ? 'pointer' : 'not-allowed',
-                boxShadow: schedule.message.trim() ? '2px 2px 0 var(--color-border, #1E1E1E)' : 'none',
+                boxShadow: schedule.message.trim()
+                  ? '2px 2px 0 var(--color-border, #1E1E1E)'
+                  : 'none',
               }}
             >
               {editingScheduleId ? '수정 완료' : '스케줄 저장'}
@@ -1084,16 +1400,29 @@ export function BroadcastPage() {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '16px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
+                    <span
+                      style={{
+                        fontSize: '16px',
+                        fontWeight: 900,
+                        color: 'var(--color-dark, #1E1E1E)',
+                      }}
+                    >
                       ⏰ {item.targetTime}
                     </span>
                     <div>
-                      <div style={{ fontSize: '13.5px', fontWeight: 800, color: 'var(--color-dark, #1E1E1E)' }}>
+                      <div
+                        style={{
+                          fontSize: '13.5px',
+                          fontWeight: 800,
+                          color: 'var(--color-dark, #1E1E1E)',
+                        }}
+                      >
                         {item.message_text}
                       </div>
                       <div style={{ fontSize: '11.5px', color: '#8A8175', fontWeight: 600 }}>
                         {item.scheduleType === 'daily' && '매일 반복'}
-                        {item.scheduleType === 'weekdays' && `매주 (${item.targetDays?.map((d) => dayLabels[d] || d).join(', ')})`}
+                        {item.scheduleType === 'weekdays' &&
+                          `매주 (${item.targetDays?.map((d) => dayLabels[d] || d).join(', ')})`}
                         {item.scheduleType === 'once' && `지정일: ${item.targetDate}`}
                       </div>
                     </div>
@@ -1142,15 +1471,22 @@ export function BroadcastPage() {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '15px' }}>⚠️</span>
-            <strong style={{ fontSize: '14px', color: '#C92A2A' }}>
-              미실행 예약 방송 기록
-            </strong>
+            <strong style={{ fontSize: '14px', color: '#C92A2A' }}>미실행 예약 방송 기록</strong>
           </div>
 
-          <ul style={{ margin: '10px 0 0', paddingLeft: '20px', fontSize: '13px', color: '#C92A2A', lineHeight: 1.6 }}>
+          <ul
+            style={{
+              margin: '10px 0 0',
+              paddingLeft: '20px',
+              fontSize: '13px',
+              color: '#C92A2A',
+              lineHeight: 1.6,
+            }}
+          >
             {missedRuns.map((run) => (
               <li key={run.id}>
-                <strong>{new Date(run.triggered_at).toLocaleString('ko-KR')}</strong> · {run.message_text}
+                <strong>{new Date(run.triggered_at).toLocaleString('ko-KR')}</strong> ·{' '}
+                {run.message_text}
               </li>
             ))}
           </ul>
@@ -1215,13 +1551,25 @@ export function BroadcastPage() {
             </div>
 
             {uploadError && (
-              <div style={{ padding: '10px 14px', borderRadius: '8px', background: '#FFE3E3', color: '#C92A2A', fontSize: '13px', fontWeight: 700 }}>
+              <div
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  background: '#FFE3E3',
+                  color: '#C92A2A',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                }}
+              >
                 {uploadError}
               </div>
             )}
 
             <div>
-              <label htmlFor="upload-preset-title" style={{ display: 'block', fontSize: '13px', fontWeight: 900, marginBottom: '6px' }}>
+              <label
+                htmlFor="upload-preset-title"
+                style={{ display: 'block', fontSize: '13px', fontWeight: 900, marginBottom: '6px' }}
+              >
                 프리셋 제목
               </label>
               <input
@@ -1245,7 +1593,9 @@ export function BroadcastPage() {
             </div>
 
             <div>
-              <span style={{ display: 'block', fontSize: '13px', fontWeight: 900, marginBottom: '6px' }}>
+              <span
+                style={{ display: 'block', fontSize: '13px', fontWeight: 900, marginBottom: '6px' }}
+              >
                 음성 파일 선택 (최대 3MB)
               </span>
               <input
@@ -1277,7 +1627,13 @@ export function BroadcastPage() {
                   }}
                 >
                   <span style={{ fontSize: '28px' }}>📂</span>
-                  <span style={{ fontSize: '14px', fontWeight: 900, color: 'var(--color-dark, #1E1E1E)' }}>
+                  <span
+                    style={{
+                      fontSize: '14px',
+                      fontWeight: 900,
+                      color: 'var(--color-dark, #1E1E1E)',
+                    }}
+                  >
                     클릭하여 음성 파일 선택
                   </span>
                   <span style={{ fontSize: '12px', color: '#8A8175', fontWeight: 600 }}>
@@ -1333,7 +1689,9 @@ export function BroadcastPage() {
               </p>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px' }}>
+            <div
+              style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px' }}
+            >
               <button
                 type="button"
                 onClick={() => setUploadModalOpen(false)}
@@ -1406,12 +1764,18 @@ export function BroadcastPage() {
               gap: '16px',
             }}
           >
-            <h2 id="edit-title-modal-title" style={{ margin: 0, fontSize: '18px', fontWeight: 900 }}>
+            <h2
+              id="edit-title-modal-title"
+              style={{ margin: 0, fontSize: '18px', fontWeight: 900 }}
+            >
               프리셋 제목 수정
             </h2>
 
             <div>
-              <label htmlFor="edit-preset-title" style={{ display: 'block', fontSize: '13px', fontWeight: 900, marginBottom: '6px' }}>
+              <label
+                htmlFor="edit-preset-title"
+                style={{ display: 'block', fontSize: '13px', fontWeight: 900, marginBottom: '6px' }}
+              >
                 프리셋 제목
               </label>
               <input
@@ -1473,7 +1837,6 @@ export function BroadcastPage() {
           </form>
         </div>
       )}
-
     </div>
   );
 }

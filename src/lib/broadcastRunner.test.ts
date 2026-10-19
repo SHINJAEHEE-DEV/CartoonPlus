@@ -176,6 +176,33 @@ describe('broadcastRunner (MP3 & Scheduled Broadcasts)', () => {
     expect(broadcastRunnerModule.detectCurrentStoreSlug()).toBe('snu');
   });
 
+  it('detects store slug from /staff/:storeSlug paths', () => {
+    window.history.pushState({}, '', '/staff/jamsil/broadcast');
+    expect(broadcastRunnerModule.detectCurrentStoreSlug(true)).toBe('jamsil');
+
+    window.history.pushState({}, '', '/staff/hongdae/inventory');
+    expect(broadcastRunnerModule.detectCurrentStoreSlug(true)).toBe('hongdae');
+
+    window.history.pushState({}, '', '/stores/snu/books');
+    expect(broadcastRunnerModule.detectCurrentStoreSlug(true)).toBe('snu');
+
+    window.history.pushState({}, '', '/about');
+    expect(broadcastRunnerModule.detectCurrentStoreSlug(true)).toBeNull();
+  });
+
+  it('manages broadcast receiver enabled status in localStorage', () => {
+    localStorage.removeItem('cartoonplus_broadcast_receiver_enabled');
+    expect(broadcastRunnerModule.isBroadcastReceiverEnabled()).toBe(false);
+
+    broadcastRunnerModule.setBroadcastReceiverEnabled(true);
+    expect(broadcastRunnerModule.isBroadcastReceiverEnabled()).toBe(true);
+    expect(localStorage.getItem('cartoonplus_broadcast_receiver_enabled')).toBe('true');
+
+    broadcastRunnerModule.setBroadcastReceiverEnabled(false);
+    expect(broadcastRunnerModule.isBroadcastReceiverEnabled()).toBe(false);
+    expect(localStorage.getItem('cartoonplus_broadcast_receiver_enabled')).toBeNull();
+  });
+
   it('fetches store map from supabase stores table', async () => {
     const storeMap = await broadcastRunnerModule.fetchStoreMap();
     expect(typeof storeMap).toBe('object');

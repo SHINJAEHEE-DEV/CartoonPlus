@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { applyForStaff, getApprovedStaffRole, signInStaff } from './staffAuth';
+import { applyForStaff, getApprovedStaffContext, signInStaff } from './staffAuth';
 import { MASCOT_ASSETS } from '../../lib/brandAssets';
 import { publicStoreList } from '../../lib/storeContext';
 import { StaffLoadingScreen } from './StaffLoadingScreen';
@@ -15,10 +15,13 @@ export function StaffAccessPage() {
 
   useEffect(() => {
     let isCurrent = true;
-    void getApprovedStaffRole().then((role) => {
+    void getApprovedStaffContext().then((context) => {
       if (!isCurrent) return;
-      if (role) navigate('/staff/dashboard', { replace: true });
-      else setIsCheckingSession(false);
+      if (context?.role) {
+        navigate(`/staff/${context.storeSlug}/dashboard`, { replace: true });
+      } else {
+        setIsCheckingSession(false);
+      }
     });
     return () => {
       isCurrent = false;
@@ -49,7 +52,9 @@ export function StaffAccessPage() {
         setIsError(false);
       } else {
         await signInStaff(String(form.get('loginId')), String(form.get('password')));
-        navigate('/staff/dashboard');
+        const context = await getApprovedStaffContext();
+        const targetSlug = context?.storeSlug ?? 'snu';
+        navigate(`/staff/${targetSlug}/dashboard`);
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '처리에 실패했습니다.');

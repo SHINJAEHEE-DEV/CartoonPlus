@@ -38,13 +38,38 @@ export function getSchedulesDueBetween(
 }
 
 export const NOTIFY_SCHEDULE_UPDATE_EVENT = 'cartoonplus_broadcast_schedules_updated';
+export const NOTIFY_RECEIVER_STATUS_CHANGED_EVENT = 'cartoonplus_broadcast_receiver_changed';
 export const BROADCAST_CHANNEL_NAME = 'cartoonplus_broadcast_channel';
+export const BROADCAST_RECEIVER_ENABLED_KEY = 'cartoonplus_broadcast_receiver_enabled';
 const LAST_BROADCAST_CHECK_KEY = 'cartoonplus_last_broadcast_check';
 const SELECTED_STORE_KEY = 'cartoonplus_selected_store';
 const STAFF_STORE_PREFERENCE_KEY = 'cartoonplus_staff_store';
 const CUSTOMER_STORE_PREFERENCE_KEY = 'cartoonplus_customer_store';
 const SILENT_AUDIO_DATA_URI =
   'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+
+export function isBroadcastReceiverEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.localStorage.getItem(BROADCAST_RECEIVER_ENABLED_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+export function setBroadcastReceiverEnabled(enabled: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (enabled) {
+      window.localStorage.setItem(BROADCAST_RECEIVER_ENABLED_KEY, 'true');
+    } else {
+      window.localStorage.removeItem(BROADCAST_RECEIVER_ENABLED_KEY);
+    }
+    window.dispatchEvent(new Event(NOTIFY_RECEIVER_STATUS_CHANGED_EVENT));
+  } catch {
+    // ignore
+  }
+}
 
 let playbackQueue = Promise.resolve();
 let isAudioUnlocked = false;
@@ -113,11 +138,13 @@ export function isMobileDevice(): boolean {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(userAgent);
 }
 
-export function detectCurrentStoreSlug(): StoreSlug {
-  if (typeof window === 'undefined') return defaultPublicStore.slug;
+export function detectCurrentStoreSlug(strict = false): StoreSlug | null {
+  if (typeof window === 'undefined') return strict ? null : defaultPublicStore.slug;
   const pathname = window.location.pathname;
-  const match = pathname.match(/\/stores\/(snu|jamsil|hongdae)/);
+  const match = pathname.match(/\/(?:stores|staff)\/(snu|jamsil|hongdae)/);
   if (match?.[1]) return match[1] as StoreSlug;
+
+  if (strict) return null;
 
   try {
     if (window.localStorage) {
@@ -384,9 +411,10 @@ export function useGlobalBroadcastScheduler(): void {
     }
     void reloadSchedules();
 
-    // 1. 스케줄 변경 이벤트 수신 시 즉시 갱신 (동일 탭 CustomEvent + 타 탭 BroadcastChannel & storage)
+    // 1. 스케줄 및 수신기 변경 이벤트 수신 시 즉시 갱신
     const handleUpdate = () => void reloadSchedules();
     window.addEventListener(NOTIFY_SCHEDULE_UPDATE_EVENT, handleUpdate);
+    window.addEventListener(NOTIFY_RECEIVER_STATUS_CHANGED_EVENT, handleUpdate);
 
     let channel: BroadcastChannel | null = null;
     try {
@@ -406,7 +434,8 @@ export function useGlobalBroadcastScheduler(): void {
       if (
         event.key === STAFF_STORE_PREFERENCE_KEY ||
         event.key === CUSTOMER_STORE_PREFERENCE_KEY ||
-        event.key === SELECTED_STORE_KEY
+        event.key === SELECTED_STORE_KEY ||
+        event.key === BROADCAST_RECEIVER_ENABLED_KEY
       ) {
         void reloadSchedules();
       }
@@ -421,17 +450,28 @@ export function useGlobalBroadcastScheduler(): void {
       if (tickInFlightRef.current) return;
       tickInFlightRef.current = true;
       try {
+        // 등록된 수신기 PC가 아니면 오디오 재생 및 Lease 획득을 일절 시도하지 않음
+        if (!isBroadcastReceiverEnabled()) {
+          return;
+        }
+
+        // URL에 지점 slug(/stores/:storeSlug/* 또는 /staff/:storeSlug/*)가 없으면 방송 차단
+        const currentSlug = detectCurrentStoreSlug(true);
+        if (!currentSlug) {
+          return;
+        }
+
         const now = new Date();
         const currentMinuteKey = now.toISOString().slice(0, 16);
 
         const storeMap = await fetchStoreMap();
-        const currentSlug = detectCurrentStoreSlug();
         const currentStoreId = storeMap[currentSlug];
+        if (!currentStoreId) {
+          return;
+        }
 
-        // 현재 지점에 해당하는 스케줄만 실행 (지점 정보가 있으면 필터링, 없으면 전체)
-        const relevantSchedules = currentStoreId
-          ? schedulesRef.current.filter((s) => !s.storeId || s.storeId === currentStoreId)
-          : schedulesRef.current;
+        // 현재 지점에 정확히 해당하는 스케줄만 필터링하여 실행
+        const relevantSchedules = schedulesRef.current.filter((s) => s.storeId === currentStoreId);
 
         const previousCheck = lastCheckedAtRef.current;
         if (previousCheck && now.getTime() - previousCheck.getTime() > 70_000) {
@@ -484,6 +524,7 @@ export function useGlobalBroadcastScheduler(): void {
 
     return () => {
       window.removeEventListener(NOTIFY_SCHEDULE_UPDATE_EVENT, handleUpdate);
+      window.removeEventListener(NOTIFY_RECEIVER_STATUS_CHANGED_EVENT, handleUpdate);
       window.removeEventListener('storage', handleStorage);
       if (channel) {
         channel.close();
