@@ -1,0 +1,1107 @@
+/* CartoonPlus 브랜드 공식 랜딩 페이지 - Duolingo 3D Pop & 29CM Editorial 융합 스타일 */
+
+.brand-landing-page {
+  --brand-red: #e52528;
+  --brand-red-dark: #b91c1c;
+  --brand-red-shadow: #991b1b;
+  --brand-yellow: #fed943;
+  --brand-yellow-dark: #f59e0b;
+  --brand-yellow-shadow: #d97706;
+  --brand-black: #111827;
+  --brand-dark-surface: #1f2937;
+  --brand-bg: #f9fafb;
+  --brand-bg-white: #ffffff;
+  --brand-gray-100: #f3f4f6;
+  --brand-gray-200: #e5e7eb;
+  --brand-gray-500: #6b7280;
+  --brand-gray-900: #111827;
+  
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 28px;
+  --radius-pill: 9999px;
+
+  font-family: Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  color: var(--brand-gray-900);
+  background-color: var(--brand-bg);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* Animations */
+@keyframes duopopBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes duopopWiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-3deg);
+  }
+  75% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes duopopMarquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes pulseBorder {
+  0%, 100% {
+    border-color: rgba(229, 37, 40, 0.4);
+    box-shadow: 0 0 0 0 rgba(229, 37, 40, 0.2);
+  }
+  50% {
+    border-color: rgba(229, 37, 40, 1);
+    box-shadow: 0 0 0 6px rgba(229, 37, 40, 0.15);
+  }
+}
+
+/* Base Layout Containers */
+.brand-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* 3D Pushable Buttons (Duolingo Style) */
+.brand-btn-3d {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 15px;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  border: none;
+  padding: 14px 28px;
+  transition: all 0.1s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.brand-btn-3d-red {
+  background-color: var(--brand-red);
+  color: #ffffff;
+  box-shadow: 0 4px 0 var(--brand-red-shadow);
+}
+
+.brand-btn-3d-red:hover {
+  background-color: #ef4444;
+}
+
+.brand-btn-3d-red:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--brand-red-shadow);
+}
+
+.brand-btn-3d-yellow {
+  background-color: var(--brand-yellow);
+  color: #111827;
+  box-shadow: 0 4px 0 var(--brand-yellow-shadow);
+}
+
+.brand-btn-3d-yellow:hover {
+  background-color: #fef08a;
+}
+
+.brand-btn-3d-yellow:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--brand-yellow-shadow);
+}
+
+.brand-btn-3d-outline {
+  background-color: #ffffff;
+  color: #111827;
+  border: 2px solid var(--brand-gray-200);
+  box-shadow: 0 4px 0 var(--brand-gray-200);
+}
+
+.brand-btn-3d-outline:hover {
+  background-color: var(--brand-gray-100);
+  border-color: #cbd5e1;
+}
+
+.brand-btn-3d-outline:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--brand-gray-200);
+}
+
+/* 1. Header (Sticky & Clean) */
+.brand-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(14px);
+  border-bottom: 2px solid var(--brand-gray-200);
+  height: 76px;
+  display: flex;
+  align-items: center;
+}
+
+.brand-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.brand-logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.brand-header-logo-img {
+  height: 44px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.brand-logo-wrap:hover .brand-header-logo-img {
+  transform: scale(1.08) rotate(-2deg);
+}
+
+.brand-nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.brand-nav-link {
+  font-size: 15px;
+  font-weight: 800;
+  color: #4b5563;
+  text-decoration: none;
+  transition: color 0.15s ease;
+  letter-spacing: -0.01em;
+}
+
+.brand-nav-link:hover {
+  color: var(--brand-red);
+}
+
+.brand-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-header-actions .brand-btn-3d {
+  padding: 10px 18px;
+  font-size: 14px;
+}
+
+/* 2. Hero Section (Duolingo Duo + Editorial Impact) */
+.brand-hero {
+  position: relative;
+  background: radial-gradient(circle at 75% 30%, rgba(254, 217, 67, 0.25) 0%, transparent 60%),
+              radial-gradient(circle at 20% 70%, rgba(229, 37, 40, 0.08) 0%, transparent 50%),
+              #ffffff;
+  padding: 80px 0 64px;
+  border-bottom: 2px solid var(--brand-gray-200);
+}
+
+.brand-hero-inner {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  gap: 56px;
+}
+
+.brand-hero-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: #fee2e2;
+  border: 1.5px solid #fecaca;
+  color: var(--brand-red);
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 24px;
+}
+
+.brand-hero-title {
+  font-size: 56px;
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  color: #111827;
+  margin: 0 0 24px;
+}
+
+.brand-hero-title-red {
+  color: var(--brand-red);
+  position: relative;
+  display: inline-block;
+}
+
+.brand-hero-title-red::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background: var(--brand-yellow);
+  z-index: -1;
+  border-radius: 4px;
+}
+
+.brand-hero-desc {
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: #4b5563;
+  margin: 0 0 36px;
+  max-width: 540px;
+}
+
+.brand-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.brand-hero-btn-main {
+  font-size: 17px;
+  padding: 16px 36px;
+}
+
+/* Hero Mascot Bubble (Duolingo Style Character) */
+.brand-hero-mascot-area {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-speech-bubble {
+  position: relative;
+  background: #ffffff;
+  border: 2px solid #111827;
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  font-weight: 800;
+  font-size: 15px;
+  color: #111827;
+  box-shadow: 0 4px 0 #111827;
+  margin-bottom: 20px;
+  animation: duopopBounce 3s ease-in-out infinite;
+}
+
+.brand-speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 10px 10px 0;
+  border-style: solid;
+  border-color: #ffffff transparent;
+  display: block;
+  width: 0;
+}
+
+.brand-speech-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 13px 13px 0;
+  border-style: solid;
+  border-color: #111827 transparent;
+  display: block;
+  width: 0;
+}
+
+.brand-hero-tori-img {
+  width: 320px;
+  height: auto;
+  filter: drop-shadow(0 16px 24px rgba(0, 0, 0, 0.12));
+  animation: duopopBounce 4s ease-in-out infinite;
+}
+
+/* 3. Infinite Running Marquee Bar */
+.brand-marquee-bar {
+  background: var(--brand-black);
+  padding: 18px 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.brand-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: duopopMarquee 28s linear infinite;
+}
+
+.brand-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.brand-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 28px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.brand-marquee-dot {
+  color: var(--brand-yellow);
+}
+
+/* 4. Duolingo-style Alternating Story Feature Sections */
+.brand-story-section {
+  padding: 100px 0;
+  background: #ffffff;
+  border-bottom: 2px solid var(--brand-gray-200);
+}
+
+.brand-story-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 64px;
+  margin-bottom: 110px;
+}
+
+.brand-story-row:last-child {
+  margin-bottom: 0;
+}
+
+.brand-story-row-reverse {
+  direction: rtl;
+}
+
+.brand-story-row-reverse > * {
+  direction: ltr;
+}
+
+.brand-story-visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-story-card-box {
+  background: var(--brand-gray-100);
+  border: 2px solid var(--brand-gray-200);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 0 var(--brand-gray-200);
+  transition: all 0.25s ease;
+}
+
+.brand-story-card-box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 0 var(--brand-gray-200);
+  border-color: #cbd5e1;
+}
+
+.brand-story-tori-character {
+  width: 260px;
+  height: auto;
+  object-fit: contain;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.brand-story-card-box:hover .brand-story-tori-character {
+  transform: scale(1.08) rotate(2deg);
+}
+
+.brand-story-content {
+  max-width: 480px;
+}
+
+.brand-story-pill {
+  display: inline-block;
+  padding: 6px 14px;
+  background: #fef2f2;
+  border: 1.5px solid #fecaca;
+  color: var(--brand-red);
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.brand-story-title {
+  font-size: 38px;
+  font-weight: 900;
+  color: #111827;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+  margin: 0 0 18px;
+}
+
+.brand-story-desc {
+  font-size: 18px;
+  color: #4b5563;
+  line-height: 1.65;
+  margin: 0 0 24px;
+}
+
+.brand-story-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.brand-story-perk-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.brand-perk-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: #dcfce7;
+  color: #15803d;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+/* 5. Metrics & Numbers (Duolingo Quest Style) */
+.brand-metrics-section {
+  padding: 80px 0;
+  background: var(--brand-gray-100);
+  border-bottom: 2px solid var(--brand-gray-200);
+}
+
+.brand-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.brand-metric-card {
+  background: #ffffff;
+  border: 2px solid var(--brand-gray-200);
+  border-radius: var(--radius-md);
+  padding: 32px 20px;
+  text-align: center;
+  box-shadow: 0 6px 0 var(--brand-gray-200);
+  transition: transform 0.2s ease;
+}
+
+.brand-metric-card:hover {
+  transform: translateY(-4px);
+  border-color: #cbd5e1;
+}
+
+.brand-metric-val {
+  font-size: 44px;
+  font-weight: 900;
+  color: var(--brand-red);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.brand-metric-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.brand-metric-sub {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* 6. Stores Showcase Section */
+.brand-stores-section {
+  padding: 100px 0;
+  background: #ffffff;
+  border-bottom: 2px solid var(--brand-gray-200);
+}
+
+.brand-section-header {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 60px;
+}
+
+.brand-section-tag {
+  display: inline-block;
+  padding: 6px 14px;
+  background: #fef3c7;
+  border: 1.5px solid #fde68a;
+  color: #b45309;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.brand-section-title {
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #111827;
+  margin: 0 0 16px;
+}
+
+.brand-section-desc {
+  font-size: 18px;
+  color: #4b5563;
+  margin: 0;
+}
+
+.brand-stores-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.brand-store-card {
+  background: #ffffff;
+  border: 2px solid var(--brand-gray-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 8px 0 var(--brand-gray-200);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.25s ease;
+}
+
+.brand-store-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 0 var(--brand-gray-200);
+  border-color: #94a3b8;
+}
+
+.brand-store-photo-wrap {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  background: #111827;
+}
+
+.brand-store-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.brand-store-card:hover .brand-store-photo {
+  transform: scale(1.06);
+}
+
+.brand-store-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  padding: 6px 14px;
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.brand-store-body {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.brand-store-name {
+  font-size: 24px;
+  font-weight: 900;
+  color: #111827;
+  margin: 0 0 12px;
+}
+
+.brand-store-info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  font-size: 14px;
+  color: #4b5563;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.brand-store-info-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.brand-store-info-list strong {
+  color: #111827;
+  font-weight: 800;
+  min-width: 60px;
+}
+
+.brand-store-actions {
+  margin-top: auto;
+  display: flex;
+  gap: 10px;
+}
+
+.brand-store-actions .brand-btn-3d {
+  flex: 1;
+  padding: 12px;
+  font-size: 14px;
+}
+
+/* 7. Franchise & Business Section */
+.brand-franchise-section {
+  padding: 100px 0;
+  background: var(--brand-black);
+  color: #ffffff;
+}
+
+.brand-franchise-section .brand-section-tag {
+  background: rgba(254, 217, 67, 0.15);
+  border-color: rgba(254, 217, 67, 0.3);
+  color: var(--brand-yellow);
+}
+
+.brand-franchise-section .brand-section-title {
+  color: #ffffff;
+}
+
+.brand-franchise-section .brand-section-desc {
+  color: #9ca3af;
+}
+
+.brand-franchise-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  margin-bottom: 70px;
+}
+
+.brand-franchise-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-lg);
+  padding: 36px 28px;
+  transition: all 0.25s ease;
+}
+
+.brand-franchise-card:hover {
+  transform: translateY(-6px);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--brand-yellow);
+}
+
+.brand-franchise-icon {
+  font-size: 36px;
+  margin-bottom: 16px;
+}
+
+.brand-franchise-card-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 12px;
+}
+
+.brand-franchise-card-desc {
+  font-size: 15px;
+  color: #d1d5db;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Inline Franchise Inquiry Box */
+.brand-inquiry-box {
+  background: #ffffff;
+  color: #111827;
+  border-radius: var(--radius-lg);
+  border: 3px solid #111827;
+  box-shadow: 0 12px 0 #111827;
+  padding: 48px;
+  max-width: 840px;
+  margin: 0 auto;
+}
+
+.brand-inquiry-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.brand-inquiry-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: #111827;
+  margin: 0 0 8px;
+}
+
+.brand-inquiry-desc {
+  font-size: 16px;
+  color: #4b5563;
+  margin: 0;
+}
+
+.brand-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.brand-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.brand-form-group-full {
+  grid-column: span 2;
+}
+
+.brand-form-label {
+  font-size: 14px;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.brand-form-label span {
+  color: var(--brand-red);
+}
+
+.brand-form-input,
+.brand-form-select,
+.brand-form-textarea {
+  width: 100%;
+  padding: 13px 16px;
+  border: 2px solid var(--brand-gray-200);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  color: #111827;
+  font-family: inherit;
+  font-weight: 600;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.brand-form-input:focus,
+.brand-form-select:focus,
+.brand-form-textarea:focus {
+  outline: none;
+  border-color: var(--brand-red);
+}
+
+.brand-form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.brand-form-terms {
+  margin-bottom: 24px;
+}
+
+.brand-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4b5563;
+  cursor: pointer;
+}
+
+.brand-checkbox-label input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--brand-red);
+  cursor: pointer;
+}
+
+.brand-form-submit-btn {
+  width: 100%;
+  padding: 18px;
+  font-size: 18px;
+}
+
+/* 8. Brand Footer */
+.brand-footer {
+  background: #0b0f19;
+  color: #9ca3af;
+  padding: 70px 0 36px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 14px;
+}
+
+.brand-footer-top {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 48px;
+}
+
+.brand-footer-brand-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.brand-footer-logo-img {
+  height: 38px;
+  width: auto;
+}
+
+.brand-footer-brand-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #6b7280;
+  margin: 0 0 20px;
+  max-width: 380px;
+}
+
+.brand-footer-col-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 16px;
+}
+
+.brand-footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.brand-footer-links a {
+  color: #9ca3af;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.brand-footer-links a:hover {
+  color: var(--brand-yellow);
+}
+
+.brand-footer-bottom {
+  padding-top: 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* Responsive Styles */
+@media (max-width: 1024px) {
+  .brand-hero-inner {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 40px;
+  }
+
+  .brand-hero-desc {
+    margin: 0 auto 36px;
+  }
+
+  .brand-hero-actions {
+    justify-content: center;
+  }
+
+  .brand-story-row {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    text-align: center;
+  }
+
+  .brand-story-row-reverse {
+    direction: ltr;
+  }
+
+  .brand-story-content {
+    max-width: 100%;
+  }
+
+  .brand-story-perks {
+    align-items: center;
+  }
+
+  .brand-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .brand-stores-grid {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .brand-franchise-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-footer-top {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+}
+
+@media (max-width: 768px) {
+  .brand-nav {
+    display: none;
+  }
+
+  .brand-hero-title {
+    font-size: 38px;
+  }
+
+  .brand-hero-tori-img {
+    width: 240px;
+  }
+
+  .brand-story-title {
+    font-size: 28px;
+  }
+
+  .brand-story-card-box {
+    padding: 24px;
+  }
+
+  .brand-story-tori-character {
+    width: 200px;
+  }
+
+  .brand-inquiry-box {
+    padding: 24px;
+  }
+
+  .brand-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-form-group-full {
+    grid-column: span 1;
+  }
+
+  .brand-footer-bottom {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}
+
+/* Modal Styles */
+.brand-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(17, 24, 39, 0.75);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.brand-modal-content {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  border: 3px solid #111827;
+  box-shadow: 0 16px 0 #111827;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  padding: 36px;
+}
+
+.brand-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.brand-modal-close:hover {
+  color: #111827;
+}
+
+.brand-form-success {
+  text-align: center;
+  padding: 28px 16px;
+}
+
+.brand-form-success-icon {
+  font-size: 52px;
+  margin-bottom: 16px;
+}
+
+.brand-form-success-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #111827;
+  margin: 0 0 12px;
+}
+
+.brand-form-success-desc {
+  font-size: 16px;
+  color: #4b5563;
+  margin: 0 0 28px;
+}
+

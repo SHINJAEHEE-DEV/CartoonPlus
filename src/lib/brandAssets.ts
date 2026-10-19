@@ -1,5 +1,23 @@
 // CartoonPlus 정적 에셋 경로 상수
 
+export const OFFICIAL_BRAND_ASSETS = {
+  logoBlackTori: '/assets/brand/logo_black_tori.png',
+  logoBlack: '/assets/brand/logo_black.png',
+  logoRedShadow: '/assets/brand/logo_red_shadow.png',
+  logoRed: '/assets/brand/logo_red.png',
+  logoPixel: '/assets/brand/logo_pixel.png',
+  cartoonLogo: '/assets/brand/cartoon_logo.png',
+  toriBasic: '/assets/brand/tori_basic.png',
+  toriBook: '/assets/brand/tori_book.png',
+  toriGaming: '/assets/brand/tori_gaming.png',
+  toriRamen: '/assets/brand/tori_ramen.png',
+  toriRelax: '/assets/brand/tori_relax.png',
+  toriHead: '/assets/brand/tori_head.png',
+  toriPixel: '/assets/brand/tori_pixel.png',
+  toriPixelBook: '/assets/brand/tori_pixel_book.png',
+  toriPixelRelax: '/assets/brand/tori_pixel_relax.png',
+} as const;
+
 export const MASCOT_ASSETS = {
   logoCircle: '/assets/mascot/mascot_logo_circle.png',
   thinking: '/assets/mascot/mascot_thinking.png',
