@@ -2,6 +2,29 @@
 
 개발 과정에서 발생하는 이슈, 데이터 전처리 분석, 성능 최적화 및 트러블슈팅 내역을 체계적으로 기록합니다.
 
+## 2026-10-19 고객 페이지(잠실점 PWA)에서 관리자 진입 시 서울대입구점 리다이렉트 현상 해결
+
+- **증상/재현 조건**:
+  - 잠실점 PWA(또는 고객 페이지 `/stores/jamsil`)에서 상단 로고를 롱프레스하여 관리자 페이지로 진입할 때, 잠실점이 아닌 서울대입구점 관리자 대시보드(`/staff/snu/dashboard`)로 이동하는 현상 발생.
+- **원인 분석**:
+  1. **고객 페이지 진입 트리거의 지점 정보 누락**:
+     - `CustomerRoute`에서 `CustomerShell`로 관리자 진입 핸들러(`onStaffEntry`)를 전달하지 않아, `Brand` 컴포넌트의 기본 fallback인 정적 경로 `window.location.assign('/staff')`가 실행됨. 현재 머물고 있던 잠실점(`jamsil`) 정보가 유실됨.
+  2. **관리자 로그인 세션 확인부(`StaffAccessPage`)의 기본 지점 강제 리다이렉트**:
+     - `/staff` 접근 시 세션이 있으면 `context.storeSlug`로 리다이렉트함.
+     - 관리자(admin) 계정은 Supabase DB(`staff_accounts`) 생성 시 기본 지점이 서울대입구점(`snu`)으로 등록되어 있어, 브라우저가 잠실점을 보고 있었더라도 무조건 `snu`로 이동됨.
+- **해결 및 조치**:
+  1. `src/App.tsx`:
+     - `CustomerRoute`에서 `onStaffEntry` 핸들러를 정의하여, 현재 `store.slug`를 기반으로 `localStorage.setItem('cartoonplus_staff_store', store.slug)` 저장 및 `navigate('/staff/' + store.slug + '/dashboard')`로 직접 SPA 내비게이션 연결.
+     - `ProtectedStaffRoute`에서 비로그인 상태(`role === null`) 시 직원 로그인 페이지(`/staff`)로 이동할 수 있는 바로가기 버튼 UI 보강.
+  2. `src/features/layout/AppShell.tsx`:
+     - `Brand` 컴포넌트의 `startStaffEntryTimer` fallback을 `store?.slug ? '/staff/' + store.slug + '/dashboard' : '/staff'`로 수정하여 단독 호출 시에도 지점 컨텍스트 보존.
+  3. `src/features/staff/StaffAccessPage.tsx`:
+     - 관리자(`admin`) 권한인 경우 세션 확인 및 로그인 완료 시 `cartoonplus_staff_store` 또는 `cartoonplus_customer_store`를 우선 조회하여 최근 접근 지점으로 인계되도록 보완.
+- **검증**:
+  - `src/App.test.tsx`: 고객 페이지(`/stores/jamsil`) 로고 롱프레스 시 `/staff/jamsil/dashboard` 이동 및 로컬스토리지 지점 동기화 유닛 테스트 추가 및 통과.
+  - `npm test`: 전체 24개 테스트 파일 / 131개 테스트 100% 통과.
+  - `npm run build`: 정적 타입 검사 및 SSG 프로덕션 빌드 성공.
+
 ## 2026-10-19 매장 간 안내 방송 겹침(홍대점-잠실점) 해결 및 지점 스코핑·수신기 등록 체계 구축
 
 - **증상/재현 조건**:

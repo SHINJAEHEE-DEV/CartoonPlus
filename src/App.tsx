@@ -144,7 +144,25 @@ function ProtectedStaffRoute({
   if (role === null)
     return (
       <div className="staff-access-shell">
-        <p className="state-card">승인된 직원 계정으로 로그인해 주세요.</p>
+        <div className="state-card" style={{ display: 'grid', gap: '12px', textAlign: 'center' }}>
+          <p>승인된 직원 계정으로 로그인해 주세요.</p>
+          <div>
+            <a
+              href="/staff"
+              className="action-btn"
+              style={{
+                display: 'inline-block',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                backgroundColor: '#1E232A',
+                color: '#fff',
+                textDecoration: 'none',
+              }}
+            >
+              직원 로그인으로 이동
+            </a>
+          </div>
+        </div>
       </div>
     );
   if (requiredRole === 'admin' && role !== 'admin')
@@ -238,6 +256,7 @@ function BookRequestRoute() {
 
 function CustomerRoute({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { storeSlug } = useParams();
   const store = storeSlug ? getPublicStore(storeSlug) : getPreferredPublicStore();
 
@@ -252,9 +271,26 @@ function CustomerRoute({ children }: { children: React.ReactNode }) {
   }, [store?.slug]);
 
   if (!store) return <p className="state-card">페이지를 찾을 수 없습니다.</p>;
+
+  const handleStaffEntry = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('cartoonplus_staff_store', store.slug);
+      } catch {
+        // ignore storage errors
+      }
+    }
+    navigate(`/staff/${store.slug}/dashboard`);
+  };
+
   return (
     <StoreContext value={{ store, scoped: Boolean(storeSlug) }}>
-      <CustomerShell currentPath={location.pathname} store={store} scoped={Boolean(storeSlug)}>
+      <CustomerShell
+        currentPath={location.pathname}
+        store={store}
+        scoped={Boolean(storeSlug)}
+        onStaffEntry={handleStaffEntry}
+      >
         {children}
       </CustomerShell>
     </StoreContext>

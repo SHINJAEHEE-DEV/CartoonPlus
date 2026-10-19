@@ -5,6 +5,20 @@ import { MASCOT_ASSETS } from '../../lib/brandAssets';
 import { publicStoreList } from '../../lib/storeContext';
 import { StaffLoadingScreen } from './StaffLoadingScreen';
 
+function resolveTargetStoreSlug(defaultSlug: string, isAdmin: boolean): string {
+  if (isAdmin && typeof window !== 'undefined') {
+    const staffSaved = localStorage.getItem('cartoonplus_staff_store');
+    if (staffSaved === 'snu' || staffSaved === 'jamsil' || staffSaved === 'hongdae') {
+      return staffSaved;
+    }
+    const customerSaved = localStorage.getItem('cartoonplus_customer_store');
+    if (customerSaved === 'snu' || customerSaved === 'jamsil' || customerSaved === 'hongdae') {
+      return customerSaved;
+    }
+  }
+  return defaultSlug;
+}
+
 export function StaffAccessPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
@@ -18,7 +32,8 @@ export function StaffAccessPage() {
     void getApprovedStaffContext().then((context) => {
       if (!isCurrent) return;
       if (context?.role) {
-        navigate(`/staff/${context.storeSlug}/dashboard`, { replace: true });
+        const targetSlug = resolveTargetStoreSlug(context.storeSlug, context.role === 'admin');
+        navigate(`/staff/${targetSlug}/dashboard`, { replace: true });
       } else {
         setIsCheckingSession(false);
       }
@@ -53,7 +68,8 @@ export function StaffAccessPage() {
       } else {
         await signInStaff(String(form.get('loginId')), String(form.get('password')));
         const context = await getApprovedStaffContext();
-        const targetSlug = context?.storeSlug ?? 'snu';
+        const baseSlug = context?.storeSlug ?? 'snu';
+        const targetSlug = resolveTargetStoreSlug(baseSlug, context?.role === 'admin');
         navigate(`/staff/${targetSlug}/dashboard`);
       }
     } catch (error) {

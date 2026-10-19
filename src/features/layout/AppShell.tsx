@@ -65,7 +65,13 @@ function Brand({
     entryTimer.current = setTimeout(() => {
       entryTimer.current = null;
       isHolding.current = true;
-      (onStaffEntry ?? (() => window.location.assign('/staff')))();
+      (
+        onStaffEntry ??
+        (() =>
+          window.location.assign(
+            store?.slug ? `/staff/${store.slug}/dashboard` : '/staff'
+          ))
+      )();
     }, STAFF_ENTRY_HOLD_MS);
   };
 

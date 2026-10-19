@@ -1,5 +1,5 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import App from './App';
 import { CUSTOMER_STORE_PREFERENCE_KEY } from './lib/storeContext';
@@ -113,13 +113,20 @@ describe('customer routes', () => {
     });
   });
 
-  it('renders staff login prompt when accessing legacy staff routes while unauthenticated', async () => {
-    window.history.pushState({}, '', '/staff/broadcast');
+  it('navigates to the corresponding store staff dashboard when holding logo on customer route', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    window.history.pushState({}, '', '/stores/jamsil');
 
     render(<App />);
 
-    await waitFor(() => {
-      expect(screen.getByText('승인된 직원 계정으로 로그인해 주세요.')).toBeTruthy();
-    });
+    await waitFor(() => expect(screen.getByRole('link', { name: '카툰플러스 홈' })).toBeTruthy());
+    const brand = screen.getByRole('link', { name: '카툰플러스 홈' });
+
+    fireEvent.pointerDown(brand);
+    vi.advanceTimersByTime(2000);
+
+    expect(window.location.pathname).toBe('/staff/jamsil/dashboard');
+    expect(localStorage.getItem('cartoonplus_staff_store')).toBe('jamsil');
+    vi.useRealTimers();
   });
 });
