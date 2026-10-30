@@ -1,0 +1,2 @@
+[functions.send-inquiry]
+verify_jwt = false

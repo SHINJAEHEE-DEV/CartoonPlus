@@ -1,7 +1,8 @@
-import { useEffect, useState, type ReactNode, type SVGProps } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode, type SVGProps } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OFFICIAL_BRAND_ASSETS } from '../../lib/brandAssets';
 import { getPublicStore } from '../../lib/storeContext';
+import { supabase } from '../../lib/supabase';
 import './brandLanding.css';
 
 // Lightweight inline SVG icons to prevent external dependency bloat
@@ -838,29 +839,87 @@ function StoresSection() {
   );
 }
 
+declare global {
+  interface Window {
+    turnstile?: { render: (element: HTMLElement, options: Record<string, unknown>) => string; remove: (id: string) => void; reset: (id: string) => void };
+  }
+}
+
 function InquiryModal({ type, onClose }: ModalProps) {
-  const title = type === 'franchise' ? '가맹 상담 안내' : '일반·제휴 문의 안내';
+  const title = type === 'franchise' ? '가맹 상담 신청' : '일반·제휴 문의';
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+  const [token, setToken] = useState('');
+  const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+
+  useEffect(() => {
+    if (!siteKey) return;
+    let widget: string | undefined;
+    let cancelled = false;
+    const renderWidget = () => {
+      const target = document.getElementById('inquiry-turnstile');
+      if (!cancelled && target && window.turnstile && !widget) {
+        widget = window.turnstile.render(target, { sitekey: siteKey, callback: (value: string) => setToken(value), 'expired-callback': () => setToken(''), 'error-callback': () => setToken('') });
+        target.dataset.widgetId = widget;
+      }
+    };
+    let script = document.querySelector<HTMLScriptElement>('script[data-inquiry-turnstile]');
+    if (!script) {
+      script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      script.dataset.inquiryTurnstile = 'true';
+      document.head.appendChild(script);
+    }
+    script.addEventListener('load', renderWidget);
+    renderWidget();
+    return () => {
+      cancelled = true;
+      script?.removeEventListener('load', renderWidget);
+      if (widget && window.turnstile) window.turnstile.remove(widget);
+    };
+  }, [siteKey]);
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!supabase || !token || status === 'sending') return;
+    setStatus('sending');
+    const form = new FormData(event.currentTarget);
+    try {
+    const { data, error } = await supabase.functions.invoke('send-inquiry', { body: {
+      type, name: form.get('name'), phone: form.get('phone'), message: form.get('message'),
+      region: form.get('region'), schedule: form.get('schedule'), consent: form.get('consent') === 'on', turnstileToken: token,
+    } });
+    if (error || !data?.ok) throw new Error('Inquiry failed');
+    setStatus('success');
+    } catch {
+      setStatus('error');
+      setToken('');
+      const widgetId = document.querySelector<HTMLElement>('#inquiry-turnstile')?.dataset.widgetId;
+      if (widgetId) window.turnstile?.reset(widgetId);
+    }
+  };
 
   return (
-    <div
-      className="modal-backdrop"
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
+    <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <div className="inquiry-modal" role="dialog" aria-modal="true" aria-labelledby="inquiry-title">
-        <button type="button" className="modal-close" onClick={onClose} aria-label="문의 창 닫기">
-          <X size={20} />
-        </button>
+        <button type="button" className="modal-close" onClick={onClose} aria-label="문의 창 닫기"><X size={20} /></button>
         <div className="modal-heading">
           <p className="eyebrow">{type === 'franchise' ? 'FRANCHISE INQUIRY' : 'GENERAL INQUIRY'}</p>
           <h2 id="inquiry-title">{title}</h2>
-          <p>현재 홈페이지에서는 문의를 접수할 수 없습니다. 카툰플러스 공식 인스타그램을 통해 문의해 주세요.</p>
+          {status === 'success' ? <p role="status">문의가 접수되었습니다. 남겨주신 연락처로 답변드리겠습니다.</p> : <p>문의 내용을 남겨주시면 확인 후 연락드리겠습니다.</p>}
         </div>
-        <a className="button button-primary" href="https://www.instagram.com/cartoonplus_cafe/" target="_blank" rel="noopener noreferrer">
-          공식 인스타그램 방문 <ArrowUpRight size={15} />
-        </a>
+        {status !== 'success' && (!supabase || !siteKey ? <p>현재 홈페이지 문의 접수를 준비 중입니다. <a href="https://www.instagram.com/cartoonplus_cafe/" target="_blank" rel="noopener noreferrer">공식 인스타그램</a>으로 문의해 주세요.</p> : <form onSubmit={submit}>
+          <div className="form-grid">
+            <label>성명<input name="name" required maxLength={80} autoComplete="name" /></label>
+            <label>연락처<input name="phone" type="tel" required maxLength={40} autoComplete="tel" /></label>
+            {type === 'franchise' && <><label>희망 지역<input name="region" maxLength={100} /></label><label>오픈 희망 시기<input name="schedule" maxLength={100} /></label></>}
+          </div>
+          <label className="message-label">문의 내용<textarea name="message" required maxLength={4000} rows={4} /></label>
+          <label><input type="checkbox" name="consent" required /> 문의 응대를 위한 이름, 연락처 및 문의 내용 수집과 이메일 전달에 동의합니다.</label>
+          <div id="inquiry-turnstile" />
+          {status === 'error' && <p role="alert">문의 전송에 실패했습니다. 잠시 후 다시 시도해 주세요.</p>}
+          <button className="button button-primary submit-button" type="submit" disabled={!token || status === 'sending'}>{status === 'sending' ? '전송 중...' : '문의 보내기'}</button>
+        </form>)}
       </div>
     </div>
   );
