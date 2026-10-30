@@ -118,7 +118,7 @@ const experiences = [
     description: '보고 싶었던 콘텐츠를 큰 화면으로, 내 속도에 맞춰 누워서 즐기는 프라이빗 시네마.',
     meta: 'NETFLIX · DISNEY+ · TVING · WATCHA',
     icon: MonitorPlay,
-    image: '/assets/store_photos/hongdae/hongdae_02.jpg',
+    image: '/assets/brand/landing/ott.jpg',
     className: 'experience-coral',
   },
   {
@@ -190,9 +190,9 @@ const stores: Store[] = [
     description: '도심 한가운데 둘만의 아늑한 페이지.',
     details: ['잠실새내역 인근', '넓고 쾌적한 2층 전층', '커플 특화 룸 & 디저트 카페'],
     images: [
-      '/assets/store_photos/jamsil-2.jpg',
+      '/assets/brand/landing/jamsil-room.jpg',
+      '/assets/brand/landing/jamsil-books.jpg',
       '/assets/store_photos/jamsil-1.jpg',
-      '/assets/store_photos/jamsil-3.jpg',
     ],
     mapLabel: '잠실새내역 인근',
   },
@@ -613,7 +613,7 @@ export function BrandLandingPage() {
 
             <div className="franchise-side">
               <img
-                src="/assets/store_photos/contact-sheet.jpg"
+                src="/assets/brand/landing/franchise.jpg"
                 alt="카툰플러스 매장 인테리어 전경"
                 className="franchise-side-img"
               />
@@ -684,7 +684,7 @@ export function BrandLandingPage() {
             </div>
             <div>
               <span className="footer-label">CHANNELS</span>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.instagram.com/cartoonplus_cafe/" target="_blank" rel="noopener noreferrer">
                 <Instagram size={15} /> Instagram
               </a>
               <a href="https://youtube.com" target="_blank" rel="noopener noreferrer">
