@@ -400,3 +400,29 @@ a { color: inherit; text-decoration: none; }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Landing page polish */
+.brand-progress { position: fixed; inset: 0 0 auto; height: 4px; z-index: 100; background: rgba(255,255,255,.25); pointer-events: none; }
+.brand-progress span { display: block; width: var(--brand-scroll-progress, 0%); height: 100%; background: #e53935; }
+.hero-mascot { position: absolute; z-index: 4; width: 120px; right: 0; bottom: 10px; pointer-events: none; }
+.experience-photo { display: block; width: 100%; height: 145px; margin: 18px 0 22px; object-fit: cover; border-radius: 5px; }
+.experience-card-copy { margin-top: 0; }
+.experience-card { min-height: 480px; }
+.store-visit-info { margin: 0 0 18px; font-size: 13px; line-height: 1.6; color: #4b5563; word-break: keep-all; }
+.store-visit-info p { margin: 0 0 5px; }
+.store-visit-info a { color: #b92d2b; font-weight: 700; }
+.app-shell h1, .app-shell h2, .app-shell h3, .app-shell p { word-break: keep-all; overflow-wrap: break-word; }
+@media (max-width: 680px) {
+  .hero-copy h1 { font-size: clamp(30px, 8vw, 42px); }
+  .section-intro h2, .network-top h2 { font-size: clamp(30px, 7.5vw, 38px); }
+  .franchise-main h2, .time-copy h2 { font-size: clamp(30px, 8vw, 42px); }
+  .experience-card { min-height: 0; }
+  .experience-photo { height: 190px; }
+  .store-tabs button { min-width: 0; }
+  .store-tabs button strong { overflow-wrap: anywhere; }
+  .hero-mascot { width: 90px; right: 95px; bottom: 12px; }
+}
+.hero-art .hero-mascot { width: 120px; height: auto; max-width: none; }
+.hero-art .character-card-img-wrap img { width: 100%; height: 100%; max-width: none; }
+@media (min-width: 681px) { .hero-art[data-reveal].is-visible { transform: translateY(-48%); } }
+@media (max-width: 680px) { .hero-art .hero-mascot { width: 90px; } }

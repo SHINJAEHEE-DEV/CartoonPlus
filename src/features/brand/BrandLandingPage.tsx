@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode, type SVGProps } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OFFICIAL_BRAND_ASSETS } from '../../lib/brandAssets';
+import { getPublicStore } from '../../lib/storeContext';
 import './brandLanding.css';
 
 // Lightweight inline SVG icons to prevent external dependency bloat
@@ -117,6 +118,7 @@ const experiences = [
     description: '보고 싶었던 콘텐츠를 큰 화면으로, 내 속도에 맞춰 누워서 즐기는 프라이빗 시네마.',
     meta: 'NETFLIX · DISNEY+ · TVING · WATCHA',
     icon: MonitorPlay,
+    image: '/assets/store_photos/hongdae/hongdae_02.jpg',
     className: 'experience-coral',
   },
   {
@@ -126,6 +128,7 @@ const experiences = [
     description: '매주 업데이트되는 최신 인기 웹툰부터 클래식 명작 만화까지 방대한 컬렉션.',
     meta: '30,000+ BOOKS',
     icon: BookOpen,
+    image: '/assets/store_photos/hongdae/hongdae_03.jpg',
     className: 'experience-blue',
   },
   {
@@ -135,6 +138,7 @@ const experiences = [
     description: '닌텐도 스위치 대전부터 50여 종의 엄선된 보드게임과 퍼즐이 준비된 플레이 공간.',
     meta: 'CONSOLE · BOARD GAME',
     icon: Gamepad2,
+    image: '/assets/store_photos/common/boardgame.jpg',
     className: 'experience-lime',
   },
   {
@@ -144,6 +148,7 @@ const experiences = [
     description: '계란·파·떡 무료 토핑 즉석 라면과 바리스타 커피, 시원한 음료와 간식 라인업.',
     meta: 'RAMEN · COFFEE · SNACK',
     icon: Utensils,
+    image: '/assets/store_photos/common/ramen.png',
     className: 'experience-yellow',
   },
 ];
@@ -171,9 +176,9 @@ const stores: Store[] = [
     description: '대형 서가와 조용한 독립 룸이 있는 편안한 아지트.',
     details: ['서울대입구역 2번 출구 도보 3분', '3만 권 대형 서가', '독립형 룸 & 힐링존'],
     images: [
-      '/assets/store_photos/snu-1.jpg',
-      '/assets/store_photos/snu-2.jpg',
-      '/assets/store_photos/snu-3.jpg',
+      '/assets/brand/landing/snu-1.jpg',
+      '/assets/brand/landing/snu-2.jpg',
+      '/assets/brand/landing/snu-3.jpg',
     ],
     mapLabel: '2번 출구 3분',
   },
@@ -185,8 +190,8 @@ const stores: Store[] = [
     description: '도심 한가운데 둘만의 아늑한 페이지.',
     details: ['잠실새내역 인근', '넓고 쾌적한 2층 전층', '커플 특화 룸 & 디저트 카페'],
     images: [
-      '/assets/store_photos/jamsil-1.jpg',
       '/assets/store_photos/jamsil-2.jpg',
+      '/assets/store_photos/jamsil-1.jpg',
       '/assets/store_photos/jamsil-3.jpg',
     ],
     mapLabel: '잠실새내역 인근',
@@ -231,6 +236,21 @@ export function BrandLandingPage() {
   useReveal();
 
   useEffect(() => {
+    const updateProgress = () => {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      document.documentElement.style.setProperty('--brand-scroll-progress', `${scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0}%`);
+    };
+    updateProgress();
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress);
+    return () => {
+      window.removeEventListener('scroll', updateProgress);
+      window.removeEventListener('resize', updateProgress);
+      document.documentElement.style.removeProperty('--brand-scroll-progress');
+    };
+  }, []);
+
+  useEffect(() => {
     document.title = '카툰플러스 (CARTOON PLUS) 공식 브랜드 사이트 | 복합문화 만화카페 & 가맹 안내';
     try {
       window.scrollTo({ top: 0, behavior: 'instant' });
@@ -246,6 +266,7 @@ export function BrandLandingPage() {
 
   return (
     <div className="app-shell">
+      <div className="brand-progress" aria-hidden="true"><span /></div>
       {/* Header */}
       <header className="site-header">
         <a
@@ -359,7 +380,7 @@ export function BrandLandingPage() {
               </div>
               <div className="character-card-img-wrap">
                 <img
-                  src="/assets/store_photos/snu-1.jpg"
+                  src="/assets/store_photos/hongdae-2.jpg"
                   alt="카툰플러스 서가 및 룸 인테리어"
                 />
               </div>
@@ -375,6 +396,7 @@ export function BrandLandingPage() {
               </div>
             </div>
 
+            <img className="hero-mascot" src="/assets/mascot/mascot_relaxing.png" alt="" aria-hidden="true" />
             <div className="hero-sticker">
               집 앞처럼<br />
               <strong>편안하게</strong>
@@ -398,7 +420,7 @@ export function BrandLandingPage() {
                 <span>시간이 돼요.</span>
               </>
             }
-            body="보는 사람, 읽는 사람, 노는 사람, 먹는 사람. 카툰플러스는 각자의 속도와 취향이 편안하게 공존하는 나만의 공간을 제공합니다."
+            body="보고, 읽고, 놀고, 먹으며 각자의 속도로 쉬어 가는 공간. 카툰플러스에서 나만의 시간을 즐겨보세요."
           />
 
           <div className="experience-grid">
@@ -415,9 +437,7 @@ export function BrandLandingPage() {
                     <span>{item.number}</span>
                     <Icon size={20} strokeWidth={1.8} />
                   </div>
-                  <div className="experience-icon">
-                    <Icon size={28} strokeWidth={1.6} />
-                  </div>
+                  <img className="experience-photo" src={item.image} alt="" loading="lazy" />
                   <div className="experience-card-copy">
                     <p className="card-eyebrow">{item.eyebrow}</p>
                     <h3>
@@ -718,6 +738,7 @@ function StoresSection() {
   const navigate = useNavigate();
 
   const store = stores[active];
+  const storeInfo = getPublicStore(store.slug);
 
   const changeStore = (index: number) => {
     setActive(index);
@@ -735,14 +756,14 @@ function StoresSection() {
             <span>어느 지점인가요?</span>
           </>
         }
-        body="각 동네의 분위기에 맞춰 차별화된 매력을 가진 카툰플러스. 가까운 매장에서 당신만의 아늑한 자리를 찾아보세요."
+        body="동네마다 다른 매력을 가진 카툰플러스. 가까운 매장에서 나만의 아늑한 자리를 찾아보세요."
       />
 
       <div className="store-showcase" data-reveal>
         <div className="store-photo-main">
           <img
             src={store.images[activePhoto]}
-            alt={`${store.name} 내부 공간 사진`}
+            alt={`${store.name} 사진 ${activePhoto + 1}`}
           />
           <div className="photo-overlay">
             <span>{store.english}</span>
@@ -767,6 +788,11 @@ function StoresSection() {
               </li>
             ))}
           </ul>
+          {storeInfo && <div className="store-visit-info">
+            <p>{storeInfo.address}</p>
+            <p>{storeInfo.hours}</p>
+            <a href={`https://map.naver.com/p/search/${encodeURIComponent(`카툰플러스 ${store.name}`)}`} target="_blank" rel="noopener noreferrer">지도에서 찾기 ↗</a>
+          </div>}
           <div className="store-actions">
             <button
               type="button"
@@ -787,6 +813,7 @@ function StoresSection() {
               type="button"
               key={image}
               className={index === activePhoto ? 'active' : ''}
+              aria-pressed={index === activePhoto}
               onClick={() => setActivePhoto(index)}
               aria-label={`${store.name} 사진 ${index + 1}`}
             >
@@ -801,6 +828,7 @@ function StoresSection() {
           <button
             type="button"
             className={index === active ? 'active' : ''}
+            aria-pressed={index === active}
             key={item.name}
             onClick={() => changeStore(index)}
           >
