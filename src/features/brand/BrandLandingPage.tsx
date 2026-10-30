@@ -196,6 +196,15 @@ const stores: Store[] = [
   },
 ];
 
+const pageSections = [
+  { id: 'top', label: '처음' },
+  { id: 'experience', label: '공간과 경험' },
+  { id: 'time', label: '이용 안내' },
+  { id: 'stores', label: '지점 찾기' },
+  { id: 'network', label: '매장 현황' },
+  { id: 'franchise', label: '가맹 안내' },
+];
+
 const network = [
   { name: '서울', count: '04', color: 'network-city' },
   { name: '경기·인천', count: '00', color: 'network-suburb' },
@@ -228,6 +237,7 @@ function useReveal() {
 export function BrandLandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [modal, setModal] = useState<InquiryType | null>(null);
+  const [activeSection, setActiveSection] = useState('top');
   const navigate = useNavigate();
 
   useReveal();
@@ -236,6 +246,12 @@ export function BrandLandingPage() {
     const updateProgress = () => {
       const scrollable = document.documentElement.scrollHeight - window.innerHeight;
       document.documentElement.style.setProperty('--brand-scroll-progress', `${scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0}%`);
+      const marker = window.scrollY + window.innerHeight * 0.38;
+      const current = [...pageSections].reverse().find(({ id }) => {
+        const section = document.getElementById(id);
+        return section && section.offsetTop <= marker;
+      });
+      setActiveSection(current?.id ?? 'top');
     };
     updateProgress();
     window.addEventListener('scroll', updateProgress, { passive: true });
@@ -258,12 +274,21 @@ export function BrandLandingPage() {
 
   const jump = (id: string) => {
     setMenuOpen(false);
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
   };
 
   return (
     <div className="app-shell">
-      <div className="brand-progress" aria-hidden="true"><span /></div>
+      <nav className="brand-progress" aria-label="페이지 섹션 이동">
+        <span className="brand-progress-track" aria-hidden="true"><span /></span>
+        {pageSections.map((section) => (
+          <button key={section.id} type="button" className={activeSection === section.id ? 'active' : ''}
+            aria-label={section.label} aria-current={activeSection === section.id ? 'location' : undefined}
+            onClick={() => jump(section.id)}>
+            <span className="brand-progress-label">{section.label}</span><span className="brand-progress-dot" />
+          </button>
+        ))}
+      </nav>
       {/* Header */}
       <header className="site-header">
         <a
@@ -522,7 +547,7 @@ export function BrandLandingPage() {
         <StoresSection />
 
         {/* 5. Network Section */}
-        <section className="network-section section-pad">
+        <section className="network-section section-pad" id="network">
           <div className="network-top" data-reveal>
             <div>
               <p className="eyebrow">
