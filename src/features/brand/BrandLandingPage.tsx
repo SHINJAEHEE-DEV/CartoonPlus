@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent, type ReactNode, type SVGProps } from 'react';
+import { useEffect, useState, type ReactNode, type SVGProps } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OFFICIAL_BRAND_ASSETS } from '../../lib/brandAssets';
 import { getPublicStore } from '../../lib/storeContext';
@@ -70,9 +70,6 @@ const LocateFixed = (props: IconProps) => (
 const Sparkles = (props: IconProps) => (
   <IconBase {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /></IconBase>
 );
-const Send = (props: IconProps) => (
-  <IconBase {...props}><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></IconBase>
-);
 const MonitorPlay = (props: IconProps) => (
   <IconBase {...props}><rect width="20" height="14" x="2" y="3" rx="2" /><path d="M12 17v4" /><path d="M8 21h8" /><polygon points="10 7 15 10 10 13 10 7" /></IconBase>
 );
@@ -125,7 +122,7 @@ const experiences = [
     number: '02',
     eyebrow: 'READ / DIVE IN',
     title: '3만 권\n도서 아카이브',
-    description: '매주 업데이트되는 최신 인기 웹툰부터 클래식 명작 만화까지 방대한 컬렉션.',
+    description: '최신 인기 만화부터 오래 사랑받은 명작까지, 다양한 작품을 만나보세요.',
     meta: '30,000+ BOOKS',
     icon: BookOpen,
     image: '/assets/store_photos/hongdae/hongdae_03.jpg',
@@ -187,7 +184,7 @@ const stores: Store[] = [
     slug: 'jamsil',
     english: 'JAMSIL',
     number: '03',
-    description: '도심 한가운데 둘만의 아늑한 페이지.',
+    description: '도심 속에서 둘이 함께 쉬어 가는 아늑한 공간.',
     details: ['잠실새내역 인근', '넓고 쾌적한 2층 전층', '커플 특화 룸 & 디저트 카페'],
     images: [
       '/assets/brand/landing/jamsil-room.jpg',
@@ -204,7 +201,6 @@ const network = [
   { name: '주요 광역', count: '05', color: 'network-region' },
 ];
 
-const interestOptions = ['가맹 상담', '일반 문의', '제휴 / 콜라보', '입점 / 기타'];
 
 function useReveal() {
   useEffect(() => {
@@ -492,7 +488,7 @@ export function BrandLandingPage() {
               <p>
                 1시간의 가벼운 쉼표부터<br />
                 하루를 온전히 맡기는 종일 휴식까지.<br />
-                부담 없는 합리적인 가격으로 누리는 자유.
+                원하는 시간만큼 편안하게 머물러 보세요.
               </p>
             </div>
 
@@ -599,8 +595,8 @@ export function BrandLandingPage() {
                 <em>다음 안식처</em>를 열어요.
               </h2>
               <p>
-                시간제 이용료, F&B 식음료, 부대시설이 결합된 검증된 복합 매출 모델.
-                안정적인 운영 구조를 갖춘 카툰플러스와 함께 새로운 공간 비즈니스를 시작해보세요.
+                시간제 이용과 식음료 등 다양한 서비스를 함께 운영하는 카툰플러스와
+                새로운 공간 비즈니스를 시작해 보세요.
               </p>
               <button
                 type="button"
@@ -843,44 +839,7 @@ function StoresSection() {
 }
 
 function InquiryModal({ type, onClose }: ModalProps) {
-  const [submitted, setSubmitted] = useState(false);
-  const [selectedInterest, setSelectedInterest] = useState(
-    type === 'franchise' ? '가맹 상담' : '일반 문의'
-  );
-  const title = type === 'franchise' ? '가맹 상담 신청' : '일반·제휴 문의';
-  const description =
-    type === 'franchise'
-      ? '카툰플러스와 함께 열어갈 다음 공간에 대해 들려주세요.'
-      : '궁금한 점이나 함께하고 싶은 아이디어를 남겨주세요.';
-
-  const submit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const payload = {
-      type,
-      interest: selectedInterest,
-      name: form.get('name'),
-      phone: form.get('phone'),
-      region: form.get('region'),
-      schedule: form.get('schedule'),
-      message: form.get('message'),
-      createdAt: new Date().toISOString(),
-    };
-
-    try {
-      const current = JSON.parse(
-        localStorage.getItem('cartoonplus_inquiries') || '[]'
-      );
-      localStorage.setItem(
-        'cartoonplus_inquiries',
-        JSON.stringify([...current, payload])
-      );
-    } catch {
-      // ignore
-    }
-
-    setSubmitted(true);
-  };
+  const title = type === 'franchise' ? '가맹 상담 안내' : '일반·제휴 문의 안내';
 
   return (
     <div
@@ -890,128 +849,18 @@ function InquiryModal({ type, onClose }: ModalProps) {
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div
-        className="inquiry-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="inquiry-title"
-      >
-        <button
-          type="button"
-          className="modal-close"
-          onClick={onClose}
-          aria-label="문의 창 닫기"
-        >
+      <div className="inquiry-modal" role="dialog" aria-modal="true" aria-labelledby="inquiry-title">
+        <button type="button" className="modal-close" onClick={onClose} aria-label="문의 창 닫기">
           <X size={20} />
         </button>
-
-        {submitted ? (
-          <div className="success-state">
-            <div className="success-icon">
-              <Check size={28} />
-            </div>
-            <p className="eyebrow">MESSAGE RECEIVED</p>
-            <h2>정상 접수되었습니다</h2>
-            <p>
-              남겨주신 문의 내용을 확인한 후<br />
-              담당자가 신속하게 연락드리겠습니다.
-            </p>
-            <button
-              type="button"
-              className="button button-dark"
-              onClick={onClose}
-            >
-              확인 <ArrowUpRight size={15} />
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="modal-heading">
-              <p className="eyebrow">
-                {type === 'franchise' ? 'FRANCHISE INQUIRY' : 'GENERAL INQUIRY'}
-              </p>
-              <h2 id="inquiry-title">{title}</h2>
-              <p>{description}</p>
-            </div>
-
-            <form onSubmit={submit}>
-              <div className="interest-pills">
-                {interestOptions.map((option) => (
-                  <button
-                    type="button"
-                    key={option}
-                    className={selectedInterest === option ? 'selected' : ''}
-                    onClick={() => setSelectedInterest(option)}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-
-              <div className="form-grid">
-                <label>
-                  성명
-                  <input name="name" required placeholder="성함을 입력하세요" />
-                </label>
-                <label>
-                  연락처
-                  <input
-                    name="phone"
-                    required
-                    type="tel"
-                    placeholder="010-0000-0000"
-                  />
-                </label>
-
-                {type === 'franchise' && (
-                  <>
-                    <label>
-                      희망 지역
-                      <input
-                        name="region"
-                        required
-                        placeholder="예: 서울 마포구, 경기 성남시"
-                      />
-                    </label>
-                    <label>
-                      오픈 희망 시기
-                      <select name="schedule" defaultValue="">
-                        <option value="" disabled>
-                          희망 시기 선택
-                        </option>
-                        <option>3개월 이내</option>
-                        <option>6개월 이내</option>
-                        <option>1년 이내</option>
-                        <option>미정 / 상담 후 결정</option>
-                      </select>
-                    </label>
-                  </>
-                )}
-              </div>
-
-              <label className="message-label">
-                문의 내용
-                <textarea
-                  name="message"
-                  required
-                  rows={4}
-                  placeholder="궁금하신 내용이나 상담 희망 사항을 자유롭게 적어주세요."
-                />
-              </label>
-
-              <button
-                className="button button-primary submit-button"
-                type="submit"
-              >
-                문의 접수하기 <Send size={15} />
-              </button>
-
-              <p className="form-privacy">
-                제출하신 정보는 가맹 상담 및 문의 응대 목적으로만 안전하게 사용됩니다.
-              </p>
-            </form>
-          </>
-        )}
+        <div className="modal-heading">
+          <p className="eyebrow">{type === 'franchise' ? 'FRANCHISE INQUIRY' : 'GENERAL INQUIRY'}</p>
+          <h2 id="inquiry-title">{title}</h2>
+          <p>현재 홈페이지에서는 문의를 접수할 수 없습니다. 카툰플러스 공식 인스타그램을 통해 문의해 주세요.</p>
+        </div>
+        <a className="button button-primary" href="https://www.instagram.com/cartoonplus_cafe/" target="_blank" rel="noopener noreferrer">
+          공식 인스타그램 방문 <ArrowUpRight size={15} />
+        </a>
       </div>
     </div>
   );
