@@ -197,9 +197,9 @@ const stores: Store[] = [
 ];
 
 const network = [
-  { name: '서울 거점', count: '10+', color: 'network-city' },
-  { name: '경기·인천', count: '08', color: 'network-suburb' },
-  { name: '주요 광역', count: '05', color: 'network-region' },
+  { name: '서울', count: '04', color: 'network-city' },
+  { name: '경기·인천', count: '00', color: 'network-suburb' },
+  { name: '기타 지역', count: '00', color: 'network-region' },
 ];
 
 
@@ -534,40 +534,23 @@ export function BrandLandingPage() {
               </h2>
             </div>
             <p className="network-intro">
-              서울과 수도권, 그리고 주요 거점까지.<br />
-              카툰플러스의 가맹 네트워크가<br />
-              더 많은 이웃에게 닿고 있습니다.
+              서울의 네 곳에서 만나는 카툰플러스.<br />
+              가까운 매장에서 편안한 시간을 보내세요.
             </p>
           </div>
 
           <div className="network-map" data-reveal>
             <div className="map-grid" />
-            <div className="map-route route-one" />
-            <div className="map-route route-two" />
-            <div className="map-route route-three" />
 
             <span className="map-pin pin-seoul">
               <i />
               SEOUL
             </span>
-            <span className="map-pin pin-incheon">
-              <i />
-              INCHEON
-            </span>
-            <span className="map-pin pin-gyeonggi">
-              <i />
-              GYEONGGI
-            </span>
-            <span className="map-pin pin-busan">
-              <i />
-              BUSAN
-            </span>
-
             <div className="map-caption">
               <span>OPERATING NOW</span>
               <strong>
-                서울 · 수도권<br />
-                주요 거점
+                서울<br />
+                4개 매장
               </strong>
               <ArrowUpRight size={18} />
             </div>
@@ -610,19 +593,10 @@ export function BrandLandingPage() {
 
             <div className="franchise-side">
               <img
-                src="/assets/brand/landing/franchise.jpg"
-                alt="카툰플러스 매장 인테리어 전경"
+                src="/assets/brand/landing/franchise-interior.jpg"
+                alt="카툰플러스 홍대점의 서가와 좌석"
                 className="franchise-side-img"
               />
-              <div className="revenue-orbit">
-                <div className="revenue-center">
-                  PLUS<br />
-                  <span>MODEL</span>
-                </div>
-                <span className="revenue-tag revenue-tag-one">TIME PASS</span>
-                <span className="revenue-tag revenue-tag-two">F&amp;B</span>
-                <span className="revenue-tag revenue-tag-three">PLAY</span>
-              </div>
             </div>
           </div>
 

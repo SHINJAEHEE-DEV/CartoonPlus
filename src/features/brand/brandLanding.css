@@ -242,7 +242,7 @@ a { color: inherit; text-decoration: none; }
 .franchise-main > p:not(.eyebrow) { font-size: 16px; line-height: 1.8; color: rgba(255,255,255,0.7); margin-bottom: 32px; font-weight: 400; }
 
 .franchise-side { position: relative; background: #18191E; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-.franchise-side-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.55; filter: contrast(1.1); }
+.franchise-side-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.95; filter: none; }
 .revenue-orbit { position: absolute; z-index: 2; width: 230px; height: 230px; border: 1px dashed rgba(255,255,255,0.3); border-radius: 50%; right: 10%; bottom: 10%; transform: rotate(-10deg); backdrop-filter: blur(2px); }
 .revenue-orbit::before { content: ''; position: absolute; inset: 26px; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; }
 .revenue-center { position: absolute; inset: 34%; display: flex; justify-content: center; align-items: center; flex-direction: column; background: var(--brand-red); color: var(--white); border-radius: 50%; text-align: center; font-size: 14px; font-weight: 800; letter-spacing: -0.02em; box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
