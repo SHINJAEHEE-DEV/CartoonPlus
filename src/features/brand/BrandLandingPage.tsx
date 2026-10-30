@@ -1,892 +1,990 @@
-import { useState, useEffect } from 'react';
-import { OFFICIAL_BRAND_ASSETS, STORE_PHOTOS_BY_SLUG } from '../../lib/brandAssets';
-import { FranchiseInquiryModal } from './FranchiseInquiryModal';
+import { useEffect, useState, type FormEvent, type ReactNode, type SVGProps } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { OFFICIAL_BRAND_ASSETS } from '../../lib/brandAssets';
 import './brandLanding.css';
 
-export function BrandLandingPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+// Lightweight inline SVG icons to prevent external dependency bloat
+function IconBase({
+  children,
+  size = 18,
+  strokeWidth = 2,
+  ...props
+}: {
+  size?: number | string;
+  strokeWidth?: number | string;
+  children: ReactNode;
+} & SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      {children}
+    </svg>
+  );
+}
 
-  // Form State for Inline Inquiry Box
-  const [inlineForm, setInlineForm] = useState({
-    name: '',
-    phone: '',
-    region: '서울',
-    timing: '3개월 이내',
-    message: '',
-    agreed: true,
-  });
-  const [inlineSubmitted, setInlineSubmitted] = useState(false);
-  const [inlineSubmitting, setInlineSubmitting] = useState(false);
+type IconProps = SVGProps<SVGSVGElement> & { size?: number | string };
+
+const ArrowDownRight = (props: IconProps) => (
+  <IconBase {...props}><path d="m7 7 10 10" /><path d="M17 7v10H7" /></IconBase>
+);
+const ArrowUpRight = (props: IconProps) => (
+  <IconBase {...props}><path d="M7 7h10v10" /><path d="M7 17 17 7" /></IconBase>
+);
+const MoveRight = (props: IconProps) => (
+  <IconBase {...props}><path d="M18 8L22 12L18 16" /><path d="M2 12H22" /></IconBase>
+);
+const ChevronRight = (props: IconProps) => (
+  <IconBase {...props}><path d="m9 18 6-6-6-6" /></IconBase>
+);
+const Check = (props: IconProps) => (
+  <IconBase {...props}><path d="M20 6 9 17l-5-5" /></IconBase>
+);
+const X = (props: IconProps) => (
+  <IconBase {...props}><path d="M18 6 6 18" /><path d="m6 6 12 12" /></IconBase>
+);
+const Menu = (props: IconProps) => (
+  <IconBase {...props}><path d="M4 12h16" /><path d="M4 6h16" /><path d="M4 18h16" /></IconBase>
+);
+const Star = (props: IconProps) => (
+  <IconBase {...props}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></IconBase>
+);
+const Clock3 = (props: IconProps) => (
+  <IconBase {...props}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16.5 12" /></IconBase>
+);
+const MapPin = (props: IconProps) => (
+  <IconBase {...props}><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" /><circle cx="12" cy="10" r="3" /></IconBase>
+);
+const LocateFixed = (props: IconProps) => (
+  <IconBase {...props}><line x1="2" x2="5" y1="12" y2="12" /><line x1="19" x2="22" y1="12" y2="12" /><line x1="12" x2="12" y1="2" y2="5" /><line x1="12" x2="12" y1="19" y2="22" /><circle cx="12" cy="12" r="7" /></IconBase>
+);
+const Sparkles = (props: IconProps) => (
+  <IconBase {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /></IconBase>
+);
+const Send = (props: IconProps) => (
+  <IconBase {...props}><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></IconBase>
+);
+const MonitorPlay = (props: IconProps) => (
+  <IconBase {...props}><rect width="20" height="14" x="2" y="3" rx="2" /><path d="M12 17v4" /><path d="M8 21h8" /><polygon points="10 7 15 10 10 13 10 7" /></IconBase>
+);
+const BookOpen = (props: IconProps) => (
+  <IconBase {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></IconBase>
+);
+const Gamepad2 = (props: IconProps) => (
+  <IconBase {...props}><line x1="6" x2="10" y1="11" y2="11" /><line x1="8" x2="8" y1="9" y2="13" /><line x1="15" x2="15.01" y1="12" y2="12" /><line x1="18" x2="18.01" y1="10" y2="10" /><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" /></IconBase>
+);
+const Utensils = (props: IconProps) => (
+  <IconBase {...props}><path d="M18 2v20" /><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /></IconBase>
+);
+const Instagram = (props: IconProps) => (
+  <IconBase {...props}><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></IconBase>
+);
+const Youtube = (props: IconProps) => (
+  <IconBase {...props}><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" /><polygon points="10 15 15 12 10 9 10 15" /></IconBase>
+);
+
+type InquiryType = 'franchise' | 'general';
+
+type ModalProps = {
+  type: InquiryType;
+  onClose: () => void;
+};
+
+type Store = {
+  name: string;
+  slug: string;
+  english: string;
+  number: string;
+  description: string;
+  details: string[];
+  images: string[];
+  mapLabel: string;
+};
+
+const experiences = [
+  {
+    number: '01',
+    eyebrow: 'WATCH / RELAX',
+    title: 'OTT\n시네마',
+    description: '보고 싶었던 콘텐츠를 큰 화면으로, 내 속도에 맞춰 누워서 즐기는 프라이빗 시네마.',
+    meta: 'NETFLIX · DISNEY+ · TVING · WATCHA',
+    icon: MonitorPlay,
+    className: 'experience-coral',
+  },
+  {
+    number: '02',
+    eyebrow: 'READ / DIVE IN',
+    title: '3만 권\n도서 아카이브',
+    description: '매주 업데이트되는 최신 인기 웹툰부터 클래식 명작 만화까지 방대한 컬렉션.',
+    meta: '30,000+ BOOKS',
+    icon: BookOpen,
+    className: 'experience-blue',
+  },
+  {
+    number: '03',
+    eyebrow: 'PLAY / TOGETHER',
+    title: '게임\n라운지',
+    description: '닌텐도 스위치 대전부터 50여 종의 엄선된 보드게임과 퍼즐이 준비된 플레이 공간.',
+    meta: 'CONSOLE · BOARD GAME',
+    icon: Gamepad2,
+    className: 'experience-lime',
+  },
+  {
+    number: '04',
+    eyebrow: 'EAT / REFUEL',
+    title: '셀프 토핑 키친\n& 카페',
+    description: '계란·파·떡 무료 토핑 즉석 라면과 바리스타 커피, 시원한 음료와 간식 라인업.',
+    meta: 'RAMEN · COFFEE · SNACK',
+    icon: Utensils,
+    className: 'experience-yellow',
+  },
+];
+
+const stores: Store[] = [
+  {
+    name: '홍대점',
+    slug: 'hongdae',
+    english: 'HONGDAE 24H',
+    number: '01',
+    description: '24시간 잠들지 않는 홍대의 복합문화 플래그십.',
+    details: ['24시간 연중무휴', '홍익몰 지하 1층 전층', '닌텐도 스위치 대규모 부스'],
+    images: [
+      '/assets/store_photos/hongdae-2.jpg',
+      '/assets/store_photos/hongdae-1.jpg',
+      '/assets/store_photos/hongdae-3.jpg',
+    ],
+    mapLabel: '홍익몰 B1',
+  },
+  {
+    name: '서울대입구역점',
+    slug: 'snu',
+    english: 'SNU STATION',
+    number: '02',
+    description: '대형 서가와 조용한 독립 룸이 있는 편안한 아지트.',
+    details: ['서울대입구역 2번 출구 도보 3분', '3만 권 대형 서가', '독립형 룸 & 힐링존'],
+    images: [
+      '/assets/store_photos/snu-1.jpg',
+      '/assets/store_photos/snu-2.jpg',
+      '/assets/store_photos/snu-3.jpg',
+    ],
+    mapLabel: '2번 출구 3분',
+  },
+  {
+    name: '잠실점',
+    slug: 'jamsil',
+    english: 'JAMSIL',
+    number: '03',
+    description: '도심 한가운데 둘만의 아늑한 페이지.',
+    details: ['잠실새내역 인근', '넓고 쾌적한 2층 전층', '커플 특화 룸 & 디저트 카페'],
+    images: [
+      '/assets/store_photos/jamsil-1.jpg',
+      '/assets/store_photos/jamsil-2.jpg',
+      '/assets/store_photos/jamsil-3.jpg',
+    ],
+    mapLabel: '잠실새내역 인근',
+  },
+];
+
+const network = [
+  { name: '서울 거점', count: '10+', color: 'network-city' },
+  { name: '경기·인천', count: '08', color: 'network-suburb' },
+  { name: '주요 광역', count: '05', color: 'network-region' },
+];
+
+const interestOptions = ['가맹 상담', '일반 문의', '제휴 / 콜라보', '입점 / 기타'];
+
+function useReveal() {
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+    const items = document.querySelectorAll<HTMLElement>('[data-reveal]');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+    items.forEach((item) => observer.observe(item));
+    return () => observer.disconnect();
+  }, []);
+}
+
+export function BrandLandingPage() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [modal, setModal] = useState<InquiryType | null>(null);
+  const navigate = useNavigate();
+
+  useReveal();
 
   useEffect(() => {
-    document.title = '카툰플러스 (CartoonPlus) 공식 사이트 | 프리미엄 복합문화 만화카페 & 가맹 안내';
+    document.title = '카툰플러스 (CARTOON PLUS) 공식 브랜드 사이트 | 복합문화 만화카페 & 가맹 안내';
     try {
-      if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
-        window.scrollTo(0, 0);
-      }
+      window.scrollTo({ top: 0, behavior: 'instant' });
     } catch {
       // ignore
     }
   }, []);
 
-  const handleInlineSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inlineForm.name.trim() || !inlineForm.phone.trim() || !inlineForm.agreed) return;
-
-    setInlineSubmitting(true);
-    try {
-      const existing = JSON.parse(localStorage.getItem('cartoonplus_franchise_inquiries') || '[]');
-      existing.push({
-        ...inlineForm,
-        submittedAt: new Date().toISOString(),
-      });
-      localStorage.setItem('cartoonplus_franchise_inquiries', JSON.stringify(existing));
-    } catch {
-      // ignore
-    }
-
-    setTimeout(() => {
-      setInlineSubmitting(false);
-      setInlineSubmitted(true);
-    }, 350);
-  };
-
-  const scrollToSection = (id: string) => {
-    setMobileMenuOpen(false);
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+  const jump = (id: string) => {
+    setMenuOpen(false);
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <div className="brand-landing-page">
-      {/* 1. Brand Header */}
-      <header className="brand-header">
-        <div className="brand-container brand-header-inner">
-          <a
-            href="/"
-            className="brand-logo-wrap"
-            onClick={(e) => {
-              e.preventDefault();
+    <div className="app-shell">
+      {/* Header */}
+      <header className="site-header">
+        <a
+          href="/"
+          className="brand-lockup"
+          onClick={(e) => {
+            e.preventDefault();
+            try {
               window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          >
-            <img
-              src={OFFICIAL_BRAND_ASSETS.logoRed}
-              alt="카툰플러스 공식 브랜드 로고"
-              className="brand-header-logo-img"
-            />
-          </a>
+            } catch {
+              // ignore
+            }
+          }}
+          aria-label="CARTOON PLUS 홈"
+        >
+          <img
+            src={OFFICIAL_BRAND_ASSETS.logoRed}
+            alt="카툰플러스 로고"
+            className="brand-logo-img"
+          />
+        </a>
 
-          <nav className="brand-nav" aria-label="브랜드 메인 네비게이션">
-            <a
-              href="#experience"
-              className="brand-nav-link"
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToSection('experience');
-              }}
-            >
-              공간 경험
-            </a>
-            <a
-              href="#stores"
-              className="brand-nav-link"
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToSection('stores');
-              }}
-            >
+        <div className={`nav-panel ${menuOpen ? 'nav-panel-open' : ''}`}>
+          <nav className="main-nav" aria-label="주요 메뉴">
+            <button type="button" onClick={() => jump('experience')}>
+              공간과 경험
+            </button>
+            <button type="button" onClick={() => jump('time')}>
+              이용 안내
+            </button>
+            <button type="button" onClick={() => jump('stores')}>
               지점 찾기
-            </a>
-            <a
-              href="#franchise"
-              className="brand-nav-link"
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToSection('franchise');
-              }}
-            >
+            </button>
+            <button type="button" onClick={() => navigate('/books')}>
+              도서 검색
+            </button>
+            <button type="button" onClick={() => jump('franchise')}>
               가맹 안내
-            </a>
-            <a
-              href="#inquiry"
-              className="brand-nav-link"
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToSection('inquiry');
-              }}
-            >
-              창업 상담
-            </a>
+            </button>
           </nav>
-
-          <div className="brand-header-actions">
-            <a href="/books" className="brand-btn-3d brand-btn-3d-outline">
-              도서 검색 바로가기 ↗
-            </a>
-            <button
-              type="button"
-              className="brand-btn-3d brand-btn-3d-red"
-              onClick={() => setIsModalOpen(true)}
-            >
-              가맹 상담 신청
-            </button>
-            <button
-              type="button"
-              className="brand-btn-3d brand-btn-3d-outline"
-              style={{ display: 'none', padding: '8px 12px' }}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="모바일 메뉴"
-            >
-              ☰
-            </button>
-          </div>
+          <button
+            type="button"
+            className="header-cta"
+            onClick={() => setModal('franchise')}
+          >
+            가맹 상담 <ArrowUpRight size={15} />
+          </button>
         </div>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '76px',
-              left: 0,
-              right: 0,
-              background: '#ffffff',
-              borderBottom: '2px solid var(--brand-gray-200)',
-              padding: '20px 24px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '14px',
-            }}
-          >
-            <a
-              href="#experience"
-              style={{ textDecoration: 'none', color: '#111827', fontWeight: 800, fontSize: '16px' }}
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToSection('experience');
-              }}
-            >
-              공간 경험
-            </a>
-            <a
-              href="#stores"
-              style={{ textDecoration: 'none', color: '#111827', fontWeight: 800, fontSize: '16px' }}
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToSection('stores');
-              }}
-            >
-              지점 찾기
-            </a>
-            <a
-              href="#franchise"
-              style={{ textDecoration: 'none', color: '#111827', fontWeight: 800, fontSize: '16px' }}
-              onClick={(e) => {
-                e.preventDefault();
-                scrollToSection('franchise');
-              }}
-            >
-              가맹 안내
-            </a>
-            <a
-              href="/books"
-              style={{ textDecoration: 'none', color: 'var(--brand-red)', fontWeight: 800, fontSize: '16px' }}
-            >
-              도서 검색 바로가기 ↗
-            </a>
-          </div>
-        )}
+        <button
+          className="menu-toggle"
+          type="button"
+          aria-label="메뉴 열기"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          {menuOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
       </header>
 
-      {/* 2. Hero Section (Duolingo Mascot Speech & Editorial Headline) */}
-      <section className="brand-hero">
-        <div className="brand-container brand-hero-inner">
-          <div className="brand-hero-content">
-            <div className="brand-hero-pill-badge">
-              <span>★</span> 대한민국 프리미엄 복합문화 만화카페
-            </div>
-            <h1 className="brand-hero-title">
-              만화, 게임, 그리고
-              <br />
-              <span className="brand-hero-title-red">제대로 쉬는 시간</span>
-            </h1>
-            <p className="brand-hero-desc">
-              수만 권 서가, 프라이빗 암막 OTT 룸, 닌텐도 스위치·PS4 콘솔,
-              100% 무료 바디프랜드 안마의자, 무제한 라면 바까지.
-              온전히 나에게 집중하는 프리미엄 힐링 라운지 카툰플러스입니다.
+      {/* Main Content */}
+      <main>
+        {/* 1. Hero Section */}
+        <section className="hero-section" id="top">
+          <div className="hero-pattern" />
+          <div className="hero-ticker" aria-hidden="true">
+            <span>TAKE OFF YOUR SHOES · STAY AS LONG AS YOU LIKE · CARTOON PLUS · </span>
+            <span>TAKE OFF YOUR SHOES · STAY AS LONG AS YOU LIKE · CARTOON PLUS · </span>
+          </div>
+
+          <div className="hero-copy" data-reveal>
+            <p className="eyebrow">
+              <span className="eyebrow-dot" /> COMFY CULTURE LOUNGE
             </p>
-            <div className="brand-hero-actions">
+            <h1>
+              만화, 게임, 그리고<br />
+              <em>온전한 쉼</em>이 시작돼요.
+            </h1>
+            <p className="hero-description">
+              신발을 벗는 순간 만나는 나만의 아늑한 아지트.<br />
+              원하는 만큼 머무는 도심 속 복합문화 만화카페.
+            </p>
+            <div className="hero-actions">
+              <a className="button button-primary" href="#experience">
+                공간 둘러보기 <ArrowDownRight size={17} />
+              </a>
               <button
                 type="button"
-                className="brand-btn-3d brand-btn-3d-red brand-hero-btn-main"
-                onClick={() => scrollToSection('stores')}
+                className="text-link"
+                onClick={() => setModal('franchise')}
               >
-                가까운 지점 찾기 ↓
-              </button>
-              <button
-                type="button"
-                className="brand-btn-3d brand-btn-3d-yellow brand-hero-btn-main"
-                onClick={() => setIsModalOpen(true)}
-              >
-                가맹 및 창업 상담 신청 →
+                가맹 및 창업 상담 신청 <MoveRight size={17} />
               </button>
             </div>
           </div>
 
-          <div className="brand-hero-mascot-area">
-            <div className="brand-speech-bubble">
-              카툰플러스에 온 걸 환영해! ☕✨
+          <div className="hero-art" data-reveal>
+            <div className="hero-sun" />
+            <div className="hero-note note-one">
+              <span>01</span> REST MODE<br />ACTIVATED
             </div>
+            <div className="hero-note note-two">
+              <Star size={13} fill="currentColor" /> NO SHOES, NO WORRIES
+            </div>
+
+            {/* Space Magazine Card */}
+            <div className="character-card">
+              <div className="character-card-top">
+                <span>CARTOON PLUS ARCHIVE</span>
+                <span>VOL. 2026</span>
+              </div>
+              <div className="character-card-img-wrap">
+                <img
+                  src="/assets/store_photos/snu-1.jpg"
+                  alt="카툰플러스 서가 및 룸 인테리어"
+                />
+              </div>
+              <div className="character-card-caption">
+                <strong>
+                  COMFY IS A<br />
+                  <span>SUPERPOWER.</span>
+                </strong>
+                <small>
+                  도심 속<br />
+                  나만의 쉼표
+                </small>
+              </div>
+            </div>
+
+            <div className="hero-sticker">
+              집 앞처럼<br />
+              <strong>편안하게</strong>
+            </div>
+          </div>
+
+          <div className="hero-scroll">
+            <span>SCROLL TO EXPLORE</span>
+            <span className="scroll-line" />
+          </div>
+        </section>
+
+        {/* 2. 4 Experiences Section */}
+        <section className="experience-section section-pad" id="experience">
+          <SectionIntro
+            index="01 / 04"
+            label="ONE SPACE, UNLIMITED FREEDOM"
+            title={
+              <>
+                여기선 취향이<br />
+                <span>시간이 돼요.</span>
+              </>
+            }
+            body="보는 사람, 읽는 사람, 노는 사람, 먹는 사람. 카툰플러스는 각자의 속도와 취향이 편안하게 공존하는 나만의 공간을 제공합니다."
+          />
+
+          <div className="experience-grid">
+            {experiences.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <article
+                  className={`experience-card ${item.className}`}
+                  key={item.number}
+                  data-reveal
+                  style={{ transitionDelay: `${index * 80}ms` }}
+                >
+                  <div className="card-top">
+                    <span>{item.number}</span>
+                    <Icon size={20} strokeWidth={1.8} />
+                  </div>
+                  <div className="experience-icon">
+                    <Icon size={28} strokeWidth={1.6} />
+                  </div>
+                  <div className="experience-card-copy">
+                    <p className="card-eyebrow">{item.eyebrow}</p>
+                    <h3>
+                      {item.title.split('\n').map((line) => (
+                        <span key={line}>
+                          {line}
+                          <br />
+                        </span>
+                      ))}
+                    </h3>
+                    <p>{item.description}</p>
+                  </div>
+                  <div className="card-meta">
+                    <span>{item.meta}</span>
+                    <ArrowUpRight size={16} />
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <div className="experience-footnote" data-reveal>
+            <span className="scribble-arrow">↗</span>
+            <p>
+              잠깐 들러도, 하루 종일 있어도<br />
+              <strong>언제나 부담 없는 즐거움.</strong>
+            </p>
             <img
-              src={OFFICIAL_BRAND_ASSETS.toriBasic}
-              alt="카툰플러스 시그니처 캐릭터 또리"
-              className="brand-hero-tori-img"
+              src="/assets/store_photos/common/ramen.png"
+              alt="카툰플러스 즉석 라면"
+              className="experience-footnote-img"
             />
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 3. Marquee Ticker */}
-      <div className="brand-marquee-bar" aria-hidden="true">
-        <div className="brand-marquee-track">
-          {[...Array(2)].map((_, idx) => (
-            <div key={idx} style={{ display: 'inline-flex' }}>
-              <span className="brand-marquee-item">
-                <span className="brand-marquee-dot">●</span> 50,000+권 만화 &amp; 인기 웹툰
-              </span>
-              <span className="brand-marquee-item">
-                <span className="brand-marquee-dot">●</span> 프라이빗 암막 OTT 룸 (넷플릭스·티빙)
-              </span>
-              <span className="brand-marquee-item">
-                <span className="brand-marquee-dot">●</span> 닌텐도 스위치 &amp; PS4 콘솔 및 보드게임
-              </span>
-              <span className="brand-marquee-item">
-                <span className="brand-marquee-dot">●</span> 바디프랜드 전신 안마의자 100% 무료
-              </span>
-              <span className="brand-marquee-item">
-                <span className="brand-marquee-dot">●</span> 무제한 토핑 즉석 한강 라면 바
-              </span>
-              <span className="brand-marquee-item">
-                <span className="brand-marquee-dot">●</span> 홍대점 24시간 연중무휴 상시 운영
-              </span>
+        {/* 3. Time Section (Flexible Hours) */}
+        <section className="time-section" id="time">
+          <div className="time-marquee" aria-hidden="true">
+            <span>YOUR TIME. YOUR WAY. YOUR CARTOON PLUS. &nbsp; </span>
+            <span>YOUR TIME. YOUR WAY. YOUR CARTOON PLUS. &nbsp; </span>
+          </div>
+
+          <div className="time-inner section-pad">
+            <div className="time-copy" data-reveal>
+              <p className="eyebrow">
+                <Clock3 size={15} /> FLEXIBLE STAY
+              </p>
+              <h2>
+                오늘은<br />
+                <em>얼마나</em> 머물까요?
+              </h2>
+              <p>
+                1시간의 가벼운 쉼표부터<br />
+                하루를 온전히 맡기는 종일 휴식까지.<br />
+                부담 없는 합리적인 가격으로 누리는 자유.
+              </p>
             </div>
+
+            <div className="time-wheel" data-reveal>
+              <div className="orbit orbit-one" />
+              <div className="orbit orbit-two" />
+              <div className="wheel-center">
+                <span>MY PACE</span>
+                <strong>자유로운 이용</strong>
+                <Clock3 size={20} />
+              </div>
+
+              <div className="wheel-label label-hour">
+                <strong>1H</strong>
+                <span>가벼운 쉼표</span>
+              </div>
+              <div className="wheel-label label-half">
+                <strong>3H</strong>
+                <span>여유로운 몰입</span>
+              </div>
+              <div className="wheel-label label-day">
+                <strong>ALL-DAY</strong>
+                <span>하루 종일 무제한</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 4. Stores Showcase Section */}
+        <StoresSection />
+
+        {/* 5. Network Section */}
+        <section className="network-section section-pad">
+          <div className="network-top" data-reveal>
+            <div>
+              <p className="eyebrow">
+                <LocateFixed size={15} /> CARTOON PLUS NETWORK
+              </p>
+              <h2>
+                도심 곳곳에<br />
+                <span>편안함을 심어요.</span>
+              </h2>
+            </div>
+            <p className="network-intro">
+              서울과 수도권, 그리고 주요 거점까지.<br />
+              카툰플러스의 가맹 네트워크가<br />
+              더 많은 이웃에게 닿고 있습니다.
+            </p>
+          </div>
+
+          <div className="network-map" data-reveal>
+            <div className="map-grid" />
+            <div className="map-route route-one" />
+            <div className="map-route route-two" />
+            <div className="map-route route-three" />
+
+            <span className="map-pin pin-seoul">
+              <i />
+              SEOUL
+            </span>
+            <span className="map-pin pin-incheon">
+              <i />
+              INCHEON
+            </span>
+            <span className="map-pin pin-gyeonggi">
+              <i />
+              GYEONGGI
+            </span>
+            <span className="map-pin pin-busan">
+              <i />
+              BUSAN
+            </span>
+
+            <div className="map-caption">
+              <span>OPERATING NOW</span>
+              <strong>
+                서울 · 수도권<br />
+                주요 거점
+              </strong>
+              <ArrowUpRight size={18} />
+            </div>
+          </div>
+
+          <div className="network-stats" data-reveal>
+            {network.map((item) => (
+              <div className={`network-stat ${item.color}`} key={item.name}>
+                <span className="stat-number">{item.count}</span>
+                <span className="stat-name">{item.name}</span>
+                <span className="stat-note">매장 운영 중</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 6. Franchise & Business Section */}
+        <section className="franchise-section section-pad" id="franchise">
+          <div className="franchise-card" data-reveal>
+            <div className="franchise-main">
+              <p className="eyebrow">
+                <Sparkles size={15} /> BE A PART OF THE STORY
+              </p>
+              <h2>
+                당신의 동네에<br />
+                <em>다음 안식처</em>를 열어요.
+              </h2>
+              <p>
+                시간제 이용료, F&B 식음료, 부대시설이 결합된 검증된 복합 매출 모델.
+                안정적인 운영 구조를 갖춘 카툰플러스와 함께 새로운 공간 비즈니스를 시작해보세요.
+              </p>
+              <button
+                type="button"
+                className="button button-light"
+                onClick={() => setModal('franchise')}
+              >
+                가맹 상담 신청 <ArrowUpRight size={16} />
+              </button>
+            </div>
+
+            <div className="franchise-side">
+              <img
+                src="/assets/store_photos/contact-sheet.jpg"
+                alt="카툰플러스 매장 인테리어 전경"
+                className="franchise-side-img"
+              />
+              <div className="revenue-orbit">
+                <div className="revenue-center">
+                  PLUS<br />
+                  <span>MODEL</span>
+                </div>
+                <span className="revenue-tag revenue-tag-one">TIME PASS</span>
+                <span className="revenue-tag revenue-tag-two">F&amp;B</span>
+                <span className="revenue-tag revenue-tag-three">PLAY</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="contact-strip" data-reveal>
+            <div>
+              <p className="eyebrow">HAVE A QUESTION?</p>
+              <h3>
+                일반 문의 및 제휴도<br />
+                <span>편하게 남겨주세요.</span>
+              </h3>
+            </div>
+            <button
+              type="button"
+              className="round-arrow-button"
+              aria-label="일반 제휴 문의"
+              onClick={() => setModal('general')}
+            >
+              <ArrowUpRight size={22} />
+            </button>
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="site-footer">
+        <div className="footer-top">
+          <div className="footer-brand">
+            <div className="brand-lockup">
+              <img
+                src={OFFICIAL_BRAND_ASSETS.logoRed}
+                alt="카툰플러스 로고"
+                className="brand-logo-img"
+              />
+            </div>
+            <p>
+              원하는 만큼, 편안하게.<br />
+              도심 속 복합문화 만화카페.
+            </p>
+          </div>
+
+          <div className="footer-links">
+            <div>
+              <span className="footer-label">EXPLORE</span>
+              <a href="#experience">공간과 경험</a>
+              <a href="#stores">지점 안내</a>
+              <a href="/books">도서 검색</a>
+            </div>
+            <div>
+              <span className="footer-label">CONTACT</span>
+              <button type="button" onClick={() => setModal('franchise')}>
+                가맹 상담
+              </button>
+              <button type="button" onClick={() => setModal('general')}>
+                일반·제휴 문의
+              </button>
+            </div>
+            <div>
+              <span className="footer-label">CHANNELS</span>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+                <Instagram size={15} /> Instagram
+              </a>
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer">
+                <Youtube size={15} /> Youtube
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div className="footer-bottom">
+          <span>© 2026 CARTOON PLUS. ALL RIGHTS RESERVED.</span>
+          <span>CRAFTED FOR YOUR RELAXATION.</span>
+        </div>
+      </footer>
+
+      {/* Inquiry Modal */}
+      {modal && <InquiryModal type={modal} onClose={() => setModal(null)} />}
+    </div>
+  );
+}
+
+function SectionIntro({
+  index,
+  label,
+  title,
+  body,
+}: {
+  index: string;
+  label: string;
+  title: ReactNode;
+  body: string;
+}) {
+  return (
+    <div className="section-intro" data-reveal>
+      <div className="section-index">
+        <span>{index}</span>
+        <span className="index-line" />
+      </div>
+      <div>
+        <p className="eyebrow">{label}</p>
+        <h2>{title}</h2>
+        <p className="section-body">{body}</p>
+      </div>
+    </div>
+  );
+}
+
+function StoresSection() {
+  const [active, setActive] = useState(0);
+  const [activePhoto, setActivePhoto] = useState(0);
+  const navigate = useNavigate();
+
+  const store = stores[active];
+
+  const changeStore = (index: number) => {
+    setActive(index);
+    setActivePhoto(0);
+  };
+
+  return (
+    <section className="stores-section section-pad" id="stores">
+      <SectionIntro
+        index="02 / 04"
+        label="FIND YOUR COMFY CORNER"
+        title={
+          <>
+            오늘의 쉼표는<br />
+            <span>어느 지점인가요?</span>
+          </>
+        }
+        body="각 동네의 분위기에 맞춰 차별화된 매력을 가진 카툰플러스. 가까운 매장에서 당신만의 아늑한 자리를 찾아보세요."
+      />
+
+      <div className="store-showcase" data-reveal>
+        <div className="store-photo-main">
+          <img
+            src={store.images[activePhoto]}
+            alt={`${store.name} 내부 공간 사진`}
+          />
+          <div className="photo-overlay">
+            <span>{store.english}</span>
+            <span>SPACE GALLERY / 2026</span>
+          </div>
+          <div className="photo-count">
+            <span>0{activePhoto + 1}</span>
+            <span>/ 03</span>
+          </div>
+        </div>
+
+        <div className="store-info-panel">
+          <div className="store-number">{store.number} / 03</div>
+          <p className="card-eyebrow">CARTOON PLUS · {store.english}</p>
+          <h3>카툰플러스 {store.name}</h3>
+          <p className="store-tagline">{store.description}</p>
+          <ul>
+            {store.details.map((detail) => (
+              <li key={detail}>
+                <Check size={16} />
+                {detail}
+              </li>
+            ))}
+          </ul>
+          <div className="store-actions">
+            <button
+              type="button"
+              className="button button-dark"
+              onClick={() => navigate(`/stores/${store.slug}/books`)}
+            >
+              이 지점 도서 검색 <ArrowUpRight size={15} />
+            </button>
+            <span className="map-button">
+              <MapPin size={15} /> {store.mapLabel}
+            </span>
+          </div>
+        </div>
+
+        <div className="store-thumbnails">
+          {store.images.map((image, index) => (
+            <button
+              type="button"
+              key={image}
+              className={index === activePhoto ? 'active' : ''}
+              onClick={() => setActivePhoto(index)}
+              aria-label={`${store.name} 사진 ${index + 1}`}
+            >
+              <img src={image} alt={`${store.name} 썸네일 ${index + 1}`} />
+            </button>
           ))}
         </div>
       </div>
 
-      {/* 4. Alternating Story Sections (Duolingo Style Rows with Tori Mascot) */}
-      <section id="experience" className="brand-story-section">
-        <div className="brand-container">
-          <div className="brand-section-header">
-            <span className="brand-section-tag">SPACES &amp; ENTERTAINMENT</span>
-            <h2 className="brand-section-title">하루가 짧게 느껴지는 5대 공간 경험</h2>
-            <p className="brand-section-desc">
-              단순한 만화방을 넘어, 오감으로 누리는 프리미엄 문화 휴식 공간을 완성했습니다.
+      <div className="store-tabs" data-reveal>
+        {stores.map((item, index) => (
+          <button
+            type="button"
+            className={index === active ? 'active' : ''}
+            key={item.name}
+            onClick={() => changeStore(index)}
+          >
+            <span>0{index + 1}</span>
+            <strong>{item.name}</strong>
+            <ChevronRight size={16} />
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function InquiryModal({ type, onClose }: ModalProps) {
+  const [submitted, setSubmitted] = useState(false);
+  const [selectedInterest, setSelectedInterest] = useState(
+    type === 'franchise' ? '가맹 상담' : '일반 문의'
+  );
+  const title = type === 'franchise' ? '가맹 상담 신청' : '일반·제휴 문의';
+  const description =
+    type === 'franchise'
+      ? '카툰플러스와 함께 열어갈 다음 공간에 대해 들려주세요.'
+      : '궁금한 점이나 함께하고 싶은 아이디어를 남겨주세요.';
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const payload = {
+      type,
+      interest: selectedInterest,
+      name: form.get('name'),
+      phone: form.get('phone'),
+      region: form.get('region'),
+      schedule: form.get('schedule'),
+      message: form.get('message'),
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      const current = JSON.parse(
+        localStorage.getItem('cartoonplus_inquiries') || '[]'
+      );
+      localStorage.setItem(
+        'cartoonplus_inquiries',
+        JSON.stringify([...current, payload])
+      );
+    } catch {
+      // ignore
+    }
+
+    setSubmitted(true);
+  };
+
+  return (
+    <div
+      className="modal-backdrop"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="inquiry-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="inquiry-title"
+      >
+        <button
+          type="button"
+          className="modal-close"
+          onClick={onClose}
+          aria-label="문의 창 닫기"
+        >
+          <X size={20} />
+        </button>
+
+        {submitted ? (
+          <div className="success-state">
+            <div className="success-icon">
+              <Check size={28} />
+            </div>
+            <p className="eyebrow">MESSAGE RECEIVED</p>
+            <h2>정상 접수되었습니다</h2>
+            <p>
+              남겨주신 문의 내용을 확인한 후<br />
+              담당자가 신속하게 연락드리겠습니다.
             </p>
+            <button
+              type="button"
+              className="button button-dark"
+              onClick={onClose}
+            >
+              확인 <ArrowUpRight size={15} />
+            </button>
           </div>
-
-          {/* Row 1: Book Library (Tori Book) */}
-          <div className="brand-story-row">
-            <div className="brand-story-visual">
-              <div className="brand-story-card-box">
-                <img
-                  src={OFFICIAL_BRAND_ASSETS.toriBook}
-                  alt="책 읽는 캐릭터 또리"
-                  className="brand-story-tori-character"
-                />
-              </div>
-            </div>
-            <div className="brand-story-content">
-              <span className="brand-story-pill">수만 권 서가 &amp; 웹툰</span>
-              <h3 className="brand-story-title">끝없이 펼쳐지는 만화의 세계</h3>
-              <p className="brand-story-desc">
-                최신 인기 웹툰 단행본부터 전설적인 명작 만화, 소설, 그래픽노블까지
-                11개 표준 장르로 체계화된 서가 시스템을 갖추고 있습니다.
-                매주 정기 신간 입고로 보고 싶었던 작품을 가장 먼저 만나보세요.
+        ) : (
+          <>
+            <div className="modal-heading">
+              <p className="eyebrow">
+                {type === 'franchise' ? 'FRANCHISE INQUIRY' : 'GENERAL INQUIRY'}
               </p>
-              <div className="brand-story-perks">
-                <div className="brand-story-perk-item">
-                  <span className="brand-perk-icon">✓</span> 주간 단위 인기 신간 자동 입고
-                </div>
-                <div className="brand-story-perk-item">
-                  <span className="brand-perk-icon">✓</span> 초성 검색 지원으로 1초 만에 서가 위치 확인
-                </div>
-                <div className="brand-story-perk-item">
-                  <span className="brand-perk-icon">✓</span> 원하는 도서 입고 신청 시스템 운영
-                </div>
-              </div>
-              <a href="/books" className="brand-btn-3d brand-btn-3d-red">
-                실시간 도서 검색하기 →
-              </a>
-            </div>
-          </div>
-
-          {/* Row 2: Private OTT Room (Reverse) */}
-          <div className="brand-story-row brand-story-row-reverse">
-            <div className="brand-story-visual">
-              <div className="brand-story-card-box">
-                <img
-                  src={OFFICIAL_BRAND_ASSETS.toriRelax}
-                  alt="휴식하는 캐릭터 또리"
-                  className="brand-story-tori-character"
-                />
-              </div>
-            </div>
-            <div className="brand-story-content">
-              <span className="brand-story-pill">암막 OTT 룸</span>
-              <h3 className="brand-story-title">우리만의 프라이빗 영화관</h3>
-              <p className="brand-story-desc">
-                넷플릭스, 티빙, 디즈니+를 대형 스크린과 포근한 매트가 구비된 암막 굴방에서
-                자유롭게 시청하세요. 외부 시선 걱정 없이 온전한 휴식을 누릴 수 있습니다.
-              </p>
-              <div className="brand-story-perks">
-                <div className="brand-story-perk-item">
-                  <span className="brand-perk-icon">✓</span> OTT 프리미엄 요금제 상시 지원 (무료)
-                </div>
-                <div className="brand-story-perk-item">
-                  <span className="brand-perk-icon">✓</span> 대형 프로젝터 &amp; 고화질 모니터 완비
-                </div>
-                <div className="brand-story-perk-item">
-                  <span className="brand-perk-icon">✓</span> 푹신한 매트와 프라이빗 암막 커튼 구조
-                </div>
-              </div>
-              <button
-                type="button"
-                className="brand-btn-3d brand-btn-3d-yellow"
-                onClick={() => scrollToSection('stores')}
-              >
-                지점별 룸 시설 보기 ↓
-              </button>
-            </div>
-          </div>
-
-          {/* Row 3: Gaming & Board Games (Tori Gaming) */}
-          <div className="brand-story-row">
-            <div className="brand-story-visual">
-              <div className="brand-story-card-box">
-                <img
-                  src={OFFICIAL_BRAND_ASSETS.toriGaming}
-                  alt="게임기 든 캐릭터 또리"
-                  className="brand-story-tori-character"
-                />
-              </div>
-            </div>
-            <div className="brand-story-content">
-              <span className="brand-story-pill">닌텐도 &amp; PS4 &amp; 보드게임</span>
-              <h3 className="brand-story-title">친구, 연인과 함께하는 플레이</h3>
-              <p className="brand-story-desc">
-                마리오카트, 태고의 달인, 오버쿡드, 대난투 등 정품 닌텐도 스위치 팩과 PS4 타이틀,
-                50여 종의 엄선된 보드게임이 준비되어 있습니다. 추가 비용 없이 무제한으로 즐기세요.
-              </p>
-              <div className="brand-story-perks">
-                <div className="brand-story-perk-item">
-                  <span className="brand-perk-icon">✓</span> 인기 닌텐도 스위치 정품 타이틀 보유
-                </div>
-                <div className="brand-story-perk-item">
-                  <span className="brand-perk-icon">✓</span> 1~4인 플레이 완벽 지원 콘솔 룸
-                </div>
-                <div className="brand-story-perk-item">
-                  <span className="brand-perk-icon">✓</span> 스테디셀러 보드게임 50종 상시 비치
-                </div>
-              </div>
-              <button
-                type="button"
-                className="brand-btn-3d brand-btn-3d-outline"
-                onClick={() => scrollToSection('stores')}
-              >
-                구비 게임 목록 확인 →
-              </button>
-            </div>
-          </div>
-
-          {/* Row 4: 100% Free Massage Chair (Tori Pixel Relax - Reverse) */}
-          <div className="brand-story-row brand-story-row-reverse">
-            <div className="brand-story-visual">
-              <div className="brand-story-card-box">
-                <img
-                  src={OFFICIAL_BRAND_ASSETS.toriPixelRelax}
-                  alt="픽셀 휴식 또리"
-                  className="brand-story-tori-character"
-                />
-              </div>
-            </div>
-            <div className="brand-story-content">
-              <span className="brand-story-pill">바디프랜드 안마의자</span>
-              <h3 className="brand-story-title">추가 요금 0원, 100% 무료 힐링 존</h3>
-              <p className="brand-story-desc">
-                타 브랜드처럼 코인을 넣거나 추가 요금을 낼 필요가 없습니다.
-                매장 이용 고객이라면 누구나 최고급 바디프랜드 전신 안마의자를
-                언제든 자유롭게 이용할 수 있습니다.
-              </p>
-              <div className="brand-story-perks">
-                <div className="brand-story-perk-item">
-                  <span className="brand-perk-icon">✓</span> 바디프랜드 전신 안마의자 상시 무료 개방
-                </div>
-                <div className="brand-story-perk-item">
-                  <span className="brand-perk-icon">✓</span> 지친 하루의 피로를 풀어주는 힐링 마사지
-                </div>
-                <div className="brand-story-perk-item">
-                  <span className="brand-perk-icon">✓</span> 청결하게 관리되는 전용 일회용 덧신 제공
-                </div>
-              </div>
-              <button
-                type="button"
-                className="brand-btn-3d brand-btn-3d-red"
-                onClick={() => scrollToSection('stores')}
-              >
-                무료 힐링존 이용하기 →
-              </button>
-            </div>
-          </div>
-
-          {/* Row 5: Ramen & F&B Cafe (Tori Ramen) */}
-          <div className="brand-story-row">
-            <div className="brand-story-visual">
-              <div className="brand-story-card-box">
-                <img
-                  src={OFFICIAL_BRAND_ASSETS.toriRamen}
-                  alt="라면 먹는 캐릭터 또리"
-                  className="brand-story-tori-character"
-                />
-              </div>
-            </div>
-            <div className="brand-story-content">
-              <span className="brand-story-pill">한강 즉석 라면 &amp; 카페</span>
-              <h3 className="brand-story-title">즉석 라면 셀프바와 맛있는 먹거리</h3>
-              <p className="brand-story-desc">
-                파, 떡, 어묵 등 풍성한 무제한 토핑을 곁들이는 즉석 한강 라면 조리기와
-                바리스타급 커피, 스무디, 덮밥, 떡볶이 등 다채로운 F&amp;B 메뉴를
-                합리적인 가격으로 즐기실 수 있습니다.
-              </p>
-              <div className="brand-story-perks">
-                <div className="brand-story-perk-item">
-                  <span className="brand-perk-icon">✓</span> 자동 즉석 라면 조리 기계 &amp; 무제한 토핑
-                </div>
-                <div className="brand-story-perk-item">
-                  <span className="brand-perk-icon">✓</span> 8대 표준 음료 (스페셜티 커피, 에이드, 스무디)
-                </div>
-                <div className="brand-story-perk-item">
-                  <span className="brand-perk-icon">✓</span> 시간 + 음료 결합 실속 패키지 요금제
-                </div>
-              </div>
-              <button
-                type="button"
-                className="brand-btn-3d brand-btn-3d-yellow"
-                onClick={() => scrollToSection('stores')}
-              >
-                지점별 대표 메뉴 보기 →
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. Metrics & Numbers (Duolingo Quest Style) */}
-      <section className="brand-metrics-section">
-        <div className="brand-container">
-          <div className="brand-metrics-grid">
-            <div className="brand-metric-card">
-              <div className="brand-metric-val">50,000+</div>
-              <div className="brand-metric-title">보유 도서 및 웹툰</div>
-              <div className="brand-metric-sub">주간 단위 신간 자동 입고</div>
-            </div>
-            <div className="brand-metric-card">
-              <div className="brand-metric-val">100%</div>
-              <div className="brand-metric-title">부대시설 무료 이용</div>
-              <div className="brand-metric-sub">안마의자 · 게임팩 추가비 0원</div>
-            </div>
-            <div className="brand-metric-card">
-              <div className="brand-metric-val">24H</div>
-              <div className="brand-metric-title">연중무휴 매장 운영</div>
-              <div className="brand-metric-sub">홍대점 24시간 연중무휴 상시 개방</div>
-            </div>
-            <div className="brand-metric-card">
-              <div className="brand-metric-val">3개소</div>
-              <div className="brand-metric-title">서울 핵심 거점 지점</div>
-              <div className="brand-metric-sub">서울대입구 · 잠실 · 홍대 직영점</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. Store Showcase Section */}
-      <section id="stores" className="brand-stores-section">
-        <div className="brand-container">
-          <div className="brand-section-header">
-            <span className="brand-section-tag">LOCATIONS</span>
-            <h2 className="brand-section-title">가까운 카툰플러스 지점 찾기</h2>
-            <p className="brand-section-desc">
-              서울 주요 역세권에서 카툰플러스의 프리미엄 힐링 공간을 만나보세요.
-            </p>
-          </div>
-
-          <div className="brand-stores-grid">
-            {/* Store 1: SNU */}
-            <div className="brand-store-card">
-              <div className="brand-store-photo-wrap">
-                <img
-                  src={STORE_PHOTOS_BY_SLUG.snu.photo1}
-                  alt="서울대입구역점 실물 사진"
-                  className="brand-store-photo"
-                />
-                <span className="brand-store-badge">2호선 역세권 도보 1분</span>
-              </div>
-              <div className="brand-store-body">
-                <h3 className="brand-store-name">서울대입구역점</h3>
-                <ul className="brand-store-info-list">
-                  <li>
-                    <strong>위치</strong> 서울 관악구 관악로 164 대우디오슈페리움 2단지 B1
-                  </li>
-                  <li>
-                    <strong>교통</strong> 2호선 서울대입구역 3번 출구 도보 1분
-                  </li>
-                  <li>
-                    <strong>시간</strong> 매일 10:00 – 23:00 (연중무휴)
-                  </li>
-                  <li>
-                    <strong>시설</strong> 암막 OTT룸 · 바디프랜드 안마의자 · 즉석 라면바
-                  </li>
-                </ul>
-                <div className="brand-store-actions">
-                  <a href="/stores/snu" className="brand-btn-3d brand-btn-3d-red">
-                    도서 검색 &amp; 지점 방문 →
-                  </a>
-                  <a href="/stores/snu/menu" className="brand-btn-3d brand-btn-3d-outline">
-                    메뉴
-                  </a>
-                </div>
-              </div>
+              <h2 id="inquiry-title">{title}</h2>
+              <p>{description}</p>
             </div>
 
-            {/* Store 2: Jamsil */}
-            <div className="brand-store-card">
-              <div className="brand-store-photo-wrap">
-                <img
-                  src={STORE_PHOTOS_BY_SLUG.jamsil.photo1}
-                  alt="잠실점 실물 사진"
-                  className="brand-store-photo"
-                />
-                <span className="brand-store-badge">평일/주말 24시 연장영업</span>
-              </div>
-              <div className="brand-store-body">
-                <h3 className="brand-store-name">잠실점</h3>
-                <ul className="brand-store-info-list">
-                  <li>
-                    <strong>위치</strong> 서울 송파구 백제고분로9길 23 2층 (잠실동)
-                  </li>
-                  <li>
-                    <strong>교통</strong> 2호선 잠실새내역 4번 출구 도보 5분
-                  </li>
-                  <li>
-                    <strong>시간</strong> 평일/주말 24시 연장영업 운영
-                  </li>
-                  <li>
-                    <strong>시설</strong> 닌텐도 스위치 실측 보유 · 프라이빗 룸 완비
-                  </li>
-                </ul>
-                <div className="brand-store-actions">
-                  <a href="/stores/jamsil" className="brand-btn-3d brand-btn-3d-red">
-                    도서 검색 &amp; 지점 방문 →
-                  </a>
-                  <a href="/stores/jamsil/menu" className="brand-btn-3d brand-btn-3d-outline">
-                    메뉴
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Store 3: Hongdae */}
-            <div className="brand-store-card">
-              <div className="brand-store-photo-wrap">
-                <img
-                  src={STORE_PHOTOS_BY_SLUG.hongdae.photo1}
-                  alt="홍대점 실물 사진"
-                  className="brand-store-photo"
-                />
-                <span className="brand-store-badge">24시간 연중무휴 상시개방</span>
-              </div>
-              <div className="brand-store-body">
-                <h3 className="brand-store-name">홍대점</h3>
-                <ul className="brand-store-info-list">
-                  <li>
-                    <strong>위치</strong> 서울 마포구 홍익로6길 10 유니온빌딩 4층
-                  </li>
-                  <li>
-                    <strong>교통</strong> 2호선 홍대입구역 9번 출구 도보 5분
-                  </li>
-                  <li>
-                    <strong>시간</strong> 24시간 연중무휴 (밤샘 이용 환영)
-                  </li>
-                  <li>
-                    <strong>시설</strong> 감각적인 굴방 좌석 · 보드게임 존 · F&amp;B 카페
-                  </li>
-                </ul>
-                <div className="brand-store-actions">
-                  <a href="/stores/hongdae" className="brand-btn-3d brand-btn-3d-red">
-                    도서 검색 &amp; 지점 방문 →
-                  </a>
-                  <a href="/stores/hongdae/menu" className="brand-btn-3d brand-btn-3d-outline">
-                    메뉴
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. Franchise & Business Section (B2B) */}
-      <section id="franchise" className="brand-franchise-section">
-        <div className="brand-container">
-          <div className="brand-section-header">
-            <span className="brand-section-tag">FRANCHISE &amp; PARTNERSHIP</span>
-            <h2 className="brand-section-title">카툰플러스 창업 경쟁력</h2>
-            <p className="brand-section-desc">
-              고객 체류 시간과 객단가를 동시에 높이는 검증된 비즈니스 모델로 안정적인 수익을 만듭니다.
-            </p>
-          </div>
-
-          <div className="brand-franchise-grid">
-            <div className="brand-franchise-card">
-              <div className="brand-franchise-icon">📈</div>
-              <h3 className="brand-franchise-card-title">다중 매출 복합 수익</h3>
-              <p className="brand-franchise-card-desc">
-                시간제 이용 요금과 고마진 F&amp;B 카페테리아(한강라면, 스낵, 음료)의 복합 수익 구조로
-                테이블 회전율에 얽매이지 않고 높은 객단가를 달성합니다.
-              </p>
-            </div>
-            <div className="brand-franchise-card">
-              <div className="brand-franchise-icon">⚡</div>
-              <h3 className="brand-franchise-card-title">운영 자동화 시스템</h3>
-              <p className="brand-franchise-card-desc">
-                초성 도서 검색 솔루션, 키오스크 무인 결제, 자동 매장 안내방송 시스템을 적용하여
-                최소한의 인력으로 쾌적한 매장 운영이 가능합니다.
-              </p>
-            </div>
-            <div className="brand-franchise-card">
-              <div className="brand-franchise-icon">🤝</div>
-              <h3 className="brand-franchise-card-title">본사 밀착 슈퍼바이징</h3>
-              <p className="brand-franchise-card-desc">
-                상권 분석부터 점포 개발, 인테리어 설계, 점주 실무 교육, 오픈 후 신간 도서 자동 배송 및
-                마케팅 프로모션까지 본사 전담팀이 함께합니다.
-              </p>
-            </div>
-          </div>
-
-          {/* Inline Franchise Inquiry Box */}
-          <div id="inquiry" className="brand-inquiry-box">
-            {inlineSubmitted ? (
-              <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>☕✨</div>
-                <h3 className="brand-inquiry-title">가맹 상담 신청이 접수되었습니다!</h3>
-                <p className="brand-inquiry-desc" style={{ marginBottom: '24px' }}>
-                  입력해 주신 연락처(<strong>{inlineForm.phone}</strong>)로 본사 가맹 담당자가
-                  창업 가이드북 및 상권 분석 자료와 함께 빠르게 연락드리겠습니다.
-                </p>
-                <button
-                  type="button"
-                  className="brand-btn-3d brand-btn-3d-red"
-                  style={{ margin: '0 auto' }}
-                  onClick={() => setInlineSubmitted(false)}
-                >
-                  추가 문의 작성하기
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="brand-inquiry-header">
-                  <h3 className="brand-inquiry-title">가맹 및 창업 상담 신청</h3>
-                  <p className="brand-inquiry-desc">
-                    창업 희망 지역과 연락처를 남겨주시면 예상 창업 비용 및 수익 분석서를 무료로 안내해 드립니다.
-                  </p>
-                </div>
-
-                <form onSubmit={handleInlineSubmit}>
-                  <div className="brand-form-grid">
-                    <div className="brand-form-group">
-                      <label className="brand-form-label" htmlFor="inline-name">
-                        성함 <span>*</span>
-                      </label>
-                      <input
-                        id="inline-name"
-                        type="text"
-                        required
-                        className="brand-form-input"
-                        placeholder="홍길동"
-                        value={inlineForm.name}
-                        onChange={(e) => setInlineForm({ ...inlineForm, name: e.target.value })}
-                      />
-                    </div>
-
-                    <div className="brand-form-group">
-                      <label className="brand-form-label" htmlFor="inline-phone">
-                        연락처 <span>*</span>
-                      </label>
-                      <input
-                        id="inline-phone"
-                        type="tel"
-                        required
-                        className="brand-form-input"
-                        placeholder="010-0000-0000"
-                        value={inlineForm.phone}
-                        onChange={(e) => setInlineForm({ ...inlineForm, phone: e.target.value })}
-                      />
-                    </div>
-
-                    <div className="brand-form-group">
-                      <label className="brand-form-label" htmlFor="inline-region">
-                        창업 희망 지역
-                      </label>
-                      <select
-                        id="inline-region"
-                        className="brand-form-select"
-                        value={inlineForm.region}
-                        onChange={(e) => setInlineForm({ ...inlineForm, region: e.target.value })}
-                      >
-                        <option value="서울">서울</option>
-                        <option value="경기/인천">경기 / 인천</option>
-                        <option value="대전/충청">대전 / 충청</option>
-                        <option value="부산/경남">부산 / 경남</option>
-                        <option value="대구/경북">대구 / 경북</option>
-                        <option value="광주/전라">광주 / 전라</option>
-                        <option value="기타">기타 지역</option>
-                      </select>
-                    </div>
-
-                    <div className="brand-form-group">
-                      <label className="brand-form-label" htmlFor="inline-timing">
-                        희망 창업 시기
-                      </label>
-                      <select
-                        id="inline-timing"
-                        className="brand-form-select"
-                        value={inlineForm.timing}
-                        onChange={(e) => setInlineForm({ ...inlineForm, timing: e.target.value })}
-                      >
-                        <option value="즉시">즉시 가능</option>
-                        <option value="3개월 이내">3개월 이내</option>
-                        <option value="6개월 이내">6개월 이내</option>
-                        <option value="올해 하반기">올해 하반기</option>
-                        <option value="시장조사 중">시장 조사 중</option>
-                      </select>
-                    </div>
-
-                    <div className="brand-form-group brand-form-group-full">
-                      <label className="brand-form-label" htmlFor="inline-message">
-                        문의 사항 (선택)
-                      </label>
-                      <textarea
-                        id="inline-message"
-                        className="brand-form-textarea"
-                        placeholder="희망 면적, 점포 유무, 창업 준비 자금 등 궁금하신 사항을 자유롭게 남겨주세요."
-                        value={inlineForm.message}
-                        onChange={(e) => setInlineForm({ ...inlineForm, message: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="brand-form-terms">
-                    <label className="brand-checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={inlineForm.agreed}
-                        onChange={(e) => setInlineForm({ ...inlineForm, agreed: e.target.checked })}
-                        required
-                      />
-                      <span>개인정보 수집 및 가맹 상담 안내를 위한 연락에 동의합니다. (필수)</span>
-                    </label>
-                  </div>
-
+            <form onSubmit={submit}>
+              <div className="interest-pills">
+                {interestOptions.map((option) => (
                   <button
-                    type="submit"
-                    className="brand-btn-3d brand-btn-3d-red brand-form-submit-btn"
-                    disabled={inlineSubmitting || !inlineForm.name || !inlineForm.phone || !inlineForm.agreed}
+                    type="button"
+                    key={option}
+                    className={selectedInterest === option ? 'selected' : ''}
+                    onClick={() => setSelectedInterest(option)}
                   >
-                    {inlineSubmitting ? '접수 처리 중...' : '가맹 상담 신청하기'}
+                    {option}
                   </button>
-                </form>
-              </>
-            )}
-          </div>
-        </div>
-      </section>
+                ))}
+              </div>
 
-      {/* 8. Brand Footer */}
-      <footer className="brand-footer">
-        <div className="brand-container">
-          <div className="brand-footer-top">
-            <div>
-              <div className="brand-footer-brand-title">
-                <img
-                  src={OFFICIAL_BRAND_ASSETS.logoBlackTori}
-                  alt="카툰플러스 공식 로고"
-                  className="brand-footer-logo-img"
+              <div className="form-grid">
+                <label>
+                  성명
+                  <input name="name" required placeholder="성함을 입력하세요" />
+                </label>
+                <label>
+                  연락처
+                  <input
+                    name="phone"
+                    required
+                    type="tel"
+                    placeholder="010-0000-0000"
+                  />
+                </label>
+
+                {type === 'franchise' && (
+                  <>
+                    <label>
+                      희망 지역
+                      <input
+                        name="region"
+                        required
+                        placeholder="예: 서울 마포구, 경기 성남시"
+                      />
+                    </label>
+                    <label>
+                      오픈 희망 시기
+                      <select name="schedule" defaultValue="">
+                        <option value="" disabled>
+                          희망 시기 선택
+                        </option>
+                        <option>3개월 이내</option>
+                        <option>6개월 이내</option>
+                        <option>1년 이내</option>
+                        <option>미정 / 상담 후 결정</option>
+                      </select>
+                    </label>
+                  </>
+                )}
+              </div>
+
+              <label className="message-label">
+                문의 내용
+                <textarea
+                  name="message"
+                  required
+                  rows={4}
+                  placeholder="궁금하신 내용이나 상담 희망 사항을 자유롭게 적어주세요."
                 />
-              </div>
-              <p className="brand-footer-brand-desc">
-                만화, 게임, 그리고 제대로 쉬는 시간.
-                <br />
-                복합 문화 휴식 공간 카툰플러스 공식 브랜드 사이트입니다.
+              </label>
+
+              <button
+                className="button button-primary submit-button"
+                type="submit"
+              >
+                문의 접수하기 <Send size={15} />
+              </button>
+
+              <p className="form-privacy">
+                제출하신 정보는 가맹 상담 및 문의 응대 목적으로만 안전하게 사용됩니다.
               </p>
-              <div style={{ color: '#9ca3af', fontSize: '13px', lineHeight: '1.8' }}>
-                <div>가맹 및 사업 제휴 문의: contact@cartoonplus.co.kr</div>
-                <div>대표 상담 전화: 02-882-9600</div>
-              </div>
-            </div>
-
-            <div>
-              <div className="brand-footer-col-title">지점 바로가기</div>
-              <ul className="brand-footer-links">
-                <li>
-                  <a href="/stores/snu">서울대입구역점 (도서 검색)</a>
-                </li>
-                <li>
-                  <a href="/stores/jamsil">잠실점 (도서 검색)</a>
-                </li>
-                <li>
-                  <a href="/stores/hongdae">홍대점 (도서 검색)</a>
-                </li>
-                <li>
-                  <a href="/books">전체 도서 검색</a>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <div className="brand-footer-col-title">공간 및 서비스</div>
-              <ul className="brand-footer-links">
-                <li>
-                  <a href="#experience" onClick={(e) => { e.preventDefault(); scrollToSection('experience'); }}>공간 경험 안내</a>
-                </li>
-                <li>
-                  <a href="#stores" onClick={(e) => { e.preventDefault(); scrollToSection('stores'); }}>가까운 지점 찾기</a>
-                </li>
-                <li>
-                  <a href="#franchise" onClick={(e) => { e.preventDefault(); scrollToSection('franchise'); }}>가맹 및 창업 안내</a>
-                </li>
-                <li>
-                  <a href="/staff">직원 콘솔 로그인</a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="brand-footer-bottom">
-            <div>© {new Date().getFullYear()} CartoonPlus. All rights reserved.</div>
-            <div>프리미엄 복합문화 만화카페 카툰플러스</div>
-          </div>
-        </div>
-      </footer>
-
-      {/* Franchise Modal */}
-      <FranchiseInquiryModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+            </form>
+          </>
+        )}
+      </div>
     </div>
   );
 }
