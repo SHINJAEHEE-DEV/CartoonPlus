@@ -35,17 +35,17 @@ const aPartMovedTitles = [
 ];
 
 const specificUpdates = {
-  '괴수8호': { shelf: '2', category: '판타지/무협' },
+  괴수8호: { shelf: '2', category: '판타지/무협' },
   '괴수 8호': { shelf: '2', category: '판타지/무협' },
   '스파이 패밀리': { shelf: '3', category: '일상/개그' },
   '옷소매 붉은 끝동': { shelf: '4', category: '웹툰' },
-  '카구라바치': { shelf: '4', category: '판타지/무협' },
+  카구라바치: { shelf: '4', category: '판타지/무협' },
   '아름다운 초저녁달': { shelf: '4', category: '로맨스/로판' },
   '반딧불이의 혼례': { shelf: '4', category: '로맨스/로판' },
   '손끝과 연연': { shelf: '5', category: '로맨스/로판' },
   '타몬군 지금 어느쪽': { shelf: '5', category: '로맨스/로판' },
   '사카모토 데이즈': { shelf: '5', category: '일상/개그' },
-  '주술회전': { shelf: '6', category: '액션/모험' },
+  주술회전: { shelf: '6', category: '액션/모험' },
   '나의 히어로 아카데미아': { shelf: '6', category: '액션/모험' },
 };
 
@@ -80,4 +80,6 @@ Object.entries(specificUpdates).forEach(([title, data]) => {
 sql += `\nend $$;\n`;
 
 fs.writeFileSync('supabase/migrations/20260918_sync_rearranged_inventory_part1.sql', sql, 'utf-8');
-console.log('Successfully written supabase/migrations/20260918_sync_rearranged_inventory_part1.sql');
+console.log(
+  'Successfully written supabase/migrations/20260918_sync_rearranged_inventory_part1.sql'
+);

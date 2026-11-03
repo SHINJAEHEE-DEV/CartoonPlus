@@ -96,8 +96,13 @@ function InternalLinkInterceptor() {
       )
         return;
 
-      // Allow external links or downloads to bypass
-      if (target.target === '_blank' || target.hasAttribute('download')) return;
+      // Allow external links, hash-only anchor links, or downloads to bypass
+      if (
+        target.target === '_blank' ||
+        target.hasAttribute('download') ||
+        target.getAttribute('href')?.startsWith('#')
+      )
+        return;
 
       event.preventDefault();
       navigate(destination.pathname + destination.search);

@@ -1074,138 +1074,20 @@ a { color: inherit; text-decoration: none; }
   margin-top: auto;
 }
 
-/* Safety DNA & Connected Loop (Section 5) */
-.safety-dna-showcase-card {
-  background: var(--brand-white);
-  border: 2px solid var(--brand-ink);
-  border-radius: 24px;
-  padding: 28px 26px;
-  box-shadow: 6px 6px 0 var(--brand-ink);
+/* Safety DNA Campaign & Connected Loop (Section 5) */
+.safety-ttori-card {
+  background: #FFFDF8;
 }
 
-.safety-dna-showcase-body {
-  display: grid;
-  grid-template-columns: 200px 1fr;
-  gap: 24px;
-  align-items: center;
-}
-
-.safety-dna-left-visual {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.safety-dna-speech-bubble {
-  position: relative;
-  border: 3px solid #2563eb;
-  border-radius: 999px;
-  background: var(--brand-white);
-  padding: 12px 18px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.12);
-  width: 100%;
-}
-
-.safety-dna-speech-bubble::after {
-  content: '';
-  position: absolute;
-  bottom: -11px;
-  left: 36px;
-  width: 16px;
-  height: 16px;
-  background: var(--brand-white);
-  border-right: 3px solid #2563eb;
-  border-bottom: 3px solid #2563eb;
-  transform: rotate(45deg);
-}
-
-.bubble-line-no {
-  font-size: 12.5px;
-  font-weight: 800;
-  color: var(--brand-ink);
-  letter-spacing: -0.02em;
-}
-
-.bubble-line-yes {
-  font-size: 13px;
-  font-weight: 900;
-  color: var(--brand-ink);
-  letter-spacing: -0.02em;
-}
-
-.bubble-line-yes em {
-  font-style: normal;
-  color: #2563eb;
-  font-weight: 900;
-  margin-right: 2px;
-}
-
-.safety-dna-mascot-img {
-  width: 136px;
-  height: auto;
+.safety-ttori-img {
+  width: 38px;
+  height: 38px;
   object-fit: contain;
-  display: block;
-  margin-top: 4px;
+  flex-shrink: 0;
 }
 
-.safety-dna-right-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.safety-dna-bullet-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.safety-dna-bullet-list li {
-  position: relative;
-  padding-left: 16px;
-  color: var(--brand-ink);
-  letter-spacing: -0.02em;
-}
-
-.safety-dna-bullet-list li strong {
-  display: block;
-  font-size: 14.5px;
-  font-weight: 800;
-  line-height: 1.35;
-  margin-bottom: 3px;
-  color: var(--brand-ink);
-}
-
-.safety-dna-bullet-list li span {
-  display: block;
-  font-size: 12.5px;
-  font-weight: 600;
-  line-height: 1.48;
-  color: #4b5563;
-}
-
-.safety-dna-bullet-list li::before {
-  content: '•';
-  position: absolute;
-  left: 0;
-  top: 0;
-  font-size: 18px;
-  font-weight: 900;
-  color: var(--brand-red);
-}
-
-.safety-dna-btn-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.safety-action-row {
+  justify-content: space-between;
 }
 
 .safety-dna-pill-btn {
@@ -1213,12 +1095,14 @@ a { color: inherit; text-decoration: none; }
   background: var(--brand-white);
   border: 2.5px solid var(--brand-yellow);
   border-radius: 12px;
-  padding: 10px 14px;
+  padding: 9px 14px;
   font-family: inherit;
   font-size: 13px;
   font-weight: 800;
   color: var(--brand-ink);
   cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
   box-shadow: 0 3px 0 #d9b300, 0 4px 8px rgba(0, 0, 0, 0.12);
   transition: transform 0.15s ease, background 0.15s ease;
 }
@@ -1226,35 +1110,6 @@ a { color: inherit; text-decoration: none; }
 .safety-dna-pill-btn:hover {
   background: #FFF9E6;
   transform: translateY(-1px);
-}
-
-.safety-dna-rules-drawer {
-  margin-top: 18px;
-  padding: 14px 16px;
-  background: #FFF9E6;
-  border: 1.5px solid var(--brand-ink);
-  border-radius: 12px;
-}
-
-.safety-dna-rules-drawer strong {
-  display: block;
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--brand-red);
-  margin-bottom: 6px;
-}
-
-.safety-dna-rules-drawer ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #333;
-  line-height: 1.5;
 }
 
 .loop-steps-vertical {
@@ -1977,7 +1832,7 @@ a { color: inherit; text-decoration: none; }
     overflow-y: auto !important;
     border-right: none !important;
     border-bottom: 2px solid var(--brand-ink) !important;
-    padding: 10px 14px 12px !important;
+    padding: 7px 12px 8px !important;
     box-sizing: border-box !important;
     display: flex !important;
     flex-direction: column !important;
@@ -1988,99 +1843,119 @@ a { color: inherit; text-decoration: none; }
     max-height: 50% !important;
     min-height: 0 !important;
     overflow-y: auto !important;
-    padding: 10px 14px 40px !important;
+    padding: 7px 12px 34px !important;
     box-sizing: border-box !important;
     display: flex !important;
     flex-direction: column !important;
   }
   .split-heading-block {
-    margin-bottom: 6px !important;
+    margin-bottom: 4px !important;
     flex-shrink: 0 !important;
   }
   .split-heading-block .eyebrow {
-    font-size: 9.5px !important;
-    margin-bottom: 2px !important;
+    font-size: 9px !important;
+    margin-bottom: 1px !important;
   }
   .split-heading-block h2 {
-    font-size: 1.18rem !important;
-    line-height: 1.2 !important;
+    font-size: 1.1rem !important;
+    line-height: 1.18 !important;
     margin-bottom: 2px !important;
   }
   .split-heading-block h2 br {
     display: none !important;
   }
   .split-desc {
-    font-size: 11px !important;
-    line-height: 1.32 !important;
-    margin-bottom: 4px !important;
+    font-size: 10.5px !important;
+    line-height: 1.28 !important;
+    margin-bottom: 3px !important;
     display: -webkit-box;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  /* 3. 두 가지 경험 카드 (만화카페 5키워드 / 중고만화책방 4특징) */
+  /* 3. 두 가지 경험 카드 (만화카페 5키워드 / 홍대 오프라인 중고만화책 판매점 4특징) */
   #experience .split-desc {
     display: none !important;
   }
   #experience .split-heading-block {
+    display: flex !important;
+    align-items: baseline !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
     margin-bottom: 4px !important;
+  }
+  #experience .split-heading-block .eyebrow {
+    order: 2 !important;
+    margin-bottom: 0 !important;
+    font-size: 8.5px !important;
+    opacity: 0.75 !important;
+    white-space: nowrap !important;
+  }
+  #experience .split-heading-block h2 {
+    order: 1 !important;
+    font-size: 1.05rem !important;
+    margin-bottom: 0 !important;
   }
   .exp-preview-card {
     padding: 0 !important;
     box-shadow: 2px 2px 0 var(--brand-ink) !important;
-    flex: 1 1 auto !important;
+    flex: 1 1 0% !important;
     min-height: 0 !important;
     display: flex !important;
     flex-direction: column !important;
     margin-top: 0 !important;
+    overflow: hidden !important;
   }
   .exp-keyword-tabs {
-    padding: 4px 6px !important;
+    padding: 3px 6px !important;
     gap: 4px !important;
+    flex: 0 0 auto !important;
     flex-shrink: 0 !important;
   }
   .exp-keyword-tab {
-    padding: 3px 7px !important;
-    font-size: 10px !important;
-  }
-  .exp-img-wrap {
-    flex: 1 1 auto !important;
-    height: auto !important;
-    min-height: 135px !important;
-    margin-bottom: 0 !important;
-  }
-  .exp-img-badge {
-    top: 6px !important;
-    left: 6px !important;
     padding: 2px 7px !important;
     font-size: 9.5px !important;
   }
+  .exp-img-wrap {
+    flex: 1 1 0% !important;
+    height: auto !important;
+    min-height: 60px !important;
+    margin-bottom: 0 !important;
+  }
+  .exp-img-badge {
+    top: 5px !important;
+    left: 6px !important;
+    padding: 2px 6px !important;
+    font-size: 9px !important;
+  }
   .exp-card-body {
-    padding: 6px 10px !important;
+    padding: 5px 8px !important;
     flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
     justify-content: flex-start !important;
   }
   .exp-card-body h3 {
-    font-size: 12.5px !important;
+    font-size: 11.5px !important;
+    line-height: 1.2 !important;
     margin-bottom: 1px !important;
     min-height: 0 !important;
   }
   .exp-card-body p {
-    font-size: 10.5px !important;
-    line-height: 1.25 !important;
-    margin-bottom: 5px !important;
+    font-size: 10px !important;
+    line-height: 1.22 !important;
+    margin-bottom: 4px !important;
     min-height: 0 !important;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
   .exp-card-body .hero-action-btn {
-    min-height: 26px !important;
-    height: 26px !important;
-    padding: 3px 10px !important;
-    font-size: 10.5px !important;
+    min-height: 22px !important;
+    height: 22px !important;
+    padding: 2px 8px !important;
+    font-size: 10px !important;
+    align-self: flex-start !important;
   }
   .exp-dots-indicator {
     display: none !important;
@@ -2091,59 +1966,82 @@ a { color: inherit; text-decoration: none; }
     display: none !important;
   }
   #stores .split-heading-block {
+    display: flex !important;
+    align-items: baseline !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
     margin-bottom: 4px !important;
+  }
+  #stores .split-heading-block .eyebrow {
+    order: 2 !important;
+    margin-bottom: 0 !important;
+    font-size: 8.5px !important;
+    opacity: 0.75 !important;
+    white-space: nowrap !important;
+  }
+  #stores .split-heading-block h2 {
+    order: 1 !important;
+    font-size: 1.05rem !important;
+    margin-bottom: 0 !important;
   }
   .store-filter-bar {
     gap: 4px !important;
     margin-bottom: 0 !important;
-    padding: 5px 8px !important;
+    padding: 3px 6px !important;
     background: #f8f8f8 !important;
     border-bottom: 1.5px solid var(--brand-ink) !important;
+    flex: 0 0 auto !important;
     flex-shrink: 0 !important;
   }
   .store-filter-btn {
-    padding: 3px 8px !important;
-    font-size: 10.5px !important;
+    padding: 2px 7px !important;
+    font-size: 10px !important;
   }
   .store-gallery-card {
     margin-bottom: 0 !important;
     box-shadow: 2px 2px 0 var(--brand-ink) !important;
-    flex: 1 1 auto !important;
+    flex: 1 1 0% !important;
     min-height: 0 !important;
     display: flex !important;
     flex-direction: column !important;
+    overflow: hidden !important;
   }
   .store-gallery-photo-wrap {
-    flex: 1 1 auto !important;
+    flex: 1 1 0% !important;
     height: auto !important;
-    min-height: 140px !important;
+    min-height: 60px !important;
   }
   .store-gallery-counter {
-    bottom: 6px !important;
-    right: 8px !important;
-    padding: 2px 7px !important;
-    font-size: 10px !important;
+    bottom: 5px !important;
+    right: 6px !important;
+    padding: 1px 6px !important;
+    font-size: 9.5px !important;
   }
   .store-gallery-info {
-    padding: 5px 10px !important;
+    padding: 4px 8px !important;
     flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
+  }
+  .store-gallery-info > div {
+    width: 100% !important;
+    min-width: 0 !important;
   }
   .store-gallery-title {
-    font-size: 12px !important;
+    font-size: 11.5px !important;
     display: inline !important;
-    margin-right: 6px !important;
+    margin-right: 5px !important;
   }
   .store-gallery-desc {
     margin: 0 !important;
-    font-size: 10.5px !important;
-    line-height: 1.25 !important;
+    font-size: 10px !important;
+    line-height: 1.2 !important;
     display: inline !important;
   }
   .store-gallery-details {
-    margin: 3px 0 0 !important;
-    padding-left: 13px !important;
-    font-size: 10px !important;
-    line-height: 1.22 !important;
+    margin: 2px 0 0 !important;
+    padding-left: 12px !important;
+    font-size: 9.5px !important;
+    line-height: 1.18 !important;
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 1px 6px !important;
@@ -2155,18 +2053,19 @@ a { color: inherit; text-decoration: none; }
     text-overflow: ellipsis !important;
   }
   .store-gallery-footer {
-    padding: 4px 8px !important;
+    padding: 3px 8px !important;
     flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
   }
   .store-thumb-btn {
-    width: 32px !important;
-    height: 22px !important;
+    width: 28px !important;
+    height: 20px !important;
   }
   .store-search-btn {
-    min-height: 25px !important;
-    height: 25px !important;
-    padding: 3px 8px !important;
-    font-size: 10.5px !important;
+    min-height: 22px !important;
+    height: 22px !important;
+    padding: 2px 8px !important;
+    font-size: 10px !important;
   }
 
   /* 4-우측: 도서 유통 수치 & 4단계 파이프라인 */
@@ -2232,84 +2131,20 @@ a { color: inherit; text-decoration: none; }
     padding: 4px 8px !important;
   }
 
-  /* 5. 여성 안전 DNA 카드 & 5단계 선순환 루프 모바일 최적화 */
+  /* 5. 여성 안심 구역 캠페인 & 5단계 선순환 루프 모바일 최적화 (좌·우 동일 레이아웃) */
   #loop .split-desc {
     display: none !important;
   }
-  .safety-dna-showcase-card {
-    padding: 10px 12px !important;
-    border-radius: 14px !important;
-    box-shadow: 3px 3px 0 var(--brand-ink) !important;
-    flex: 1 1 auto !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-  }
-  .safety-dna-showcase-body {
-    grid-template-columns: 96px 1fr !important;
-    gap: 10px !important;
-  }
-  .safety-dna-speech-bubble {
-    padding: 5px 6px !important;
-    border-width: 2px !important;
-  }
-  .safety-dna-speech-bubble::after {
-    width: 8px !important;
-    height: 8px !important;
-    bottom: -6px !important;
-    left: 18px !important;
-    border-right-width: 2px !important;
-    border-bottom-width: 2px !important;
-  }
-  .bubble-line-no,
-  .bubble-line-yes {
-    font-size: 8.5px !important;
-  }
-  .safety-dna-mascot-img {
-    width: 64px !important;
-  }
-  .safety-dna-right-content {
-    gap: 6px !important;
-  }
-  .safety-dna-bullet-list {
-    gap: 4px !important;
-  }
-  .safety-dna-bullet-list li {
-    padding-left: 10px !important;
-  }
-  .safety-dna-bullet-list li strong {
-    font-size: 11.5px !important;
-    margin-bottom: 1px !important;
-  }
-  .safety-dna-bullet-list li span {
-    font-size: 10px !important;
-    line-height: 1.25 !important;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .safety-dna-bullet-list li::before {
-    font-size: 12px !important;
-  }
-  .safety-dna-btn-row {
-    gap: 6px !important;
+  .safety-ttori-img {
+    width: 24px !important;
+    height: 24px !important;
   }
   .safety-dna-pill-btn {
-    padding: 5px 9px !important;
-    font-size: 10.5px !important;
-    border-radius: 8px !important;
-  }
-  .safety-dna-rules-drawer {
-    margin-top: 6px !important;
-    padding: 6px 8px !important;
-  }
-  .safety-dna-rules-drawer strong {
-    font-size: 10.5px !important;
-    margin-bottom: 2px !important;
-  }
-  .safety-dna-rules-drawer ul {
+    padding: 4px 8px !important;
     font-size: 10px !important;
+    border-radius: 7px !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
   }
 
   /* 5-우측: 5단계 선순환 루프 */

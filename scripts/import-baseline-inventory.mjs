@@ -137,4 +137,3 @@ await request('book_inventories?on_conflict=store_id,book_id', {
   ),
 });
 console.log(`Imported ${parsed.length} cleaned inventory records for 서울대입구역점.`);
-

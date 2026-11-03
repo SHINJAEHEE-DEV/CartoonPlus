@@ -1,12 +1,14 @@
-# 카툰플러스 데이터 모델
+# 카툰플러스 데이터 모델 (Data Model & Schema)
 
-## 기준과 범위
+## 1. 기준과 범위
 
-이 문서는 운영 데이터의 기준 문서다. 실제 스키마의 단일 기준은 `supabase/migrations/`이며, 이 문서는 2026-09-18 기준 migration을 사람이 검토·운영하기 쉽게 요약한다. 문서와 migration이 다르면 migration을 우선하고 이 문서를 즉시 고친다.
+- 본 문서는 카툰플러스 운영 데이터베이스의 표준 기준 문서임.
+- 실제 데이터베이스 스키마의 물리적 기준은 `supabase/migrations/`이며, 본 문서는 최신 마이그레이션(ADR-0001 ~ ADR-0010) 내역을 체계적으로 요약함.
+- **서울대입구역점(`snu`)**, **잠실점(`jamsil`)**, **홍대점(`hongdae`)** 3개 지점의 다지점 운영을 전면 지원하며, 지점별 URL 컨텍스트(`store_id`) 및 Supabase Row Level Security(RLS)를 통한 데이터 격리를 보장함.
 
-데이터 모델과 공개 고객 카탈로그는 여러 지점(서울대입구역점, 잠실점, 홍대점)을 지원한다. 고객 조회는 URL 지점 컨텍스트로 범위가 정해지고, CSV 업로드 및 단건 등록 RPC는 인증된 Staff 권한을 서버에서 재검증한다.
+---
 
-## 핵심 관계
+## 2. 핵심 엔티티 관계도 (ERD)
 
 ```mermaid
 erDiagram
@@ -21,46 +23,60 @@ erDiagram
     SCHEDULED_BROADCASTS ||--o{ BROADCAST_RUNS : records
 ```
 
-## 테이블
+---
 
-| 테이블                 | 목적                                      | 핵심 식별·제약                                                                                       |
-| ---------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `stores`               | 지점 마스터                               | UUID `id`, 고유 `slug`, `name`                                                                       |
-| `books`                | 지점과 독립적인 도서 메타데이터           | `(title, author)` 고유, 검색용 정규화·초성 컬럼, `archived_at`                                       |
-| `book_inventories`     | 지점별 도서 보유 권수·서가                | `(store_id, book_id)` 고유, `volume_range`, `last_volume`, `shelf_location`, `first_registered_at`; 삭제는 영구 처리 |
-| `staff_accounts`       | Supabase Auth 사용자와 연결된 직원 프로필 | `id`는 `auth.users(id)` FK, `login_id` 고유, `store_id` FK, 역할 `staff/admin`, 상태 `pending/approved/deactivated` |
-| `book_requests`        | 고객 희망 도서 신청                       | `store_id` NOT NULL FK, `status`: `received/ordered/completed/unavailable`; 연락처는 저장하지 않음    |
-| `store_content`        | 지점별 공개 콘텐츠 (요금제, 음료, 음식, 매장 정보) | `(store_id, content_key)` 고유, 값은 `jsonb` (`price_packages`, `beverage_items`, `food_items`, `store_info`) |
-| `entertainment_items`  | 게임·보드게임                             | `(store_id, item_type, title)` 고유, `quantity`, 실물 확인·이용 가능 상태                            |
-| `store_events`         | 지점별 이벤트                             | `(store_id, title)` 고유, 공개 여부, 상시 여부, 기간                                                 |
-| `broadcast_presets`    | 안내 방송 음성/문구                       | 지점 전용 또는 공통(`store_id` NULL), `source_type ('static'/'upload')`, `audio_url`, `hidden_at`   |
-| `scheduled_broadcasts` | 예약 방송                                 | 매일·요일·일회성, 활성화, 선택적 `broadcast_preset_id`; 삭제는 영구 처리                            |
-| `broadcast_runs`       | 방송 실행 감사 기록                       | 예약 참조(선택, 삭제 시 NULL), `pending/success/failure/missed/cancelled`, 오류 메시지               |
-| `broadcast_playback_leases` | 방송 담당 탭 임대                    | 지점당 한 행, 탭 식별자와 30초 만료 시각으로 중복 송출 방지                                         |
+## 3. 테이블 명세 (Tables Specification)
 
-## 접근 제어
+| 테이블                      | 목적                               | 핵심 식별자 및 제약조건                                                                                                                                      | 비고                                               |
+| :-------------------------- | :--------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------- |
+| `stores`                    | 매장 마스터 정보                   | UUID `id` (PK), `slug` (고유, `snu`/`jamsil`/`hongdae`), `name`                                                                                              | 3개 지점 운영                                      |
+| `books`                     | 지점 독립적 공통 도서 메타데이터   | `(title, author)` 복합 고유, `normalized_title`, `initial_consonants` (초성 검색용), `archived_at`                                                           | 지점 간 공유 도서 카탈로그                         |
+| `book_inventories`          | 지점별 도서 보유 권수 및 서가 위치 | `(store_id, book_id)` 복합 고유 (PK), `volume_range`, `last_volume`, `shelf_location`, `first_registered_at`                                                 | 도서 삭제 시 영구 삭제 처리 (복구 미지원)          |
+| `staff_accounts`            | Supabase Auth 연동 직원 프로필     | `id` (FK `auth.users(id)`), `login_id` (고유), `store_id` (FK), `role` (`staff`/`admin`), `status` (`pending`/`approved`/`deactivated`), `phone_last_digits` | 이메일 미수집, 승인제 운영                         |
+| `book_requests`             | 고객 비회원 희망도서 입고 신청     | `id` (PK), `store_id` (NOT NULL FK), `title`, `author`, `genre`, `memo`, `status` (`received`/`ordered`/`completed`/`unavailable`)                           | 고객 개인정보 일체 미수집                          |
+| `store_content`             | 지점별 메뉴, 요금제 및 시설 정보   | `(store_id, content_key)` 복합 고유 (PK), `content_data` (JSONB: `price_packages`, `beverage_items`, `food_items`, `store_info`)                             | 지점별 인라인 편집 지원                            |
+| `entertainment_items`       | 게임 팩 및 보드게임 카탈로그       | `(store_id, item_type, title)` 복합 고유, `quantity`, `is_verified` (실물 검증 여부)                                                                         | 미검증 시 고객 화면 '점검 중' 처리                 |
+| `store_events`              | 매장 진행 이벤트                   | `(store_id, title)` 복합 고유, `is_published`, `is_always`, `start_date`, `end_date`, `badge_text`, `image_url`                                              | 종료일 익일 자동 숨김 처리                         |
+| `broadcast_presets`         | 안내 방송 음원 및 프리셋 문구      | `id` (PK), `store_id` (Nullable FK, NULL 시 전 지점 공통), `source_type` (`static`/`upload`), `audio_url`, `hidden_at`                                       | 6종 정적 음원 및 3MB 이하 커스텀 음성              |
+| `scheduled_broadcasts`      | 정기/일회성 안내 방송 스케줄       | `id` (PK), `store_id` (FK), `preset_id` (FK), `schedule_type` (`daily`/`weekly`/`once`), `time_of_day`, `days_of_week`, `is_active`                          | 비로그인 카운터 PC에서도 스케줄 평가               |
+| `broadcast_runs`            | 안내 방송 실행 감사 로그           | `id` (PK), `scheduled_broadcast_id` (Nullable FK), `store_id` (FK), `status` (`pending`/`success`/`failure`/`missed`/`cancelled`), `triggered_at`            | 7일 롤링 보존 (트리거로 7일 경과 레코드 자동 삭제) |
+| `broadcast_playback_leases` | 지점별 방송 담당 탭 중복 방지 임대 | `store_id` (PK), `lease_holder_id`, `expires_at` (30초 단위 갱신)                                                                                            | 여러 브라우저 탭 간 중복 송출 방지                 |
 
-RLS가 모든 운영 테이블에서 접근 기준을 강제한다.
+---
 
-- 고객은 공개된 도서 카탈로그, 검증·이용 가능한 게임, 공개·기간 유효 이벤트, 메뉴 및 공개 매장 콘텐츠만 읽는다.
-- 고객은 제목이 비어 있지 않은 도서 신청만 작성할 수 있다. 개인정보 연락처는 수집하지 않는다.
-- `approved` 일반 직원은 `staff_accounts.store_id`와 같은 지점의 재고·신청·콘텐츠·게임·이벤트·메뉴·방송만 관리한다.
-- `admin`은 전체 지점을 관리하고 직원 계정 목록, 승인·비활성화, 임시 비밀번호 발급을 추가로 수행한다.
+## 4. 접근 제어 및 보안 정책 (Row Level Security)
 
-## 지점 컨텍스트
+PostgreSQL RLS 기반 인가(Authorization) 정책 적용:
 
-고객과 직원 화면은 URL의 지점 `slug`를 현재 지점 컨텍스트로 사용한다. 모든 지점 종속 조회·쓰기는 이 컨텍스트의 `store_id`로 필터링한다. 임의의 브라우저 위치 추정이나 여러 지점의 콘텐츠를 한 화면에 섞는 방식은 사용하지 않는다. 상세 결정은 ADR-0005를 따른다.
+1. **고객 (Guest / `anon`)**:
+   - 도서 카탈로그(`books`, `book_inventories`), 검증 완료 게임(`entertainment_items`), 공개 이벤트(`store_events`), 메뉴/매장 콘텐츠(`store_content`) 조회(SELECT) 가능.
+   - 도서 입고 신청(`book_requests`) 등록(INSERT) 가능 (개인정보 미수집).
+   - 비로그인 안내 방송 송출 지원을 위한 `broadcast_presets`, `scheduled_broadcasts` 조회 및 `broadcast_playback_leases`, `broadcast_runs` RPC/INSERT 허용 ([ADR-0010](docs/adr/0010-unauthenticated-broadcast-and-7day-retention.md)).
+2. **승인 직원 (Staff / `authenticated` & `approved`)**:
+   - 소속 지점(`staff_accounts.store_id`) 데이터 한정 CRUD 권한 부여.
+   - 타 지점 데이터 쓰기/수정/삭제 시도 차단.
+3. **최고 관리자 (Admin / `role = 'admin'`)**:
+   - 전 지점 데이터 통합 관리 권한 보유.
+   - 직원 가입 승인/반려, 계정 비활성화, 임시 비밀번호 발급(`admin_reset_staff_password` RPC) 수행.
 
-## 재고 가져오기 규칙
+---
 
-서울대입구역점 CSV는 Caspio 형식(`title`, `number`, `genre`, `author`)을 사용한다. 잠실점 CSV는 서가 형식(`a_`, `a___`)으로, 한 `a___` 값의 `//` 묶음을 개별 제목으로 나눈다. 홍대점 CSV는 `a_`(제목 묶음), `a_1`(서가), `a_2`(장르) 형식으로 `//` 또는 권수 뒤에 오며 다음 제목이 숫자로 시작하지 않는 단일 `/` 구분자를 개별 제목으로 나눈다. 제목 자체의 `/`와 괄호 표기는 원문으로 보존한다. 모든 형식에서 끝의 공백+숫자만 권수로 분리해 `1~N권`으로 저장하고 서가 번호를 유지한다. 잠실 형식에서 숫자 뒤 괄호 표기처럼 권수와 제목을 확정할 수 없는 항목은 업로드 전에 운영자 검토 대상으로 중단한다.
+## 5. 지점별 CSV 재고 파싱 및 업서트 규칙
 
-가져오기는 인증된 지점 권한을 서버에서 재검증한다. 잠실·홍대 형식은 `upsert_inventory_for_store`의 명시적 대상 Store ID로만 반영하며, 일반 Staff가 다른 지점 데이터를 변경할 수 없다. 같은 지점·같은 도서는 중복 생성하지 않으며, CSV에 없는 기존 재고를 자동 삭제하지 않는다.
+| 지점                       | CSV 포맷 구조                                              | 파싱 및 분리 규칙                                                                                                  |
+| :------------------------- | :--------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
+| **서울대입구역점 (`snu`)** | Caspio 표준 포맷<br>(`title`, `number`, `genre`, `author`) | `title + author` 기준 도서 매칭, `number`에서 권수 범위 추출(`1~N권` 포맷 변환).                                   |
+| **잠실점 (`jamsil`)**      | 서가/도서명 묶음 포맷<br>(`a_`, `a___`)                    | `a___` 컬럼 내 `//` 구분자로 도서 분리, 끝부분 `공백 + 숫자`를 권수로 분리. 모호한 표기는 수동 검토 대상으로 중단. |
+| **홍대점 (`hongdae`)**     | 복합 구분자 포맷<br>(`a_`, `a_1`, `a_2`)                   | `a_` 컬럼에서 `//` 및 단일 `/` 구분자로 개별 도서 분리. 도서명 자체 슬래시/괄호 원문 유지.                         |
 
-이번 주 2개 지점 추가 작업의 목표는 **CSV 업로드 성공과 중복 검증**이다. 고객 검색·직원 로그인·현장 표본 확인을 마치면 각 지점의 공개 운영을 승인한다.
+- **가져오기 처리 원칙**:
+  - `upsert_inventory_for_store` RPC를 통해 호출 직원의 소속 지점 ID 검증 후 배치 반영.
+  - 동일 지점·동일 도서 중복 생성 방지(Upsert 처리), CSV 미기재 기존 도서 안전 보존(자동 삭제 방지).
 
-## 변경 관리
+---
 
-- 스키마 변경은 새 migration으로만 추가한다. 이미 적용된 migration을 수정하지 않는다.
-- 새 지점 공개 범위는 URL 지점 컨텍스트와 직원 소속 권한까지 구현·검증한 뒤에만 연다.
-- 용어는 루트 `CONTEXT.md`를 따른다.
+## 6. 마이그레이션 관리 원칙
+
+- 신규 스키마 변경 시 `supabase/migrations/` 내 타임스탬프 기반 신규 SQL 파일 추가.
+- 배포 완료된 기존 마이그레이션 파일의 임의 수정 및 삭제 금지.
+- 데이터 모델 명세서(`docs/DATA_MODEL.md`)와 마이그레이션 스키마의 실시간 정합성 유지.

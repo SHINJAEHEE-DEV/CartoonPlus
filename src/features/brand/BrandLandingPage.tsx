@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type SVGProps } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { OFFICIAL_BRAND_ASSETS } from '../../lib/brandAssets';
+import { MASCOT_ASSETS, OFFICIAL_BRAND_ASSETS } from '../../lib/brandAssets';
 import './brandLanding.css';
 
 // Lightweight inline SVG icons to prevent external dependency bloat
@@ -44,9 +44,6 @@ const Menu = (props: IconProps) => (
 );
 const Instagram = (props: IconProps) => (
   <IconBase {...props}><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></IconBase>
-);
-const Youtube = (props: IconProps) => (
-  <IconBase {...props}><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" /><polygon points="10 15 15 12 10 9 10 15" /></IconBase>
 );
 
 type InquiryType = 'franchise' | 'partnership' | 'store';
@@ -108,33 +105,33 @@ const CAFE_EXPERIENCES = [
 const BOOKSTORE_EXPERIENCES = [
   {
     id: 'shelf',
-    keyword: '오프라인 서가',
-    title: '홍대 플래그십 직영 서가',
-    desc: '홍대 매장에서 직접 운영하여 실물 도서를 직접 확인하고 둘러볼 수 있는 전문 서점.',
-    badge: '홍대 오프라인 매장',
+    keyword: '홍대 직영 매장',
+    title: '홍대 플래그십 오프라인 판매점',
+    desc: '홍대 매장에서 직접 운영하는 오프라인 중고만화 판매점으로, 실물 도서를 직접 확인하고 현장 구매할 수 있습니다.',
+    badge: '홍대 오프라인 판매점',
     image: '/assets/brand/exp_book_shelf.jpg',
   },
   {
     id: 'collection',
     keyword: '135,000권 보유',
-    title: '135,000권 방대한 컬렉션',
-    desc: '절판본, 레어작부터 최신 완결 세트까지 총 135,000여 권의 방대한 중고 만화 데이터베이스.',
-    badge: '총 135,000권 보유',
+    title: '135,000권 단행본 · 완결 세트',
+    desc: '절판 명작과 인기 단행본부터 최신 완결 세트까지 총 135,000여 권 규모의 중고만화 컬렉션을 취급합니다.',
+    badge: '총 135,000권 규모',
     image: '/assets/brand/exp_book_collection.jpg',
   },
   {
     id: 'quality',
     keyword: '실물 품질 검수',
     title: '철저한 권별 실물 상태 검수',
-    desc: '매장 전문 인력이 권별 변색, 오염, 파손 여부를 직접 확인하고 세트 구성과 보관 상태를 관리.',
+    desc: '매장 전문 인력이 권별 변색, 오염, 파손 여부를 직접 확인하고 세트 구성과 보관 상태를 관리합니다.',
     badge: '권별 실물 상태 검수',
     image: '/assets/brand/exp_book_quality.jpg?v=2',
   },
   {
     id: 'sync',
-    keyword: '온·오프 동일 운영',
-    title: '온·오프라인 동일 운영',
-    desc: '홍대 매장 현장 구매와 온라인 쇼핑몰(bookis.store)의 재고와 가격이 실시간 100% 동일 연동.',
+    keyword: '현장 · 온라인 연동',
+    title: '현장 구매 & 온라인 실시간 연동',
+    desc: '홍대 오프라인 판매점 현장 구매와 온라인 쇼핑몰(bookis.store)의 재고와 가격이 동일하게 연동됩니다.',
     badge: '온·오프라인 동일 연동',
     image: '/assets/brand/exp_book_store.jpg',
   },
@@ -252,7 +249,6 @@ export function BrandLandingPage() {
   const [heroBookBgIndex, setHeroBookBgIndex] = useState(0);
   const [cafeExpIndex, setCafeExpIndex] = useState(0);
   const [bookExpIndex, setBookExpIndex] = useState(0);
-  const [safetyRulesOpen, setSafetyRulesOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
 
   useReveal();
@@ -768,13 +764,13 @@ export function BrandLandingPage() {
           {/* Right: 중고만화책방 (홍대점 직영 오프라인 서점 슬라이더) */}
           <div className="split-col-right">
             <div className="split-heading-block" data-reveal>
-              <p className="eyebrow">04 / ONLINE &amp; OFFLINE</p>
+              <p className="eyebrow">04 / HONGDAE OFFLINE BOOKSTORE</p>
               <h2>
-                당신의 인생 만화를<br />
-                <em>다시 만나다.</em>
+                홍대 오프라인<br />
+                <em>중고만화책 판매점</em>
               </h2>
               <p className="split-desc">
-                홍대 플래그십 매장에서 직접 운영하는 오프라인 서점과 온라인 쇼핑몰을 통해 소장의 가치를 전합니다.
+                홍대 플래그십 매장에서 직접 운영하는 오프라인 중고만화 전문 판매점입니다. 실물 상태를 직접 확인하고 현장에서 바로 소장하세요.
               </p>
             </div>
 
@@ -936,86 +932,76 @@ export function BrandLandingPage() {
 
         {/* 5. Safety DNA & Connected Loop (50:50 Dual Track) */}
         <section className="split-section-5050" id="loop" data-section="loop">
-          {/* Left: 여성 안전 DNA */}
+          {/* Left: 여성 안전 DNA 캠페인 (우측 5단계 루프와 동일한 가로형 스택 구조) */}
           <div className="split-col-left">
             <div className="split-heading-block" data-reveal>
-              <p className="eyebrow">06 / WOMEN SAFETY DNA</p>
+              <p className="eyebrow">&lt;Campaign&gt; DNA of Women&apos;s Safety</p>
               <h2>
-                안심하고 즐기는 공간,<br />
-                <em>여성 안전 DNA</em> 🛡️
+                카툰플러스 캠페인.<br />
+                <em>여성 안심 구역</em> 🛡️
               </h2>
               <p className="split-desc">
-                추상적인 구호 대신 현장에서 24시간 작동하는 구체적 안심 절차로, 혼자 방문하는 여성 고객과 심야 이용객의 안전한 휴식을 지킵니다.
+                여성 안심을 최우선으로 하는 여성 안심 구역 지정 매장입니다.
               </p>
             </div>
 
-            {/* 여성 안전 DNA 메인 카드 */}
-            <div className="safety-dna-showcase-card" data-reveal>
-              <div className="safety-dna-showcase-body">
-                {/* 좌측: 말풍선 + 마스코트 */}
-                <div className="safety-dna-left-visual">
-                  <div className="safety-dna-speech-bubble">
-                    <span className="bubble-line-no">과장된 안전 슬로건 대신</span>
-                    <span className="bubble-line-yes">
-                      <em>→</em> 24시간 현장 안심 수칙 가동
-                    </span>
-                  </div>
-                  <img
-                    src="/assets/brand/safety_mascot.png"
-                    alt="여성 안전 DNA 안내 마스코트"
-                    loading="lazy"
-                    decoding="async"
-                    className="safety-dna-mascot-img"
-                  />
-                </div>
-
-                {/* 우측: 3대 실제 운영 절차 + 하단 버튼 2종 */}
-                <div className="safety-dna-right-content">
-                  <ul className="safety-dna-bullet-list">
-                    <li>
-                      <strong>자리에서 바로 연결되는 도움 요청</strong>
-                      <span>불편 상황 발생 시 이동하지 않고 좌석 비상벨 호출 및 카운터 직통 연결로 즉시 도움을 요청할 수 있습니다.</span>
-                    </li>
-                    <li>
-                      <strong>24시간 CCTV 관제 · 정기 순찰 · 출입 관리</strong>
-                      <span>매장 전 구역 사각지대 없는 실시간 CCTV 모니터링과 상주 직원 정기 순찰, 심야 출입 관리를 상시 시행합니다.</span>
-                    </li>
-                    <li>
-                      <strong>모바일 원클릭 비대면 도움 요청 창구</strong>
-                      <span>직접 말하기 어려운 상황에서도 모바일 화면에서 즉시 카운터에 알리고 안전 수칙을 확인할 수 있습니다.</span>
-                    </li>
-                  </ul>
-
-                  <div className="safety-dna-btn-row">
-                    <button
-                      type="button"
-                      className="safety-dna-pill-btn"
-                      onClick={() => setModal('store')}
-                    >
-                      매장에 문의하기 📞
-                    </button>
-                    <button
-                      type="button"
-                      className="safety-dna-pill-btn"
-                      aria-expanded={safetyRulesOpen}
-                      onClick={() => setSafetyRulesOpen((prev) => !prev)}
-                    >
-                      안전 이용 수칙 보기 📋
-                    </button>
-                  </div>
+            <div className="loop-steps-vertical" data-reveal>
+              {/* 상단: 또리 이미지 + 캠페인 지정 안내 */}
+              <div className="loop-step-card safety-ttori-card">
+                <img
+                  src={MASCOT_ASSETS.reading}
+                  alt="카툰플러스 마스코트 또리"
+                  loading="lazy"
+                  decoding="async"
+                  className="safety-ttori-img"
+                />
+                <div className="loop-step-content">
+                  <strong>여성 안심 구역 지정 (DNA of women&apos;s safety)</strong>
+                  <span>여성 안심 최우선 카페 · 전 매장 3대 안전 시스템 상시 운영</span>
                 </div>
               </div>
 
-              {safetyRulesOpen && (
-                <div className="safety-dna-rules-drawer">
-                  <strong>카툰플러스 안전 이용 수칙 &amp; 비상시 도움 요청 안내</strong>
-                  <ul>
-                    <li>• <b>좌석 비상 호출</b>: 각 룸 및 부스 내 비상벨 또는 매장 직통 번호로 호출 시 상주 직원이 즉시 좌석으로 출동합니다.</li>
-                    <li>• <b>비대면 모바일 도움 요청</b>: 소란을 피하고 싶거나 직접 이동이 어려울 때 ‘매장에 문의하기’ 또는 네이버 톡톡으로 좌석 번호를 남겨주세요.</li>
-                    <li>• <b>심야 시간대 집중 순찰</b>: 24시간 운영 매장(홍대점 등)은 심야 시간대 복도·토굴방·공용 구역 정기 순찰 및 출입 관리를 강화합니다.</li>
-                  </ul>
+              {/* 1. 긴급 대응 체계 */}
+              <div className="loop-step-card">
+                <span className="loop-step-idx">01</span>
+                <div className="loop-step-content">
+                  <strong>긴급 대응 체계</strong>
+                  <span>경찰 112 즉시 신고 · 에스원 5분 이내 출동 · 관리소 24시간 순찰</span>
                 </div>
-              )}
+              </div>
+
+              {/* 2. 보안 장비 운영 */}
+              <div className="loop-step-card">
+                <span className="loop-step-idx">02</span>
+                <div className="loop-step-content">
+                  <strong>보안 장비 운영</strong>
+                  <span>매장 전역 CCTV 상시 작동 · 출입구 AI 자동 감시 카메라 설치·운영</span>
+                </div>
+              </div>
+
+              {/* 3. 심야시간(22시 이후) 출입 규정 */}
+              <div className="loop-step-card accent">
+                <span className="loop-step-idx">03</span>
+                <div className="loop-step-content">
+                  <strong>심야시간(22시 이후) 출입 규정</strong>
+                  <span>전원 신분증 검사 · 미성년 및 미지참 성인 입장 불가 · 불응 시 경찰 통보</span>
+                </div>
+              </div>
+
+              {/* 하단: 안심 서약 및 매장 문의 버튼 */}
+              <div className="loop-step-card safety-action-row">
+                <div className="loop-step-content">
+                  <strong>고객 안전·안심 수호 약속</strong>
+                  <span>언제나 고객님의 안전과 안심을 지켜드리겠습니다.</span>
+                </div>
+                <button
+                  type="button"
+                  className="safety-dna-pill-btn"
+                  onClick={() => setModal('store')}
+                >
+                  매장에 문의하기 📞
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1263,9 +1249,34 @@ export function BrandLandingPage() {
           <div className="footer-links">
             <div>
               <span className="footer-label">EXPLORE</span>
-              <a href="#experience">공간과 경험</a>
-              <a href="#stores">지점 안내</a>
-              <a href="/books">도서 검색</a>
+              <a
+                href="#three-j"
+                onClick={(e) => {
+                  e.preventDefault();
+                  jump('three-j');
+                }}
+              >
+                3J 철학
+              </a>
+              <a
+                href="#experience"
+                onClick={(e) => {
+                  e.preventDefault();
+                  jump('experience');
+                }}
+              >
+                공간과 경험
+              </a>
+              <a
+                href="#stores"
+                onClick={(e) => {
+                  e.preventDefault();
+                  jump('stores');
+                }}
+              >
+                지점 안내
+              </a>
+              <a href="/books">매장 도서 검색</a>
             </div>
             <div>
               <span className="footer-label">CONTACT</span>
@@ -1284,8 +1295,11 @@ export function BrandLandingPage() {
               <a href="https://www.instagram.com/cartoonplus_cafe/" target="_blank" rel="noopener noreferrer">
                 <Instagram size={15} /> Instagram
               </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer">
-                <Youtube size={15} /> Youtube
+              <a href="https://bookis.store/cartoon" target="_blank" rel="noopener noreferrer">
+                중고만화책 쇼핑몰 ↗
+              </a>
+              <a href="https://www.daangn.com/kr/business-post/uqq46fy3y5u4/" target="_blank" rel="noopener noreferrer">
+                당근 비즈니스 ↗
               </a>
             </div>
           </div>

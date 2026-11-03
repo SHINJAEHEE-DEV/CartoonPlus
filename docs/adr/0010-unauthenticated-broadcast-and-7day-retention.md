@@ -23,6 +23,7 @@
 ## 2. 결정 사항 (Decisions & Architecture)
 
 ### 1) 비로그인 전역 안내 방송 스케줄러 지원
+
 - `<GlobalBroadcastService />`를 `App.tsx`의 최상위 `<BrowserRouter>` 레벨로 이동하여, **비로그인 고객/매장 화면에서도 상시 무중단 구동**.
 - **방송 대상 지점 식별**:
   - URL 경로에 지점이 지정된 경우(예: `/stores/snu/*`, `/stores/jamsil/*` 등) 해당 지점의 스케줄을 우선 로드.
@@ -32,6 +33,7 @@
   - `claim_broadcast_playback_lease` RPC 및 `broadcast_runs` INSERT/UPDATE를 익명(`anon`) 사용자에게도 안전하게 허용하여 비로그인 브라우저에서도 Lease 획득 및 실행 결과 로깅 지원.
 
 ### 2) 방송 실행 이력 7일 롤링 보존 및 기존 데이터 전면 정리
+
 - **기존 누적 데이터 즉시 비움**: 마이그레이션을 통해 기존 `broadcast_runs` 테이블의 누적 레코드를 전면 정리(TRUNCATE).
 - **7일 경과 기록 자동 일괄 삭제**:
   - 신규 실행 기록 삽입 시 또는 스케줄러 동작 시 `triggered_at < NOW() - INTERVAL '7 days'`인 과거 레코드를 자동으로 삭제하는 PostgreSQL 트리거/함수 적용.

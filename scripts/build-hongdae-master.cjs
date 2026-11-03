@@ -62,7 +62,9 @@ if (fs.existsSync('public/data/jamsil-inventory.csv')) {
     });
 }
 
-console.log(`Loaded ${snuMasterMap.size} SNU titles and ${jamsilMasterMap.size} validated Jamsil titles.`);
+console.log(
+  `Loaded ${snuMasterMap.size} SNU titles and ${jamsilMasterMap.size} validated Jamsil titles.`
+);
 
 // 2. Comprehensive Author & Genre Dictionary
 const KNOWN_AUTHORS_GENRES = {
@@ -378,7 +380,10 @@ const KNOWN_AUTHORS_GENRES = {
   강호패도기: { author: '오치아이 유스케', genre: '판타지/무협' },
   위치헌터: { author: '조정만', genre: '판타지/무협' },
   팬텀버스터즈: { author: '네오 쇼코', genre: '액션/모험' },
-  도쿄리벤저스바지케이스케로부터의편지: { author: '나츠카와 유키노리/와쿠이 켄', genre: '액션/모험' },
+  도쿄리벤저스바지케이스케로부터의편지: {
+    author: '나츠카와 유키노리/와쿠이 켄',
+    genre: '액션/모험',
+  },
   '3월의라이온': { author: '우미노 치카', genre: '드라마/스포츠/SF' },
   헤이세이폴리스맨: { author: '이나바 미노루', genre: '일상/개그' },
   '100억의사나이': { author: '쿠니토모 야스유키', genre: '드라마/스포츠/SF' },
@@ -528,7 +533,9 @@ function splitTitles(text) {
     const cleanP = p.trim().replace(/^[\/\s]+|[\/\s]+$/g, '');
     if (!cleanP) return;
 
-    const subParts = cleanP.split(/(?<!\b(?:1|스위치 1|란마 1|천사 1|Fate))\s*\/\s*(?!(?:2\b|stay\b))/ui);
+    const subParts = cleanP.split(
+      /(?<!\b(?:1|스위치 1|란마 1|천사 1|Fate))\s*\/\s*(?!(?:2\b|stay\b))/iu
+    );
     subParts.forEach((sp) => {
       const trimmed = sp.trim().replace(/^[\/\s]+|[\/\s]+$/g, '');
       if (trimmed) result.push(trimmed);
@@ -562,7 +569,9 @@ hLines.forEach((line) => {
       title = '스위치 1/2';
     } else {
       // Check attached digits like '3월의 라이온.18' or '바키31' or 'K2. 14' or 'title 12'
-      const attachedMatch = /^(바키|w네임|도쿄 리벤저스 ~바지 케이스케로부터의 편지)(\d+)$/u.exec(t);
+      const attachedMatch = /^(바키|w네임|도쿄 리벤저스 ~바지 케이스케로부터의 편지)(\d+)$/u.exec(
+        t
+      );
       if (attachedMatch) {
         title = attachedMatch[1].trim();
         lastVolume = parseInt(attachedMatch[2], 10);

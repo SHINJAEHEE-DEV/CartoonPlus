@@ -52,16 +52,16 @@ flowchart TB
 
 ## 2. 기술 스택 요약 (Tech Stack)
 
-| 구분                   | 기술 / 라이브러리                  | 적용 목적 및 설명                                                       |
-| :--------------------- | :--------------------------------- | :---------------------------------------------------------------------- |
-| **Frontend Framework** | `React 18`, `TypeScript`           | 안정적인 타입 시스템과 컴포넌트 기반 UI 개발                            |
-| **Build & Bundler**    | `Vite` + `Node.js SSG Generator`   | 초고속 HMR 및 20개 공개/지점별 경로 사전 HTML 렌더링 (SSG)              |
-| **Routing**            | `React Router v6` (History API)    | 손님용 / 직원용 / 관리자용 라우트 제어 및 `/stores/:slug` 딥링크 지원    |
-| **Styling & Icons**    | `Tailwind CSS`, `Lucide React`     | 유틸리티 퍼스트 CSS를 통한 반응형 디자인 및 직관적 아이콘셋             |
-| **Backend & DB**       | `Supabase` (PostgreSQL 15+)        | RDBMS, 행 단위 보안(RLS), Stored Procedures(RPC), 실시간 인증           |
-| **Auth**               | `Supabase Auth`                    | 직원/관리자 인증 (아이디를 내부 가상 이메일로 투명 변환, 지점별 권한)  |
-| **Testing**            | `Vitest`, `Testing Library`        | 핵심 유틸리티(검색, 스케줄러, CSV 파서) 및 UI 컴포넌트 단위/통합 테스트 |
-| **Voice / Broadcast**  | `HTMLAudioElement` & `Voice Assets`| 고음질 정적 안내 음원(.wav/.mp3) 및 업로드 음성 기반 매장 자동 방송 엔진 |
+| 구분                   | 기술 / 라이브러리                   | 적용 목적 및 설명                                                        |
+| :--------------------- | :---------------------------------- | :----------------------------------------------------------------------- |
+| **Frontend Framework** | `React 18`, `TypeScript`            | 안정적인 타입 시스템과 컴포넌트 기반 UI 개발                             |
+| **Build & Bundler**    | `Vite` + `Node.js SSG Generator`    | 초고속 HMR 및 20개 공개/지점별 경로 사전 HTML 렌더링 (SSG)               |
+| **Routing**            | `React Router v6` (History API)     | 손님용 / 직원용 / 관리자용 라우트 제어 및 `/stores/:slug` 딥링크 지원    |
+| **Styling & Icons**    | `Tailwind CSS`, `Lucide React`      | 유틸리티 퍼스트 CSS를 통한 반응형 디자인 및 직관적 아이콘셋              |
+| **Backend & DB**       | `Supabase` (PostgreSQL 15+)         | RDBMS, 행 단위 보안(RLS), Stored Procedures(RPC), 실시간 인증            |
+| **Auth**               | `Supabase Auth`                     | 직원/관리자 인증 (아이디를 내부 가상 이메일로 투명 변환, 지점별 권한)    |
+| **Testing**            | `Vitest`, `Testing Library`         | 핵심 유틸리티(검색, 스케줄러, CSV 파서) 및 UI 컴포넌트 단위/통합 테스트  |
+| **Voice / Broadcast**  | `HTMLAudioElement` & `Voice Assets` | 고음질 정적 안내 음원(.wav/.mp3) 및 업로드 음성 기반 매장 자동 방송 엔진 |
 
 ---
 
@@ -79,7 +79,7 @@ flowchart TB
 ### 3.2. 백엔드 및 데이터베이스 (Supabase BaaS)
 
 - **리전**: AWS 아시아 태평양 (서울 / `ap-northeast-2`)
-- **보안 격리**: PostgreSQL의 **Row-Level Security (RLS)** 기능을 활용하여 클라이언트에서 직접 쿼리하되, 권한 없는 데이터 변조를 원천 차단.
+- **보안 격리**: PostgreSQL의 **Row-Level Security (RLS)** 기능을 활용하여 클라이언트에서 직접 쿼리하되, 권한 없는 데이터 변조를 DB 레벨에서 차단.
 - **RPC 함수**: `upsert_inventory_for_store`, `apply_for_staff_account` 등 복합 비즈니스 로직 및 권한 검증을 서버사이드 Stored Procedure로 처리.
 
 ---
