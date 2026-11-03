@@ -69,7 +69,16 @@ export function BookRequestForm({
         </div>
 
         {isSuccess ? (
-          <div style={{ textAlign: 'center', padding: '24px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '24px 12px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '14px',
+            }}
+          >
             <img
               src={MASCOT_ASSETS.reading}
               alt=""
@@ -78,7 +87,15 @@ export function BookRequestForm({
             <div style={{ fontSize: '20px', fontWeight: 900, color: '#FED943' }}>
               입고 신청이 완료되었습니다!
             </div>
-            <p style={{ fontSize: '14px', fontWeight: 600, color: '#FFF9EC', maxWidth: '440px', lineHeight: 1.6 }}>
+            <p
+              style={{
+                fontSize: '14px',
+                fontWeight: 600,
+                color: '#FFF9EC',
+                maxWidth: '440px',
+                lineHeight: 1.6,
+              }}
+            >
               {message}
               <br />
               개인정보는 보관되지 않으며, 매장 직원이 도서 발주 시 우선적으로 확인합니다.
@@ -246,7 +263,6 @@ export function BookRequestForm({
               />
             </div>
 
-
             <button
               type="submit"
               disabled={isSubmitting}
@@ -300,4 +316,3 @@ export function BookRequestForm({
     </div>
   );
 }
-

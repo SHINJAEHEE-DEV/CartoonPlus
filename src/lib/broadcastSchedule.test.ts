@@ -59,7 +59,9 @@ describe('isScheduledForDate', () => {
   const tuesday = new Date('2026-09-08T10:00:00');
 
   it('matches daily schedules on any date', () => {
-    expect(isDue({ scheduleType: 'daily', targetTime: '10:00', isEnabled: true }, tuesday)).toBe(true);
+    expect(isDue({ scheduleType: 'daily', targetTime: '10:00', isEnabled: true }, tuesday)).toBe(
+      true
+    );
   });
 
   it('matches weekday schedules based on local weekday', () => {
@@ -86,4 +88,3 @@ describe('isScheduledForDate', () => {
     ).toBe(true);
   });
 });
-

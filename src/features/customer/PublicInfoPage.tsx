@@ -4,7 +4,6 @@ import { MASCOT_ASSETS, getStorePhotos, getStaticStoreGames } from '../../lib/br
 import { usePublicStore } from '../../lib/storeContext';
 import {
   ManagedEvent,
-  INITIAL_EVENTS,
   getBannerImageUrl,
   loadManagedEvents,
 } from '../../lib/eventRepository';
@@ -215,7 +214,9 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
         } else if (kind === 'events') {
           const { data } = await client
             .from('store_events')
-            .select('id,title,content,is_always_on,is_featured,tag,target,banner_type,image_url,start_date,end_date,store_slug')
+            .select(
+              'id,title,content,is_always_on,is_featured,tag,target,banner_type,image_url,start_date,end_date,store_slug'
+            )
             .or(`store_slug.eq.${selectedStore.slug},store_slug.is.null`)
             .eq('is_public', true)
             .is('archived_at', null)

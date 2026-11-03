@@ -101,8 +101,7 @@ const routes = [
   {
     path: '/stores/hongdae/events',
     title: '홍대점 이벤트 | 카툰플러스',
-    description:
-      '카툰플러스 홍대점에서 진행 중인 다양한 이벤트와 혜택을 확인하세요.',
+    description: '카툰플러스 홍대점에서 진행 중인 다양한 이벤트와 혜택을 확인하세요.',
   },
   {
     path: '/stores/jamsil/games',
@@ -113,24 +112,37 @@ const routes = [
   {
     path: '/stores/hongdae/games',
     title: '홍대점 게임 목록 | 카툰플러스',
-    description:
-      '카툰플러스 홍대점 구비 닌텐도 스위치, PS4 콘솔 및 인기 보드게임 목록입니다.',
+    description: '카툰플러스 홍대점 구비 닌텐도 스위치, PS4 콘솔 및 인기 보드게임 목록입니다.',
   },
   {
     path: '/stores/jamsil/store',
     title: '잠실점 안내 | 카툰플러스',
-    description:
-      '카툰플러스 잠실점 위치, 찾아오시는 길, 영업시간, 주차 및 이용 안내.',
+    description: '카툰플러스 잠실점 위치, 찾아오시는 길, 영업시간, 주차 및 이용 안내.',
   },
   {
     path: '/stores/hongdae/store',
     title: '홍대점 안내 | 카툰플러스',
-    description:
-      '카툰플러스 홍대점 위치, 찾아오시는 길, 영업시간, 주차 및 이용 안내.',
+    description: '카툰플러스 홍대점 위치, 찾아오시는 길, 영업시간, 주차 및 이용 안내.',
+  },
+  {
+    path: '/stores/snu/books',
+    title: '서울대입구역점 도서 검색 | 카툰플러스',
+    description: '카툰플러스 서울대입구역점 보유 만화·웹툰 도서 재고 및 서가 위치 실시간 검색.',
+  },
+  {
+    path: '/stores/jamsil/books',
+    title: '잠실점 도서 검색 | 카툰플러스',
+    description: '카툰플러스 잠실점 보유 만화·웹툰 도서 재고 및 서가 위치 실시간 검색.',
+  },
+  {
+    path: '/stores/hongdae/books',
+    title: '홍대점 도서 검색 | 카툰플러스',
+    description: '카툰플러스 홍대 24시간 플래그십 45,000권 도서 재고 및 서가 위치 실시간 검색.',
   },
 ];
 
 async function generateSSG() {
+  const domain = 'https://cartoonplus.co.kr';
   const indexPath = path.join(DIST_DIR, 'index.html');
   let baseHtml;
   try {
@@ -143,9 +155,20 @@ async function generateSSG() {
   for (const route of routes) {
     const routeDir = path.join(DIST_DIR, route.path.slice(1));
     await fs.mkdir(routeDir, { recursive: true });
+    const canonicalUrl = `${domain}${route.path}`;
 
     // Replace Title
     let routeHtml = baseHtml.replace(/<title>.*?<\/title>/s, `<title>${route.title}</title>`);
+
+    // Replace Canonical & OG URL
+    routeHtml = routeHtml.replace(
+      /<link\s+rel="canonical"\s+href="[^"]*"/s,
+      `<link rel="canonical" href="${canonicalUrl}"`
+    );
+    routeHtml = routeHtml.replace(
+      /<meta\s+property="og:url"\s+content="[^"]*"/s,
+      `<meta property="og:url" content="${canonicalUrl}"`
+    );
 
     // Replace Descriptions
     routeHtml = routeHtml.replace(
@@ -177,7 +200,6 @@ async function generateSSG() {
   }
 
   // Generate sitemap.xml
-  const domain = 'https://snu.cartoonplus.co.kr'; // Replace with actual domain if known, assuming a canonical format
   const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>${domain}/</loc></url>

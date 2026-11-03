@@ -9,14 +9,7 @@ export interface ManagedEvent {
   target: string;
   detail: string;
   bannerType:
-    | 'weekday'
-    | 'naver_ramen'
-    | 'snu'
-    | 'nanta'
-    | 'peach_pit'
-    | 'otamaker'
-    | 'mommom'
-    | 'custom';
+    'weekday' | 'naver_ramen' | 'snu' | 'nanta' | 'peach_pit' | 'otamaker' | 'mommom' | 'custom';
   customBannerUrl?: string;
   startDate?: string;
   endDate?: string;
@@ -130,7 +123,9 @@ export async function uploadEventImage(file: File): Promise<{ url?: string; erro
   if (!supabase) return { error: '서버 연결을 확인할 수 없습니다.' };
   const extension = file.name.split('.').pop()?.toLowerCase() || 'png';
   const path = `events/${crypto.randomUUID()}.${extension}`;
-  const { error } = await supabase.storage.from('event-images').upload(path, file, { upsert: false });
+  const { error } = await supabase.storage
+    .from('event-images')
+    .upload(path, file, { upsert: false });
   if (error) return { error: error.message };
   return { url: supabase.storage.from('event-images').getPublicUrl(path).data.publicUrl };
 }
@@ -186,7 +181,9 @@ export async function syncEventsWithSupabase(storeSlug?: EventStoreSlug): Promis
   try {
     let query = supabase
       .from('store_events')
-      .select('id, title, content, start_date, end_date, image_url, is_public, is_always_on, is_featured, tag, target, banner_type, created_at, store_slug')
+      .select(
+        'id, title, content, start_date, end_date, image_url, is_public, is_always_on, is_featured, tag, target, banner_type, created_at, store_slug'
+      )
       .is('archived_at', null)
       .order('created_at', { ascending: false });
 
@@ -234,8 +231,13 @@ export async function saveEventToSupabase(
 
   let storeId: string | null = null;
   if (event.storeSlug && event.storeSlug !== 'all') {
-    const { data, error } = await supabase.from('stores').select('id').eq('slug', event.storeSlug).maybeSingle();
-    if (error || !data) return { success: false, error: error?.message ?? '지점 정보를 찾을 수 없습니다.' };
+    const { data, error } = await supabase
+      .from('stores')
+      .select('id')
+      .eq('slug', event.storeSlug)
+      .maybeSingle();
+    if (error || !data)
+      return { success: false, error: error?.message ?? '지점 정보를 찾을 수 없습니다.' };
     storeId = data.id;
   }
   const payload: Record<string, unknown> = {
@@ -349,6 +351,8 @@ export function getFeaturedEvent(
   if (firstActive) return firstActive;
 
   // 4. 공개 이벤트 중 fallback
-  const firstPublic = list.find((ev) => ev.isPublic && (!storeSlug || isEventMatchingStore(ev, storeSlug)));
+  const firstPublic = list.find(
+    (ev) => ev.isPublic && (!storeSlug || isEventMatchingStore(ev, storeSlug))
+  );
   return firstPublic || INITIAL_EVENTS[1] || INITIAL_EVENTS[0];
 }

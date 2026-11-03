@@ -1,21 +1,7 @@
 // CartoonPlus 정적 에셋 경로 상수
 
 export const OFFICIAL_BRAND_ASSETS = {
-  logoBlackTori: '/assets/brand/logo_black_tori.png',
-  logoBlack: '/assets/brand/logo_black.png',
-  logoRedShadow: '/assets/brand/logo_red_shadow.png',
   logoRed: '/assets/brand/logo_red.png',
-  logoPixel: '/assets/brand/logo_pixel.png',
-  cartoonLogo: '/assets/brand/cartoon_logo.png',
-  toriBasic: '/assets/brand/tori_basic.png',
-  toriBook: '/assets/brand/tori_book.png',
-  toriGaming: '/assets/brand/tori_gaming.png',
-  toriRamen: '/assets/brand/tori_ramen.png',
-  toriRelax: '/assets/brand/tori_relax.png',
-  toriHead: '/assets/brand/tori_head.png',
-  toriPixel: '/assets/brand/tori_pixel.png',
-  toriPixelBook: '/assets/brand/tori_pixel_book.png',
-  toriPixelRelax: '/assets/brand/tori_pixel_relax.png',
 } as const;
 
 export const MASCOT_ASSETS = {
@@ -27,16 +13,6 @@ export const MASCOT_ASSETS = {
   gaming: '/assets/mascot/mascot_gaming.png',
   massage: '/assets/mascot/mascot_massage.png',
   ott: '/assets/mascot/mascot_ott.png',
-  frontPeek: '/assets/mascot/mascot_front_peek.png',
-  sunglasses: '/assets/mascot/mascot_sunglasses.png',
-} as const;
-
-export const STORE_PHOTOS = {
-  photo1: '/assets/store_photos/snu/snu_01.jpg',
-  photo2: '/assets/store_photos/snu/snu_02.jpg',
-  photo3: '/assets/store_photos/snu/snu_03.jpg',
-  photo01: '/assets/store_photos/jamsil/jamsil_01.jpg',
-  photo02: '/assets/store_photos/hongdae/hongdae_01.jpg',
 } as const;
 
 export type StorePhotoSet = {
@@ -53,7 +29,7 @@ export const STORE_PHOTOS_BY_SLUG: Record<string, StorePhotoSet> = {
   },
   jamsil: {
     photo1: '/assets/store_photos/jamsil/jamsil_01.jpg',
-    photo2: '/assets/store_photos/jamsil/jamsil_02.png',
+    photo2: '/assets/store_photos/jamsil/jamsil_02.jpg',
     photo3: '/assets/store_photos/jamsil/jamsil_03.jpg',
   },
   hongdae: {
@@ -73,7 +49,6 @@ export function getStorePhotos(storeSlug?: string): StorePhotoSet {
 export const EVENT_BANNERS = {
   weekday: '/assets/events/event_weekday_pass.svg',
   naverRamen: '/assets/events/event_naver_ramen_coupon.svg',
-  naverReview: '/assets/events/naver_review_banner.svg',
   snu: '/assets/banners/snu_partnership_banner.png',
   nanta: '/assets/events/event_nanta_hongdae.jpg',
   peachPit: MASCOT_ASSETS.reading,

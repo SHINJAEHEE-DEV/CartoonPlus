@@ -7,13 +7,28 @@ import { BrandLandingPage } from './BrandLandingPage';
 afterEach(cleanup);
 
 describe('brand inquiries', () => {
-  it('explains that inquiries cannot be submitted through the site', async () => {
+  it('opens tailored input modals for franchise, partnership, and store inquiries', async () => {
     render(<MemoryRouter><BrandLandingPage /></MemoryRouter>);
-    await userEvent.click(screen.getByRole('button', { name: '가맹 및 창업 상담 신청' }));
-    const dialog = screen.getByRole('dialog', { name: '가맹 상담 신청' });
-    expect(dialog.textContent).toContain('홈페이지 문의 접수를 준비 중입니다');
-    expect(dialog.querySelector('form')).toBeNull();
-    expect(screen.getByRole('link', { name: /공식 인스타그램/ }).getAttribute('href')).toBe('https://www.instagram.com/cartoonplus_cafe/');
+
+    // 1. 가맹 상담 신청 모달
+    await userEvent.click(screen.getAllByRole('button', { name: /가맹 및 창업 상담 신청/ })[0]);
+    const franchiseDialog = screen.getByRole('dialog', { name: '가맹 상담 신청' });
+    expect(franchiseDialog.querySelector('form')).not.toBeNull();
+    expect(franchiseDialog.textContent).toContain('희망 창업 지역');
+    await userEvent.click(screen.getByRole('button', { name: '문의 창 닫기' }));
+
+    // 2. 제휴 및 협업 문의 모달
+    await userEvent.click(screen.getByRole('button', { name: /제휴 및 협업 문의/ }));
+    const partnerDialog = screen.getByRole('dialog', { name: '제휴 및 협업 문의' });
+    expect(partnerDialog.querySelector('form')).not.toBeNull();
+    expect(partnerDialog.textContent).toContain('제안 제목');
+    await userEvent.click(screen.getByRole('button', { name: '문의 창 닫기' }));
+
+    // 3. 매장 이용 및 안심 문의 모달
+    await userEvent.click(screen.getByRole('button', { name: /매장에 문의하기/ }));
+    const storeDialog = screen.getByRole('dialog', { name: '매장 이용 및 안심 문의' });
+    expect(storeDialog.querySelector('form')).not.toBeNull();
+    expect(storeDialog.textContent).toContain('방문 지점 선택');
   });
 });
 

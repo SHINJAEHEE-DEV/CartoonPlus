@@ -84,7 +84,9 @@ describe('staff login account selection', () => {
 
   it('passes storeSlug when applying for staff', async () => {
     const rpcMock = vi.fn().mockResolvedValue({ error: null });
-    const signUpMock = vi.fn().mockResolvedValue({ data: { user: { id: 'new-user' } }, error: null });
+    const signUpMock = vi
+      .fn()
+      .mockResolvedValue({ data: { user: { id: 'new-user' } }, error: null });
 
     const testSupabase = await import('../../lib/supabase');
     (testSupabase.supabase as any).auth.signUp = signUpMock;

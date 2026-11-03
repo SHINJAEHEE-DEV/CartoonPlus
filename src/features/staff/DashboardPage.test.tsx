@@ -7,9 +7,7 @@ const selectedStoreId = vi.hoisted(() => ({ value: 'd6d4a587-f4c0-4ad1-94a6-4de4
 const bookRequestsQuery = {
   select: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
-  then: vi.fn((resolve: (val: unknown) => void) =>
-    resolve({ count: 3, data: null, error: null })
-  ),
+  then: vi.fn((resolve: (val: unknown) => void) => resolve({ count: 3, data: null, error: null })),
 };
 
 const broadcastsQuery = {
@@ -94,6 +92,8 @@ describe('DashboardPage', () => {
     expect(await screen.findByText('3건')).toBeTruthy();
     expect(await screen.findByText('1건')).toBeTruthy();
     expect(await screen.findByText('2종')).toBeTruthy();
-    expect(screen.queryByText('운영 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.')).toBeNull();
+    expect(
+      screen.queryByText('운영 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.')
+    ).toBeNull();
   });
 });

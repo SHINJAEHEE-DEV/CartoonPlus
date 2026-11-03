@@ -1,7 +1,6 @@
 import { describe, expect, it, vi, beforeAll, afterAll } from 'vitest';
 import {
   getFeaturedEvent,
-  loadManagedEvents,
   isEventMatchingStore,
   type ManagedEvent,
 } from './eventRepository';
@@ -98,8 +97,9 @@ describe('eventRepository', () => {
   });
 
   it('handles saveEventToSupabase and deleteEventFromSupabase gracefully when offline/no storeId', async () => {
-    const { saveEventToSupabase, deleteEventFromSupabase, syncEventsWithSupabase } = await import('./eventRepository');
-    
+    const { saveEventToSupabase, deleteEventFromSupabase, syncEventsWithSupabase } =
+      await import('./eventRepository');
+
     // With undefined storeId, should gracefully return success
     const saveResult = await saveEventToSupabase(testEvents[0]);
     expect(saveResult.success).toBe(false);

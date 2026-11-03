@@ -46,7 +46,9 @@ export function getPublicStore(slug: string | undefined): PublicStore | undefine
 export function getPreferredPublicStore(): PublicStore {
   if (typeof window !== 'undefined') {
     try {
-      const saved = getPublicStore(localStorage.getItem(CUSTOMER_STORE_PREFERENCE_KEY) ?? undefined);
+      const saved = getPublicStore(
+        localStorage.getItem(CUSTOMER_STORE_PREFERENCE_KEY) ?? undefined
+      );
       if (saved) return saved;
     } catch {
       // Storage can be unavailable in private or embedded browsers.

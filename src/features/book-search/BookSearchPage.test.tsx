@@ -47,7 +47,6 @@ describe('BookSearchPage', () => {
     expect(screen.getByText('나츠메 우인장')).toBeTruthy();
   });
 
-
   it('offers a book request modal with the entered title when there are no results', () => {
     render(<BookSearchPage books={books} />);
 
@@ -74,4 +73,3 @@ describe('BookSearchPage', () => {
     expect(screen.getByRole('dialog', { name: '도서 입고 신청' })).toBeTruthy();
   });
 });
-

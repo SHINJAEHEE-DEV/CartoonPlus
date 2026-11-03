@@ -84,7 +84,8 @@ export function AdminAccountsPage() {
           <div className="section-kicker">ADMINISTRATION · {currentStore.name}</div>
           <h1 className="section-title">직원 계정 관리</h1>
           <p style={{ margin: '6px 0 0 0', fontSize: '14px', color: '#6B6354', fontWeight: 600 }}>
-            카툰플러스 전 지점 카운터 및 매니저 계정의 가입 승인, 권한 설정, 비밀번호 재발급을 관리합니다.
+            카툰플러스 전 지점 카운터 및 매니저 계정의 가입 승인, 권한 설정, 비밀번호 재발급을
+            관리합니다.
           </p>
         </div>
         <button
@@ -278,7 +279,14 @@ export function AdminAccountsPage() {
                     </div>
 
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          flexWrap: 'wrap',
+                        }}
+                      >
                         <strong style={{ fontSize: '15px', color: '#1E1E1E' }}>{a.name}</strong>
                         <span
                           style={{

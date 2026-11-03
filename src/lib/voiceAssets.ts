@@ -84,12 +84,21 @@ export const DEFAULT_STATIC_PRESETS: readonly BroadcastPresetItem[] = [
   },
 ];
 
-
 export function canRegisterUploadedPreset(activeUploadedPresetCount: number): boolean {
   return activeUploadedPresetCount < MAX_UPLOAD_PRESETS_PER_STORE;
 }
 
-const SUPPORTED_AUDIO_EXTENSIONS = ['.mp3', '.wav', '.m4a', '.aac', '.ogg', '.webm', '.flac', '.opus', '.wma'];
+const SUPPORTED_AUDIO_EXTENSIONS = [
+  '.mp3',
+  '.wav',
+  '.m4a',
+  '.aac',
+  '.ogg',
+  '.webm',
+  '.flac',
+  '.opus',
+  '.wma',
+];
 
 export function validateVoiceAssetUpload(file: File): string | null {
   const fileName = file.name.toLowerCase();

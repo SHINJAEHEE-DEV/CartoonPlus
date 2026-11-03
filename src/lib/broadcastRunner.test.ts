@@ -26,7 +26,7 @@ vi.mock('./supabase', () => ({
       if (table === 'broadcast_presets') {
         return {
           select: vi.fn(() => ({
-            eq: vi.fn((col: string, val: string) => {
+            eq: vi.fn((_col: string, val: string) => {
               if (val === 'preset-uuid-123') {
                 return {
                   single: vi.fn(async () => ({

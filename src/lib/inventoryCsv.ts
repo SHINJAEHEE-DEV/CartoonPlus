@@ -22,7 +22,9 @@ export function splitTitleAndLastVolume(value: string): { title: string; volumeR
   if (!trimmed) return { title: '', volumeRange: '' };
 
   // Handle special attached digits like '바키31' or 'w네임2'
-  const attachedMatch = /^(바키|w네임|도쿄 리벤저스 ~바지 케이스케로부터의 편지)(\d+)$/u.exec(trimmed);
+  const attachedMatch = /^(바키|w네임|도쿄 리벤저스 ~바지 케이스케로부터의 편지)(\d+)$/u.exec(
+    trimmed
+  );
   if (attachedMatch) {
     return { title: attachedMatch[1].trim(), volumeRange: `1~${attachedMatch[2]}권` };
   }
@@ -128,7 +130,9 @@ function splitHongdaeTitles(text: string): string[] {
     const cleanP = p.trim().replace(/^[\/\s]+|[\/\s]+$/g, '');
     if (!cleanP) return;
 
-    const subParts = cleanP.split(/(?<!\b(?:1|스위치 1|란마 1|천사 1|Fate))\s*\/\s*(?!(?:2\b|stay\b))/ui);
+    const subParts = cleanP.split(
+      /(?<!\b(?:1|스위치 1|란마 1|천사 1|Fate))\s*\/\s*(?!(?:2\b|stay\b))/iu
+    );
     subParts.forEach((sp) => {
       const trimmed = sp.trim().replace(/^[\/\s]+|[\/\s]+$/g, '');
       if (trimmed) result.push(trimmed);
@@ -190,7 +194,6 @@ export function parseBaselineInventory(csv: string): SearchableBook[] {
       const author = row['작가']?.trim() ?? '';
       const genre = row['목표장르']?.trim() ?? row['기존장르']?.trim() ?? '';
       const moved = row['이동여부']?.trim().toLowerCase() === 'o';
-      const targetArea = row['목표구역']?.trim() ?? '';
       const detailLoc = row['세부위치']?.trim() ?? '';
       const shelf = row['기존서가']?.trim() ?? '';
 

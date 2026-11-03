@@ -90,7 +90,7 @@ export function GamesPage() {
       item_type: newType,
       players: newPlayers,
       genre: newGenre,
-      };
+    };
     setItems((prev) => [newItem, ...prev]);
     setMessage(`'${newTitle}' 게임을 검증 목록에 추가했습니다.`);
     e.currentTarget.reset();
@@ -138,7 +138,8 @@ export function GamesPage() {
           <div className="section-kicker">GAME VERIFICATION & INVENTORY · {currentStore.name}</div>
           <h1 className="section-title">게임 실물 검증 및 비치 현황</h1>
           <p style={{ margin: '6px 0 0 0', fontSize: '14px', color: '#6B6354', fontWeight: 600 }}>
-            {currentStore.name} 실물 비치 닌텐도 스위치, PlayStation, 보드게임 수량 및 공개 상태를 관리합니다.
+            {currentStore.name} 실물 비치 닌텐도 스위치, PlayStation, 보드게임 수량 및 공개 상태를
+            관리합니다.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>

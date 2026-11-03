@@ -9,7 +9,7 @@ import {
 } from '../../lib/bookSearch';
 import { Pagination } from '../common/Pagination';
 import { usePageTitle } from '../../lib/usePageTitle';
-import { storePath, usePublicStore } from '../../lib/storeContext';
+import { usePublicStore } from '../../lib/storeContext';
 import { BookRequestModal } from '../book-request/BookRequestModal';
 
 type BookSearchPageProps = {
@@ -20,7 +20,7 @@ type BookSearchPageProps = {
 const PAGE_SIZE = 18;
 
 export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps) {
-  const { store, scoped } = usePublicStore();
+  const { store } = usePublicStore();
   usePageTitle('도서 검색');
   const [query, setQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('전체');
@@ -45,7 +45,6 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
     const matchedStandards = STANDARD_BOOK_GENRES.filter((genre) => existingGenres.has(genre));
     return ['전체', ...matchedStandards];
   }, [books]);
-
 
   const filteredBooks = useMemo(() => {
     let result = books;
@@ -224,11 +223,7 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
       {/* 입고 신청 퀵 배너 카드 (가시성 강화) */}
       <section className="book-request-cta-banner" aria-label="도서 입고 신청 안내">
         <div className="book-request-cta-banner-content">
-          <img
-            src={MASCOT_ASSETS.thinking}
-            alt=""
-            className="book-request-cta-banner-icon"
-          />
+          <img src={MASCOT_ASSETS.thinking} alt="" className="book-request-cta-banner-icon" />
           <div>
             <div className="book-request-cta-banner-title">
               찾으시는 도서가 없으신가요? 1분만에 입고 신청하기
@@ -470,7 +465,14 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
                   >
                     {book.title}
                   </h2>
-                  <p style={{ fontSize: '12px', fontWeight: 600, color: '#6B6354', marginTop: '2px' }}>
+                  <p
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: '#6B6354',
+                      marginTop: '2px',
+                    }}
+                  >
                     {book.author || '작가 미표기'}
                   </p>
                 </div>
@@ -575,4 +577,3 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
     </div>
   );
 }
-

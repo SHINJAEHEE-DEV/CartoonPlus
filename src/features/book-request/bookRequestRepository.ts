@@ -50,7 +50,8 @@ export async function submitBookRequest(
 
     return { success: true };
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : '도서 입고 신청 처리 중 오류가 발생했습니다.';
+    const message =
+      err instanceof Error ? err.message : '도서 입고 신청 처리 중 오류가 발생했습니다.';
     return { success: false, error: message };
   }
 }

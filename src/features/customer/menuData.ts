@@ -57,7 +57,12 @@ export function normalizeBeverageCategory(subCategory: string): string {
   ) {
     return 'Fruit Juice';
   }
-  if (upper === 'SMOOTHIE' || trimmed === '스무디/생과일' || trimmed === '스무디' || trimmed === '요거트스무디') {
+  if (
+    upper === 'SMOOTHIE' ||
+    trimmed === '스무디/생과일' ||
+    trimmed === '스무디' ||
+    trimmed === '요거트스무디'
+  ) {
     return 'SMOOTHIE';
   }
   if (upper === 'SHAKE' || trimmed === '쉐이크') return 'SHAKE';

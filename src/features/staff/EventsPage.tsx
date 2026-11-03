@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import {
   loadManagedEvents,
-  saveManagedEvents,
   getBannerImageUrl,
   syncEventsWithSupabase,
   saveEventToSupabase,
@@ -269,7 +268,10 @@ export function EventsPage() {
   // 삭제 (Delete)
   const handleDelete = async (id: string, eventTitle: string) => {
     if (window.confirm("'" + eventTitle + "' 이벤트를 정말로 삭제하시겠습니까?")) {
-      const result = await deleteEventFromSupabase(id, events.find((event) => event.id === id)?.customBannerUrl);
+      const result = await deleteEventFromSupabase(
+        id,
+        events.find((event) => event.id === id)?.customBannerUrl
+      );
       if (!result.success) {
         setMessage(result.error ?? '이벤트를 삭제하지 못했습니다.');
         return;
@@ -305,7 +307,9 @@ export function EventsPage() {
       }
       return ev;
     });
-    const result = await Promise.all(updated.filter((event) => event.storeSlug === targetStore).map(saveEventToSupabase));
+    const result = await Promise.all(
+      updated.filter((event) => event.storeSlug === targetStore).map(saveEventToSupabase)
+    );
     const failure = result.find((entry) => !entry.success);
     if (failure) return setMessage(failure.error ?? '대표 이벤트를 저장하지 못했습니다.');
     setEvents(await syncEventsWithSupabase('all'));
@@ -331,7 +335,9 @@ export function EventsPage() {
     const result = await saveEventToSupabase(copy);
     if (!result.success) return setMessage(result.error ?? '이벤트 사본을 저장하지 못했습니다.');
     setEvents(await syncEventsWithSupabase('all'));
-    setMessage(`'${source.title}' 이벤트를 복사했습니다. [${currentStore.name}] 비공개 초안으로 생성되었습니다.`);
+    setMessage(
+      `'${source.title}' 이벤트를 복사했습니다. [${currentStore.name}] 비공개 초안으로 생성되었습니다.`
+    );
     setTimeout(() => setMessage(''), 4000);
   };
 
@@ -350,8 +356,7 @@ export function EventsPage() {
 
   const customerEventsUrl =
     selectedStoreSlug === 'snu' ? '/events' : `/stores/${selectedStoreSlug}/events`;
-  const customerHomeUrl =
-    selectedStoreSlug === 'snu' ? '/' : `/stores/${selectedStoreSlug}`;
+  const customerHomeUrl = selectedStoreSlug === 'snu' ? '/' : `/stores/${selectedStoreSlug}`;
 
   return (
     <main
@@ -383,7 +388,8 @@ export function EventsPage() {
             이벤트 & 프로모션 관리
           </h1>
           <p style={{ fontSize: '13px', fontWeight: 600, color: '#6B6354', marginTop: '4px' }}>
-            지점별 단독 행사 및 전 지점 공통 이벤트를 분리 등록하고, 매장별 대표 추천 이벤트를 설정합니다.
+            지점별 단독 행사 및 전 지점 공통 이벤트를 분리 등록하고, 매장별 대표 추천 이벤트를
+            설정합니다.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
@@ -497,7 +503,13 @@ export function EventsPage() {
           >
             <div>
               <label
-                style={{ display: 'block', fontSize: '12px', fontWeight: 900, marginBottom: '6px', color: '#8A6A00' }}
+                style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 900,
+                  marginBottom: '6px',
+                  color: '#8A6A00',
+                }}
               >
                 🏢 적용 대상 매장 *
               </label>
@@ -796,7 +808,9 @@ export function EventsPage() {
                       }}
                     >
                       <option value="weekday">평일 종일권 (15,000원 + 젤라또/라면 무료)</option>
-                      <option value="naver_ramen">네이버 영수증 리뷰 (라면무료+토핑무료 쿠폰)</option>
+                      <option value="naver_ramen">
+                        네이버 영수증 리뷰 (라면무료+토핑무료 쿠폰)
+                      </option>
                       <option value="snu">2026 서울대학교 공식 제휴 배너 (서울대점 전용)</option>
                       <option value="nanta">난타 홍대극장 X 카툰플러스 특별 패키지 (홍대점)</option>
                       <option value="peach_pit">PEACH-PIT 25주년 특별전 기념 티켓 이벤트</option>
@@ -1094,7 +1108,12 @@ export function EventsPage() {
                   tabIndex={savedEventId === ev.id ? -1 : undefined}
                   style={{
                     background: '#FFFFFF',
-                    border: savedEventId === ev.id ? '3px solid #3B82F6' : ev.isFeatured ? '3px solid #FED943' : '2.5px solid #1E1E1E',
+                    border:
+                      savedEventId === ev.id
+                        ? '3px solid #3B82F6'
+                        : ev.isFeatured
+                          ? '3px solid #FED943'
+                          : '2.5px solid #1E1E1E',
                     borderRadius: '20px',
                     padding: '20px',
                     display: 'flex',
@@ -1133,7 +1152,12 @@ export function EventsPage() {
                   {/* 내용 정보 */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div
-                      style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        flexWrap: 'wrap',
+                      }}
                     >
                       <span
                         style={{
@@ -1231,7 +1255,9 @@ export function EventsPage() {
                   </div>
 
                   {/* 관리 액션 버튼들 */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
+                  <div
+                    style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}
+                  >
                     {!ev.isFeatured && (
                       <button
                         type="button"

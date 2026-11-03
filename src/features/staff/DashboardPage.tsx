@@ -224,7 +224,9 @@ export function DashboardPage() {
 
           {/* 최근 재고 작업 */}
           <div className="staff-section-card">
-            <div style={{ fontSize: '16px', fontWeight: 900 }}>최근 변경된 도서 ({currentStore.name})</div>
+            <div style={{ fontSize: '16px', fontWeight: 900 }}>
+              최근 변경된 도서 ({currentStore.name})
+            </div>
             {counts?.recentInventory && counts.recentInventory.length > 0 ? (
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {counts.recentInventory.map((title, idx) => (
@@ -254,4 +256,3 @@ export function DashboardPage() {
     </div>
   );
 }
-

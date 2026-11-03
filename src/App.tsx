@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import {
   BrowserRouter,
   Routes,
@@ -15,18 +15,9 @@ import {
   subscribeToPublicCatalogueUpdates,
 } from './features/book-search/catalogueRepository';
 import { BookRequestForm } from './features/book-request/BookRequestForm';
-import { StaffAccessPage } from './features/staff/StaffAccessPage';
-import { AdminAccountsPage } from './features/staff/AdminAccountsPage';
-import { InventoryPage } from './features/staff/InventoryPage';
-import { BookRequestsPage } from './features/staff/BookRequestsPage';
 import { StoreIntroductionPage } from './features/customer/StoreIntroductionPage';
 import { PublicInfoPage } from './features/customer/PublicInfoPage';
 import { MenuPage } from './features/customer/MenuPage';
-import { StoreContentPage } from './features/staff/StoreContentPage';
-import { EventsPage } from './features/staff/EventsPage';
-import { GamesPage } from './features/staff/GamesPage';
-import { BroadcastPage } from './features/staff/BroadcastPage';
-import { DashboardPage } from './features/staff/DashboardPage';
 import { NewArrivalsPage } from './features/customer/NewArrivalsPage';
 import { CustomerShell, StaffShell } from './features/layout/AppShell';
 import type { SearchableBook } from './lib/bookSearch';
@@ -35,6 +26,34 @@ import { StaffStoreProvider } from './features/staff/StaffStoreContext';
 import { StaffLoadingScreen } from './features/staff/StaffLoadingScreen';
 import { useGlobalBroadcastScheduler } from './lib/broadcastRunner';
 import { useDynamicManifest } from './lib/useDynamicManifest';
+
+const StaffAccessPage = lazy(() =>
+  import('./features/staff/StaffAccessPage').then((m) => ({ default: m.StaffAccessPage }))
+);
+const AdminAccountsPage = lazy(() =>
+  import('./features/staff/AdminAccountsPage').then((m) => ({ default: m.AdminAccountsPage }))
+);
+const InventoryPage = lazy(() =>
+  import('./features/staff/InventoryPage').then((m) => ({ default: m.InventoryPage }))
+);
+const BookRequestsPage = lazy(() =>
+  import('./features/staff/BookRequestsPage').then((m) => ({ default: m.BookRequestsPage }))
+);
+const StoreContentPage = lazy(() =>
+  import('./features/staff/StoreContentPage').then((m) => ({ default: m.StoreContentPage }))
+);
+const EventsPage = lazy(() =>
+  import('./features/staff/EventsPage').then((m) => ({ default: m.EventsPage }))
+);
+const GamesPage = lazy(() =>
+  import('./features/staff/GamesPage').then((m) => ({ default: m.GamesPage }))
+);
+const BroadcastPage = lazy(() =>
+  import('./features/staff/BroadcastPage').then((m) => ({ default: m.BroadcastPage }))
+);
+const DashboardPage = lazy(() =>
+  import('./features/staff/DashboardPage').then((m) => ({ default: m.DashboardPage }))
+);
 import {
   getPublicStore,
   getPreferredPublicStore,
@@ -297,18 +316,20 @@ function CustomerRoute({ children }: { children: React.ReactNode }) {
   );
 }
 
-function GlobalBroadcastService() {
+function BroadcastSchedulerRunner() {
   useGlobalBroadcastScheduler();
   return null;
+}
+
+function GlobalBroadcastService() {
+  const location = useLocation();
+  if (location.pathname === '/') return null;
+  return <BroadcastSchedulerRunner />;
 }
 
 function DynamicManifestService() {
   useDynamicManifest();
   return null;
-}
-
-function StoreContentPendingPage() {
-  return <p className="state-card">이 지점의 콘텐츠는 점검 중입니다.</p>;
 }
 
 export default function App() {
@@ -317,7 +338,8 @@ export default function App() {
       <InternalLinkInterceptor />
       <DynamicManifestService />
       <GlobalBroadcastService />
-      <Routes>
+      <Suspense fallback={<StaffLoadingScreen message="페이지를 불러오는 중입니다." />}>
+        <Routes>
         {/* Legacy Redirects */}
         <Route path="/search" element={<Navigate to="/books" replace />} />
         <Route path="/entertainment" element={<Navigate to="/games" replace />} />
@@ -560,7 +582,8 @@ export default function App() {
             </CustomerRoute>
           }
         />
-      </Routes>
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

@@ -67,7 +67,6 @@ export function splitBookCategories(value: string): string[] {
     .filter(Boolean);
 }
 
-
 export function toInitialConsonants(value: string): string {
   return [...value]
     .map((character) => {
@@ -78,6 +77,36 @@ export function toInitialConsonants(value: string): string {
     .join('');
 }
 
+type BookSearchIndexEntry = {
+  rawTitle: string;
+  rawAuthor: string;
+  titleNorm: string;
+  authorNorm: string;
+  titleInitial: string;
+  authorInitial: string;
+};
+
+const bookIndexCache = new WeakMap<SearchableBook, BookSearchIndexEntry>();
+
+function getBookIndex(book: SearchableBook): BookSearchIndexEntry {
+  const cached = bookIndexCache.get(book);
+  if (cached && cached.rawTitle === book.title && cached.rawAuthor === book.author) {
+    return cached;
+  }
+  const titleNorm = normalizeSearchText(book.title);
+  const authorNorm = normalizeSearchText(book.author);
+  const entry: BookSearchIndexEntry = {
+    rawTitle: book.title,
+    rawAuthor: book.author,
+    titleNorm,
+    authorNorm,
+    titleInitial: toInitialConsonants(titleNorm),
+    authorInitial: toInitialConsonants(authorNorm),
+  };
+  bookIndexCache.set(book, entry);
+  return entry;
+}
+
 export function searchBooks(books: SearchableBook[], query: string): SearchableBook[] {
   const normalizedQuery = normalizeSearchText(query);
   if (!normalizedQuery) return [];
@@ -85,16 +114,15 @@ export function searchBooks(books: SearchableBook[], query: string): SearchableB
   const isInitialConsonantQuery = INITIAL_CONSONANT_QUERY.test(normalizedQuery);
 
   return books.filter((book) => {
-    const title = normalizeSearchText(book.title);
-    const author = normalizeSearchText(book.author);
+    const idx = getBookIndex(book);
 
     if (isInitialConsonantQuery) {
       return (
-        toInitialConsonants(title).includes(normalizedQuery) ||
-        toInitialConsonants(author).includes(normalizedQuery)
+        idx.titleInitial.includes(normalizedQuery) ||
+        idx.authorInitial.includes(normalizedQuery)
       );
     }
 
-    return title.includes(normalizedQuery) || author.includes(normalizedQuery);
+    return idx.titleNorm.includes(normalizedQuery) || idx.authorNorm.includes(normalizedQuery);
   });
 }

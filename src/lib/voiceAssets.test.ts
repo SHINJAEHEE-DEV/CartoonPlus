@@ -11,14 +11,15 @@ import {
   validateVoiceAssetUpload,
 } from './voiceAssets';
 
-
 describe('voice asset public API', () => {
   it('provides default static presets with static audio URLs', () => {
     expect(DEFAULT_STATIC_PRESETS.length).toBe(6);
     expect(DEFAULT_STATIC_PRESETS.every((p) => p.source_type === 'static')).toBe(true);
     expect(
       DEFAULT_STATIC_PRESETS.every(
-        (p) => typeof p.audio_url === 'string' && (p.audio_url.endsWith('.wav') || p.audio_url.endsWith('.mp3'))
+        (p) =>
+          typeof p.audio_url === 'string' &&
+          (p.audio_url.endsWith('.wav') || p.audio_url.endsWith('.mp3'))
       )
     ).toBe(true);
     expect(DEFAULT_STATIC_PRESETS.map((p) => p.title)).toEqual([
@@ -67,15 +68,27 @@ describe('voice asset public API', () => {
       }))
     );
 
-    await expect(playVoiceAsset('https://example.test/invalid.mp3')).rejects.toThrow('MP3 방송 재생에 실패했습니다.');
+    await expect(playVoiceAsset('https://example.test/invalid.mp3')).rejects.toThrow(
+      'MP3 방송 재생에 실패했습니다.'
+    );
   });
 
   it('accepts common audio files (MP3, WAV, M4A, OGG) up to 3MB and rejects non-audio', () => {
-    expect(validateVoiceAssetUpload(new File(['audio'], 'notice.mp3', { type: 'audio/mpeg' }))).toBeNull();
-    expect(validateVoiceAssetUpload(new File(['audio'], 'notice.wav', { type: 'audio/wav' }))).toBeNull();
-    expect(validateVoiceAssetUpload(new File(['audio'], 'notice.m4a', { type: 'audio/mp4' }))).toBeNull();
-    expect(validateVoiceAssetUpload(new File(['audio'], 'notice.ogg', { type: 'audio/ogg' }))).toBeNull();
-    expect(validateVoiceAssetUpload(new File(['text'], 'notice.pdf', { type: 'application/pdf' }))).toMatch(/음성/);
+    expect(
+      validateVoiceAssetUpload(new File(['audio'], 'notice.mp3', { type: 'audio/mpeg' }))
+    ).toBeNull();
+    expect(
+      validateVoiceAssetUpload(new File(['audio'], 'notice.wav', { type: 'audio/wav' }))
+    ).toBeNull();
+    expect(
+      validateVoiceAssetUpload(new File(['audio'], 'notice.m4a', { type: 'audio/mp4' }))
+    ).toBeNull();
+    expect(
+      validateVoiceAssetUpload(new File(['audio'], 'notice.ogg', { type: 'audio/ogg' }))
+    ).toBeNull();
+    expect(
+      validateVoiceAssetUpload(new File(['text'], 'notice.pdf', { type: 'application/pdf' }))
+    ).toMatch(/음성/);
     expect(
       validateVoiceAssetUpload(
         new File([new Uint8Array(MAX_VOICE_ASSET_BYTES + 1)], 'large.mp3', { type: 'audio/mpeg' })
@@ -90,7 +103,9 @@ describe('voice asset public API', () => {
   });
 
   it('uploads valid MP3 file to storage and returns public URL', async () => {
-    const mockUpload = vi.fn().mockResolvedValue({ data: { path: 'store-1/test.mp3' }, error: null });
+    const mockUpload = vi
+      .fn()
+      .mockResolvedValue({ data: { path: 'store-1/test.mp3' }, error: null });
     const mockGetPublicUrl = vi.fn().mockReturnValue({
       data: { publicUrl: 'https://storage.example.test/broadcast-audio/store-1/test.mp3' },
     });
@@ -126,7 +141,7 @@ describe('voice asset public API', () => {
       }))
     );
 
-    const playPromise = playVoiceAsset('https://example.test/first.mp3');
+    void playVoiceAsset('https://example.test/first.mp3');
     stopVoiceAsset();
     expect(pause).toHaveBeenCalled();
   });
@@ -148,5 +163,3 @@ describe('voice asset public API', () => {
     expect(mockRemove).toHaveBeenCalledWith(['store-1/123-notice.mp3']);
   });
 });
-
-

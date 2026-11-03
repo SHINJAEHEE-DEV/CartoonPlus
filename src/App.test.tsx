@@ -12,8 +12,8 @@ describe('customer routes', () => {
 
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: /만화, 게임, 그리고/ })).toBeTruthy();
-    expect(screen.getByText('가맹 및 창업 상담 신청')).toBeTruthy();
+    expect(screen.getAllByRole('heading', { name: /만화 그 이상의/ }).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('가맹 및 창업 상담 신청').length).toBeGreaterThan(0);
     expect(screen.getByText('서울대입구역점')).toBeTruthy();
     expect(screen.getByText('잠실점')).toBeTruthy();
     expect(screen.getByText('홍대점')).toBeTruthy();

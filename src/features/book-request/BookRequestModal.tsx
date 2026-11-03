@@ -74,7 +74,6 @@ export function BookRequestModal({
     }
   };
 
-
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -127,7 +126,8 @@ export function BookRequestModal({
             <p className="book-request-success-desc">
               남겨주신 도서 정보는 매장 담당자가 정기 도서 입고 시 최우선으로 검토합니다.
               <br />
-              개인정보는 수집하지 않으며, 입고 상황은 카운터 또는 신간 알림에서 확인하실 수 있습니다.
+              개인정보는 수집하지 않으며, 입고 상황은 카운터 또는 신간 알림에서 확인하실 수
+              있습니다.
             </p>
             <div className="book-request-success-actions">
               <button
@@ -146,11 +146,7 @@ export function BookRequestModal({
           /* 신청 폼 */
           <div>
             <div className="book-request-modal-header">
-              <img
-                src={MASCOT_ASSETS.thinking}
-                alt=""
-                className="book-request-modal-mascot"
-              />
+              <img src={MASCOT_ASSETS.thinking} alt="" className="book-request-modal-mascot" />
               <div>
                 <div className="section-kicker">도서 입고 신청</div>
                 <h2 id="book-request-modal-title" className="book-request-modal-title">

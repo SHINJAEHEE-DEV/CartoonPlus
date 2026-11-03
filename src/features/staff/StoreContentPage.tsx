@@ -36,7 +36,8 @@ function getDefaultStoreInfo(slug: StoreSlug) {
     phone: '02-888-0852',
     hours: '매일 10:00 – 23:00 (연중무휴, 공휴일·명절 정상 영업)',
     parking: '건물 지하 주차장 이용 가능 (이용 시 카운터 문의)',
-    directions: '지하철 2호선 서울대입구역 3번 출구에서 도보 1~2분 직진. 1층 빽다방·올리브영 건물 3층.',
+    directions:
+      '지하철 2호선 서울대입구역 3번 출구에서 도보 1~2분 직진. 1층 빽다방·올리브영 건물 3층.',
   };
 }
 
@@ -59,7 +60,10 @@ export function StoreContentPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // 수정 모달 상태
-  const [editingPackage, setEditingPackage] = useState<{ index: number; data: PricePackage } | null>(null);
+  const [editingPackage, setEditingPackage] = useState<{
+    index: number;
+    data: PricePackage;
+  } | null>(null);
   const [editingBeverage, setEditingBeverage] = useState<BeverageItem | null>(null);
   const [editingFood, setEditingFood] = useState<MenuItem | null>(null);
 
@@ -70,16 +74,24 @@ export function StoreContentPage() {
 
     // 1. 로컬스토리지에서 지점별 데이터 우선 로드
     try {
-      const savedInfo = localStorage.getItem(`cp_store_info_${slug}`) || (slug === 'snu' ? localStorage.getItem('cp_store_info') : null);
+      const savedInfo =
+        localStorage.getItem(`cp_store_info_${slug}`) ||
+        (slug === 'snu' ? localStorage.getItem('cp_store_info') : null);
       setStoreInfo(savedInfo ? JSON.parse(savedInfo) : defaultInfo);
 
-      const savedPackages = localStorage.getItem(`cp_price_packages_${slug}`) || (slug === 'snu' ? localStorage.getItem('cp_price_packages') : null);
+      const savedPackages =
+        localStorage.getItem(`cp_price_packages_${slug}`) ||
+        (slug === 'snu' ? localStorage.getItem('cp_price_packages') : null);
       setPackages(savedPackages ? JSON.parse(savedPackages) : INITIAL_PRICE_PACKAGES);
 
-      const savedBevs = localStorage.getItem(`cp_beverage_items_${slug}`) || (slug === 'snu' ? localStorage.getItem('cp_beverage_items') : null);
+      const savedBevs =
+        localStorage.getItem(`cp_beverage_items_${slug}`) ||
+        (slug === 'snu' ? localStorage.getItem('cp_beverage_items') : null);
       setBeverages(savedBevs ? JSON.parse(savedBevs) : INITIAL_BEVERAGE_ITEMS);
 
-      const savedFoods = localStorage.getItem(`cp_food_items_${slug}`) || (slug === 'snu' ? localStorage.getItem('cp_food_items') : null);
+      const savedFoods =
+        localStorage.getItem(`cp_food_items_${slug}`) ||
+        (slug === 'snu' ? localStorage.getItem('cp_food_items') : null);
       setFoods(savedFoods ? JSON.parse(savedFoods) : INITIAL_FOOD_ITEMS);
     } catch {
       // JSON 파싱 실패 시 fallback
@@ -280,7 +292,9 @@ export function StoreContentPage() {
     if (!editingBeverage) return;
     if (!editingBeverage.nameKo.trim()) return;
 
-    const updated = beverages.map((b) => (b.id === editingBeverage.id ? { ...editingBeverage } : b));
+    const updated = beverages.map((b) =>
+      b.id === editingBeverage.id ? { ...editingBeverage } : b
+    );
     void saveBeveragesToStorage(updated);
     setMessage(`'${editingBeverage.nameKo}' 음료 정보를 수정했습니다.`);
     setEditingBeverage(null);
@@ -393,7 +407,8 @@ export function StoreContentPage() {
           <div className="section-kicker">STORE CONTENT & PRICING · {currentStore.name}</div>
           <h1 className="section-title">매장 요금제 및 메뉴 관리</h1>
           <p style={{ margin: '6px 0 0 0', fontSize: '14px', color: '#6B6354', fontWeight: 600 }}>
-            {currentStore.name}의 이용 요금제, 음료(단품가/패키지 차액), 식사·라면·젤라또·스낵 메뉴 및 기본 정보를 실시간으로 관리합니다.
+            {currentStore.name}의 이용 요금제, 음료(단품가/패키지 차액), 식사·라면·젤라또·스낵 메뉴
+            및 기본 정보를 실시간으로 관리합니다.
           </p>
         </div>
 
@@ -1860,7 +1875,10 @@ export function StoreContentPage() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 id="edit-package-modal-title" style={{ margin: 0, fontSize: '18px', fontWeight: 900 }}>
+              <h2
+                id="edit-package-modal-title"
+                style={{ margin: 0, fontSize: '18px', fontWeight: 900 }}
+              >
                 💳 요금제 수정
               </h2>
               <button
@@ -1990,7 +2008,9 @@ export function StoreContentPage() {
               </label>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+            <div
+              style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}
+            >
               <button
                 type="button"
                 onClick={() => setEditingPackage(null)}
@@ -2064,7 +2084,10 @@ export function StoreContentPage() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 id="edit-beverage-modal-title" style={{ margin: 0, fontSize: '18px', fontWeight: 900 }}>
+              <h2
+                id="edit-beverage-modal-title"
+                style={{ margin: 0, fontSize: '18px', fontWeight: 900 }}
+              >
                 ☕ 음료 메뉴 수정
               </h2>
               <button
@@ -2086,7 +2109,12 @@ export function StoreContentPage() {
               <div>
                 <label
                   htmlFor="edit-bev-nameKo"
-                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    marginBottom: '4px',
+                  }}
                 >
                   한글 음료명
                 </label>
@@ -2112,7 +2140,12 @@ export function StoreContentPage() {
               <div>
                 <label
                   htmlFor="edit-bev-nameEn"
-                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    marginBottom: '4px',
+                  }}
                 >
                   영문명 (옵션)
                 </label>
@@ -2140,7 +2173,12 @@ export function StoreContentPage() {
               <div>
                 <label
                   htmlFor="edit-bev-subCategory"
-                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    marginBottom: '4px',
+                  }}
                 >
                   카테고리
                 </label>
@@ -2177,7 +2215,12 @@ export function StoreContentPage() {
               <div>
                 <label
                   htmlFor="edit-bev-temp"
-                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    marginBottom: '4px',
+                  }}
                 >
                   제공 온도
                 </label>
@@ -2211,7 +2254,12 @@ export function StoreContentPage() {
               <div>
                 <label
                   htmlFor="edit-bev-singlePrice"
-                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    marginBottom: '4px',
+                  }}
                 >
                   단품 가격 (원)
                 </label>
@@ -2242,7 +2290,12 @@ export function StoreContentPage() {
               <div>
                 <label
                   htmlFor="edit-bev-packageDiff"
-                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    marginBottom: '4px',
+                  }}
                 >
                   패키지 추가금 (원)
                 </label>
@@ -2300,7 +2353,9 @@ export function StoreContentPage() {
               </label>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+            <div
+              style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}
+            >
               <button
                 type="button"
                 onClick={() => setEditingBeverage(null)}
@@ -2374,7 +2429,10 @@ export function StoreContentPage() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 id="edit-food-modal-title" style={{ margin: 0, fontSize: '18px', fontWeight: 900 }}>
+              <h2
+                id="edit-food-modal-title"
+                style={{ margin: 0, fontSize: '18px', fontWeight: 900 }}
+              >
                 🍜 식사·디저트·스낵 수정
               </h2>
               <button
@@ -2396,7 +2454,12 @@ export function StoreContentPage() {
               <div>
                 <label
                   htmlFor="edit-food-name"
-                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    marginBottom: '4px',
+                  }}
                 >
                   상품명
                 </label>
@@ -2420,7 +2483,12 @@ export function StoreContentPage() {
               <div>
                 <label
                   htmlFor="edit-food-category"
-                  style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}
+                  style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    marginBottom: '4px',
+                  }}
                 >
                   카테고리
                 </label>
@@ -2516,9 +2584,7 @@ export function StoreContentPage() {
                 <input
                   type="checkbox"
                   checked={!!editingFood.isPopular}
-                  onChange={(e) =>
-                    setEditingFood({ ...editingFood, isPopular: e.target.checked })
-                  }
+                  onChange={(e) => setEditingFood({ ...editingFood, isPopular: e.target.checked })}
                   style={{ width: '18px', height: '18px' }}
                 />
                 인기 뱃지
@@ -2537,16 +2603,16 @@ export function StoreContentPage() {
                 <input
                   type="checkbox"
                   checked={!!editingFood.isSoldOut}
-                  onChange={(e) =>
-                    setEditingFood({ ...editingFood, isSoldOut: e.target.checked })
-                  }
+                  onChange={(e) => setEditingFood({ ...editingFood, isSoldOut: e.target.checked })}
                   style={{ width: '18px', height: '18px' }}
                 />
                 품절 처리
               </label>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+            <div
+              style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}
+            >
               <button
                 type="button"
                 onClick={() => setEditingFood(null)}

@@ -20,8 +20,7 @@ type MenuTab = 'all' | 'beverage' | 'meal' | 'dessert' | 'snack';
 function loadStoredMenu<T>(key: string, slug: string | undefined, fallback: T): T {
   try {
     const raw =
-      localStorage.getItem(`cp_${key}_${slug || 'snu'}`) ||
-      localStorage.getItem(`cp_${key}`);
+      localStorage.getItem(`cp_${key}_${slug || 'snu'}`) || localStorage.getItem(`cp_${key}`);
     return raw ? JSON.parse(raw) : fallback;
   } catch {
     return fallback;
@@ -242,7 +241,8 @@ export function MenuPage() {
               }}
             >
               신라면·짜파게티·너구리 등 한강 라면 조리기 완비!{' '}
-              <strong>대파 · 콩나물 · 청양고추 · 떡사리 · 만두 · 비엔나소시지 · 치즈 · 어묵</strong>을 원하는 만큼 무료로 넣어 드세요.
+              <strong>대파 · 콩나물 · 청양고추 · 떡사리 · 만두 · 비엔나소시지 · 치즈 · 어묵</strong>
+              을 원하는 만큼 무료로 넣어 드세요.
             </div>
           </div>
         </div>
@@ -357,9 +357,7 @@ export function MenuPage() {
                 <div style={{ fontSize: '12px', fontWeight: 800, color: '#8A6A00' }}>
                   BEVERAGES MENU BOARD (8 CATEGORIES)
                 </div>
-                <h3 style={{ fontSize: '22px', fontWeight: 900, marginTop: '2px' }}>
-                  음료 메뉴판
-                </h3>
+                <h3 style={{ fontSize: '22px', fontWeight: 900, marginTop: '2px' }}>음료 메뉴판</h3>
               </div>
 
               {/* 음료 8대 카테고리 필터 칩 */}
@@ -370,7 +368,8 @@ export function MenuPage() {
                   style={{
                     padding: '6px 14px',
                     borderRadius: '999px',
-                    border: beverageSubFilter === '전체' ? '2px solid #1E1E1E' : '1px solid #D1C9BC',
+                    border:
+                      beverageSubFilter === '전체' ? '2px solid #1E1E1E' : '1px solid #D1C9BC',
                     background: beverageSubFilter === '전체' ? '#FED943' : '#FFFFFF',
                     color: '#1E1E1E',
                     fontSize: '12px',
@@ -522,7 +521,14 @@ export function MenuPage() {
                   <div style={{ fontSize: '13px', fontWeight: 900, color: '#1E1E1E' }}>
                     {store?.name || '카툰플러스'} 현장 키오스크 주문 안내
                   </div>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#6B6354', marginTop: '2px' }}>
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      color: '#6B6354',
+                      marginTop: '2px',
+                    }}
+                  >
                     {store?.address || '서울 관악구 관악로 155, 3층'} · 연락처:{' '}
                     {store?.phone || '02-882-9588'}
                   </div>
@@ -669,7 +675,8 @@ function BeverageCard({ item }: { item: BeverageItem }) {
               fontSize: '10px',
               fontWeight: 800,
               color: item.temp === 'HOT' ? '#D32F2F' : item.temp === 'ICED' ? '#1976D2' : '#6B6354',
-              background: item.temp === 'HOT' ? '#FFEBEE' : item.temp === 'ICED' ? '#E3F2FD' : '#F0ECE1',
+              background:
+                item.temp === 'HOT' ? '#FFEBEE' : item.temp === 'ICED' ? '#E3F2FD' : '#F0ECE1',
               padding: '2px 6px',
               borderRadius: '4px',
             }}
@@ -679,7 +686,13 @@ function BeverageCard({ item }: { item: BeverageItem }) {
         </div>
 
         <div
-          style={{ fontSize: '14px', fontWeight: 900, marginTop: '6px', letterSpacing: '-0.02em', color: '#1E1E1E' }}
+          style={{
+            fontSize: '14px',
+            fontWeight: 900,
+            marginTop: '6px',
+            letterSpacing: '-0.02em',
+            color: '#1E1E1E',
+          }}
         >
           {item.nameKo}
         </div>
@@ -757,4 +770,3 @@ function FoodCard({ item }: { item: MenuItem }) {
     </div>
   );
 }
-
