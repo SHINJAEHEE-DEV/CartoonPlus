@@ -30,9 +30,15 @@
   padding: 0;
 }
 
+html {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 body {
   margin: 0;
-  min-width: 320px;
+  max-width: 100vw;
+  overflow-x: hidden;
   background-color: var(--color-bg-cream);
   font-family: var(--font-family);
   color: var(--color-text-main);
@@ -449,7 +455,7 @@ button {
   color: #a79e8b;
 }
 
-.hero-art {
+.hero .hero-art {
   flex: 0 0 320px;
   width: 320px;
   height: 320px;
@@ -465,7 +471,7 @@ button {
   padding: 12px;
 }
 
-.hero-art img {
+.hero .hero-art img {
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -1358,7 +1364,7 @@ button {
   .hero {
     padding: 24px;
   }
-  .hero-art {
+  .hero .hero-art {
     display: none;
   }
   .mobile-bottom-nav {
