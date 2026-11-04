@@ -594,9 +594,9 @@ export function BrandLandingPage() {
               </div>
 
               <div className="art-sun">
-                EST.
+                SINCE
                 <br />
-                <strong>2013</strong>
+                <strong>2018</strong>
               </div>
               <div className="art-label">
                 COMIC
