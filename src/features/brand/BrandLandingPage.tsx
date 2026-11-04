@@ -288,28 +288,29 @@ const experiences = [
   },
 ];
 
-const stores = [
-  {
-    name: '홍대점',
-    slug: 'hongdae',
-    type: 'FLAGSHIP & 24H',
-    hours: '24시간 연중무휴 상시 운영',
-    address: '서울 마포구 양화로16길 29 (홍익몰 B1층)',
-    note: '플래그십 스토어 & 오프라인 도서 판매점',
-    color: 'yellow',
-    photo: '/assets/store_photos/hongdae/hongdae_01.jpg',
-    bubble: '24H',
-  },
+const flagshipStore = {
+  name: '홍대점',
+  slug: 'hongdae',
+  type: 'FLAGSHIP & 24H',
+  hours: '24시간 연중무휴 상시 운영',
+  address: '서울 마포구 양화로16길 29, 지하1층 전층(홍익몰)',
+  note: '카툰플러스 본점 플래그십 스토어 & 오프라인 도서 판매점',
+  color: 'yellow',
+  photo: '/assets/store_photos/hongdae/hongdae_01.jpg',
+  bubble: '24H',
+  hasBookSearch: true,
+};
+
+const branchStores = [
   {
     name: '서울대입구역점',
     slug: 'snu',
     type: 'DAILY 10:00–23:00',
     hours: '매일 10:00 ~ 23:00',
-    address: '서울 관악구 관악로 155, 3층',
-    note: '역세권 만화 멀티플렉스 라운지',
+    address: '서울 관악구 관악로 155, 3층 (봉천동 대우디오슈페리움 1단지)',
+    note: '역세권 프리미엄 만화카페 라운지',
     color: 'blue',
-    photo: '/assets/store_photos/snu/snu_01.jpg',
-    bubble: 'BOOKS',
+    hasBookSearch: true,
   },
   {
     name: '잠실점',
@@ -319,8 +320,17 @@ const stores = [
     address: '서울 송파구 백제고분로9길 23 (운관빌딩 2층, 잠실새내역 4번 출구)',
     note: '주말 무중단 24시간 프라이빗 힐링 공간',
     color: 'pink',
-    photo: '/assets/store_photos/jamsil/jamsil_01.jpg',
-    bubble: 'HEALING',
+    hasBookSearch: true,
+  },
+  {
+    name: '사당역점',
+    slug: 'sadang',
+    type: 'DAILY 11:00–23:00',
+    hours: '매일 11:00 ~ 23:00',
+    address: '서울 관악구 과천대로 941, 6층 (남현동, 사당역 5번 출구 앞)',
+    note: '사당역 초역세권 힐링 만화카페',
+    color: 'yellow',
+    hasBookSearch: false,
   },
 ];
 
@@ -334,8 +344,8 @@ const roadmap = [
 
 const pageSections = [
   { id: 'top', label: '처음' },
-  { id: 'archive', label: '중고만화' },
-  { id: 'experience', label: '공간 경험' },
+  { id: 'experience', label: '만화카페' },
+  { id: 'archive', label: '중고만화책 쇼핑몰' },
   { id: 'stores', label: '지점 안내' },
   { id: 'loop', label: '매장 현황' }, // keep for test backward compatibility
   { id: 'business', label: '가맹 안내' },
@@ -439,11 +449,11 @@ export function BrandLandingPage() {
           </a>
 
           <nav className={`desktop-nav ${menuOpen ? 'is-open' : ''}`} aria-label="주요 메뉴">
-            <button type="button" onClick={() => scrollTo('archive')}>
-              중고만화 스토어
-            </button>
             <button type="button" onClick={() => scrollTo('experience')}>
-              공간 경험
+              만화카페
+            </button>
+            <button type="button" onClick={() => scrollTo('archive')}>
+              중고만화책 쇼핑몰
             </button>
             <button type="button" onClick={() => scrollTo('stores')}>
               지점 안내
@@ -498,41 +508,67 @@ export function BrandLandingPage() {
         <section className="hero-section" data-section="top">
           <div className="hero-grid-pattern" />
           <div className="hero-inner container">
-            <div className="hero-copy reveal">
-              <div className="hero-badge">
-                <Sparkles size={14} /> OFFICIAL BRAND SITE · COMIC CAFE &amp; ARCHIVE
-              </div>
-              <h1>
-                만화를 읽고,
-                <br />
-                <em>머물며, 소장하는</em>
-                <br />
-                공간
-              </h1>
-              <p className="hero-subtitle">
-                카툰플러스 만화 멀티플렉스 라운지와 135,000권 중고만화 아카이브
-              </p>
-              <div className="hero-actions">
-                <a className="button button-dark" href={storeUrl} target="_blank" rel="noreferrer">
-                  중고만화 쇼핑몰 구경하기 →
-                </a>
+            {/* Mega Trio Buttons (글 없이 버튼 3개로 히어로 전면 꽉 채움) */}
+            <div className="hero-mega-wrap reveal">
+              <h1 className="sr-only">카툰플러스 공식 브랜드 웹사이트</h1>
+
+              <div className="hero-mega-trio">
+                {/* 1. 만화카페 */}
                 <button
                   type="button"
-                  className="button button-outline"
-                  onClick={() => scrollTo('inquiry')}
+                  className="hero-mega-card mega-card-dark"
+                  onClick={() => scrollTo('experience')}
+                  aria-label="1. 만화카페 바로가기"
                 >
-                  가맹 및 제휴 문의하기 ↓
+                  <div className="mega-card-content">
+                    <span className="mega-card-num">1.</span>
+                    <span className="mega-card-title">만화카페</span>
+                  </div>
+                  <div className="mega-card-badge-wrap">
+                    <span className="mega-card-arrow-circle">
+                      <ArrowDown size={24} />
+                    </span>
+                  </div>
                 </button>
-              </div>
-              <div className="hero-proof">
-                <span className="proof-avatars">
-                  <i>책</i>
-                  <i>쉼</i>
-                  <i>잼</i>
-                </span>
-                <span>
-                  <strong>13.5만+</strong> 권의 취향이 모이는 곳
-                </span>
+
+                {/* 2. 중고만화책 쇼핑몰 */}
+                <a
+                  className="hero-mega-card mega-card-dark"
+                  href={storeUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="2. 중고만화책 쇼핑몰 바로가기"
+                >
+                  <div className="mega-card-content">
+                    <span className="mega-card-num">2.</span>
+                    <span className="mega-card-title">중고만화책 쇼핑몰</span>
+                  </div>
+                  <div className="mega-card-badge-wrap">
+                    <span className="mega-card-arrow-circle">
+                      <ArrowUpRight size={24} />
+                    </span>
+                  </div>
+                </a>
+
+                {/* 3. 한옥 카페 (준비중) */}
+                <button
+                  type="button"
+                  className="hero-mega-card mega-card-outline is-preparing"
+                  onClick={() => alert('한옥카페는 오픈 준비 중입니다. 조금만 기다려주세요!')}
+                  aria-label="3. 한옥 카페 (준비중)"
+                  title="한옥카페 오픈 준비 중"
+                >
+                  <div className="mega-card-content">
+                    <span className="mega-card-num">3.</span>
+                    <span className="mega-card-title">한옥 카페</span>
+                    <span className="mega-prep-badge">준비중</span>
+                  </div>
+                  <div className="mega-card-badge-wrap">
+                    <span className="mega-card-arrow-circle">
+                      <Clock3 size={22} />
+                    </span>
+                  </div>
+                </button>
               </div>
             </div>
 
@@ -583,10 +619,10 @@ export function BrandLandingPage() {
         <section className="archive-section section-pad" id="archive" data-section="archive">
           <div className="container">
             <SectionHeading
-              eyebrow="USED COMIC STORE · 온라인 & 오프라인 스토어"
+              eyebrow="USED COMIC BOOK STORE · 온라인 & 오프라인 스토어"
               title={
                 <>
-                  중고만화 쇼핑몰
+                  중고만화책 쇼핑몰
                   <br />
                   <span className="highlight-text">인생만화, 여기서 다시 찾다</span>
                 </>
@@ -597,6 +633,9 @@ export function BrandLandingPage() {
               <div className="archive-intro reveal">
                 <div className="archive-number">
                   135<span>,000+</span>
+                </div>
+                <div className="archive-breakdown-badge">
+                  매장 사입 <strong>35,000권</strong> + 위탁 판매 <strong>100,000권</strong>
                 </div>
                 <p>
                   어릴 적 보았던 인생만화의 감동 그대로.
@@ -627,11 +666,10 @@ export function BrandLandingPage() {
                   </div>
                   <div>
                     <span className="metric-kicker">135,000+ VOLUMES</span>
-                    <h3>국내 최대급 중고만화 아카이브</h3>
+                    <h3>국내 최대급 중고만화책 아카이브</h3>
                     <p>
-                      인기 대작부터 희귀 절판본까지
-                      <br />
-                      <strong>135,000+ 권</strong>의 방대한 컬렉션
+                      <strong>매장 사입 35,000권 + 위탁 판매 100,000권</strong>
+                      <br />총 <strong>135,000+ 권</strong>의 방대한 컬렉션
                     </p>
                   </div>
                   <ArrowRight className="card-arrow" />
@@ -678,7 +716,7 @@ export function BrandLandingPage() {
               </div>
               <div className="action-buttons">
                 <a className="button button-dark" href={storeUrl} target="_blank" rel="noreferrer">
-                  중고만화 쇼핑몰 바로가기 (bookis.store) <ArrowUpRight size={17} />
+                  중고만화책 쇼핑몰 바로가기 (bookis.store) <ArrowUpRight size={17} />
                 </a>
                 <button
                   type="button"
@@ -817,7 +855,7 @@ export function BrandLandingPage() {
           </div>
         </section>
 
-        {/* 4. Compact Store Locator (#FFFFFF) - Upgraded with Real Photos */}
+        {/* 4. Compact Store Locator (#FFFFFF) - Flagship Card + Branch List */}
         <section className="stores-section section-pad" id="stores" data-section="stores">
           <div className="container">
             <SectionHeading
@@ -831,44 +869,91 @@ export function BrandLandingPage() {
               }
               description="지점마다 다른 분위기, 변하지 않는 카툰플러스의 환대."
             />
-            <div className="store-grid">
-              {stores.map((store, index) => (
-                <article className={`store-card ${store.color} reveal`} key={store.name}>
-                  <div className="store-card-top">
-                    <span className="store-index">0{index + 1}</span>
-                    <span className="store-type">{store.type}</span>
+            <div className="store-showcase-grid">
+              {/* Left: Flagship Store Card (Hongdae) */}
+              <article className="store-card store-card-flagship yellow reveal">
+                <div className="store-card-top">
+                  <span className="store-index">01</span>
+                  <span className="store-type">{flagshipStore.type}</span>
+                </div>
+                <div className="store-visual">
+                  <img
+                    src={flagshipStore.photo}
+                    alt={`${flagshipStore.name} 실제 매장 사진`}
+                    className="store-real-photo"
+                  />
+                  <div className="store-pattern" />
+                  <span className="store-bubble">{flagshipStore.bubble}</span>
+                </div>
+                <div className="store-info">
+                  <div className="store-title-row">
+                    <h3>{flagshipStore.name}</h3>
+                    <span className="flagship-badge">본점 플래그십</span>
                   </div>
-                  {/* Real Store Photo replaces generic door graphic */}
-                  <div className="store-visual">
-                    <img
-                      src={store.photo}
-                      alt={`${store.name} 실제 매장 사진`}
-                      className="store-real-photo"
-                    />
-                    <div className="store-pattern" />
-                    <span className="store-bubble">{store.bubble}</span>
+                  <p className="store-note">{flagshipStore.note}</p>
+                  <div className="store-meta">
+                    <span>
+                      <Clock3 size={15} /> {flagshipStore.hours}
+                    </span>
+                    <span>
+                      <MapPin size={15} /> {flagshipStore.address}
+                    </span>
                   </div>
-                  <div className="store-info">
-                    <h3>{store.name}</h3>
-                    <p className="store-note">{store.note}</p>
-                    <div className="store-meta">
-                      <span>
-                        <Clock3 size={15} /> {store.hours}
-                      </span>
-                      <span>
-                        <MapPin size={15} /> {store.address}
-                      </span>
-                    </div>
+                  <div className="store-action-row">
                     <button
                       type="button"
-                      className="store-link"
-                      onClick={() => navigate(`/stores/${store.slug}/books`)}
+                      className="branch-search-btn flagship-search-btn"
+                      onClick={() => navigate(`/stores/${flagshipStore.slug}/books`)}
                     >
-                      지점 도서 검색 바로가기 <ArrowUpRight size={15} />
+                      지점 도서 검색 바로가기 <ArrowUpRight size={14} />
                     </button>
                   </div>
-                </article>
-              ))}
+                </div>
+              </article>
+
+              {/* Right: Branch Stores List */}
+              <div className="store-branch-panel reveal">
+                <div className="branch-panel-head">
+                  <span className="panel-kicker">NETWORK STORES</span>
+                  <h3>카툰플러스 지점 안내</h3>
+                  <p>전국 주요 역세권에서 카툰플러스를 만나보세요.</p>
+                </div>
+
+                <div className="branch-items-list">
+                  {branchStores.map((branch, idx) => (
+                    <article className="branch-item-card" key={branch.name}>
+                      <div className="branch-item-header">
+                        <span className="branch-idx">0{idx + 2}</span>
+                        <div className="branch-title-wrap">
+                          <h4>{branch.name}</h4>
+                          <span className="branch-type-pill">{branch.type}</span>
+                        </div>
+                      </div>
+                      <div className="branch-item-body">
+                        <div className="branch-meta-row">
+                          <MapPin size={14} className="meta-icon" />
+                          <span>{branch.address}</span>
+                        </div>
+                        <div className="branch-meta-row">
+                          <Clock3 size={14} className="meta-icon" />
+                          <span>{branch.hours}</span>
+                        </div>
+                      </div>
+                      {branch.hasBookSearch && (
+                        <div className="branch-item-action">
+                          <button
+                            type="button"
+                            className="branch-search-btn"
+                            onClick={() => navigate(`/stores/${branch.slug}/books`)}
+                          >
+                            지점 도서 검색 바로가기 <ArrowUpRight size={14} />
+                          </button>
+                        </div>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -1450,12 +1535,12 @@ export function BrandLandingPage() {
               </div>
               <div className="cs-table">
                 <div className="cs-row">
-                  <span className="cs-label">평일</span>
-                  <span className="cs-val">09:30 ~ 18:30</span>
+                  <span className="cs-label">고객센터 운영</span>
+                  <span className="cs-val cs-highlight">연중무휴</span>
                 </div>
                 <div className="cs-row">
-                  <span className="cs-label">휴일</span>
-                  <span className="cs-val">공휴일, 토요일, 일요일</span>
+                  <span className="cs-label">상담시간</span>
+                  <span className="cs-val">09:30 ~ 18:30</span>
                 </div>
               </div>
             </div>
@@ -1469,7 +1554,7 @@ export function BrandLandingPage() {
             <span className="sep">|</span>
             <a href="#inquiry">이용약관</a>
             <span className="sep">|</span>
-            <a href="#archive">중고만화 스토어</a>
+            <a href="#archive">중고만화책 쇼핑몰</a>
             <span className="sep">|</span>
             <a href="#stores">지점 안내</a>
             <span className="sep">|</span>
@@ -1484,8 +1569,7 @@ export function BrandLandingPage() {
               </span>
               <span className="bar">/</span>
               <span>
-                <strong>주소</strong> 서울특별시 마포구 양화로16길 29, 제지하1층 제비101호(서교동,
-                홍익몰)
+                <strong>주소</strong> 서울특별시 마포구 양화로16길 29, 지하1층 전층(홍익몰)
               </span>
             </p>
             <p className="legal-line">
@@ -1555,9 +1639,9 @@ export function BrandLandingPage() {
           href={storeUrl}
           target="_blank"
           rel="noreferrer"
-          aria-label="중고만화 쇼핑몰 바로가기"
+          aria-label="중고만화책 쇼핑몰 바로가기"
         >
-          <ShoppingCart size={18} /> 중고만화 쇼핑몰 바로가기 <ArrowUpRight size={15} />
+          <ShoppingCart size={18} /> 중고만화책 쇼핑몰 바로가기 <ArrowUpRight size={15} />
         </a>
       )}
 

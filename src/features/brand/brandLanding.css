@@ -313,12 +313,12 @@ textarea:focus-visible {
 
 .hero-inner {
   display: grid;
-  grid-template-columns: 1.04fr 0.96fr;
+  grid-template-columns: 1.22fr 0.88fr;
   align-items: center;
-  gap: 50px;
-  min-height: 609px;
-  padding-top: 42px;
-  padding-bottom: 78px;
+  gap: 46px;
+  min-height: 580px;
+  padding-top: 40px;
+  padding-bottom: 60px;
 }
 
 .hero-badge,
@@ -344,41 +344,147 @@ textarea:focus-visible {
   background: rgba(255, 255, 255, 0.18);
 }
 
-.hero-copy h1 {
-  margin: 22px 0 18px;
-  font-size: clamp(44px, 5.8vw, 80px);
-  font-weight: 900;
-  line-height: 1.15;
-  letter-spacing: -0.04em;
-  word-break: keep-all;
+/* Screen Reader Only Utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
-.hero-copy h1 em {
-  font-style: normal;
-  color: var(--white);
-  background: var(--ink);
-  padding: 2px 14px;
-  border-radius: 8px;
-  display: inline-block;
-  box-shadow: 3px 3px 0 rgba(17, 17, 17, 0.18);
-  -webkit-text-stroke: 0;
-  text-shadow: none;
+/* Hero Mega Trio Buttons (글 없이 버튼 3개로 히어로 전면 꽉 채움) */
+.hero-mega-wrap {
+  width: 100%;
 }
 
-.hero-subtitle {
-  margin: 0;
-  font-size: 17px;
-  line-height: 1.7;
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  word-break: keep-all;
-}
-
-.hero-actions {
+.hero-mega-trio {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.hero-mega-card {
+  width: 100%;
+  min-height: 112px;
+  padding: 22px 32px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.22s ease,
+    background 0.2s ease;
+  position: relative;
+  text-align: left;
+}
+
+.hero-mega-card:hover {
+  transform: translate(-4px, -4px);
+}
+
+.mega-card-dark {
+  background: var(--ink);
+  color: var(--white);
+  border: 2.5px solid var(--ink);
+  box-shadow: 6px 6px 0 rgba(17, 17, 17, 0.35);
+}
+
+.mega-card-dark:hover {
+  box-shadow: 10px 10px 0 rgba(17, 17, 17, 0.45);
+  background: #1c1c1c;
+}
+
+.mega-card-outline {
+  background: var(--white);
+  color: var(--ink);
+  border: 2.5px solid var(--ink);
+  box-shadow: 6px 6px 0 rgba(17, 17, 17, 0.25);
+}
+
+.mega-card-outline:hover {
+  box-shadow: 10px 10px 0 rgba(17, 17, 17, 0.35);
+  background: #fafafa;
+}
+
+.mega-card-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   flex-wrap: wrap;
-  margin-top: 32px;
+}
+
+.mega-card-num {
+  font-family: 'DM Mono', monospace;
+  font-size: clamp(34px, 4.5vw, 50px);
+  font-weight: 900;
+  color: var(--yellow);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.mega-card-outline .mega-card-num {
+  color: var(--coral);
+}
+
+.mega-card-title {
+  font-size: clamp(28px, 3.6vw, 44px);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+
+.mega-prep-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: var(--ink);
+  color: var(--yellow);
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.mega-card-badge-wrap {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 20px;
+}
+
+.mega-card-arrow-circle {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--yellow);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.mega-card-outline .mega-card-arrow-circle {
+  background: var(--yellow-soft);
+}
+
+.hero-mega-card:hover .mega-card-arrow-circle {
+  transform: scale(1.1);
+  background: #ffe033;
 }
 
 .button {
@@ -788,6 +894,27 @@ textarea:focus-visible {
 
 .archive-number span {
   color: var(--coral);
+}
+
+.archive-breakdown-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 99px;
+  background: #fff8d6;
+  border: 1.5px solid var(--ink);
+  font-size: 12.5px;
+  color: var(--ink);
+  margin-top: 14px;
+  margin-bottom: 4px;
+  font-weight: 600;
+  box-shadow: 2px 2px 0 rgba(17, 17, 17, 0.15);
+}
+
+.archive-breakdown-badge strong {
+  color: var(--coral);
+  font-weight: 800;
 }
 
 .archive-intro p {
@@ -1261,12 +1388,6 @@ textarea:focus-visible {
   border-bottom: 1px solid var(--line);
 }
 
-.store-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
 .store-card {
   overflow: hidden;
   border: 1px solid var(--line);
@@ -1411,6 +1532,199 @@ textarea:focus-visible {
 
 .store-link:hover {
   color: var(--coral);
+}
+
+/* Store Showcase Split Layout (Flagship Card + Branch List) */
+.store-showcase-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1.35fr;
+  gap: 28px;
+  align-items: stretch;
+}
+
+.store-card-flagship {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.store-card-flagship .store-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.store-card-flagship .store-meta {
+  flex: 1;
+}
+
+.store-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.flagship-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: var(--ink);
+  color: var(--yellow);
+}
+
+.store-action-row {
+  margin-top: 18px;
+  display: flex;
+}
+
+.flagship-search-btn {
+  padding: 8px 16px;
+  font-size: 12.5px;
+}
+
+.store-branch-panel {
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: var(--yellow-soft);
+  padding: 26px 24px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.045);
+}
+
+.branch-panel-head {
+  padding-bottom: 16px;
+  border-bottom: 1.5px solid var(--ink);
+  margin-bottom: 16px;
+}
+
+.branch-panel-head h3 {
+  margin: 6px 0 4px;
+  font-size: 22px;
+  letter-spacing: -0.04em;
+  font-weight: 900;
+}
+
+.branch-panel-head p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.branch-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+}
+
+.branch-item-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.branch-item-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--ink);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.branch-item-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.branch-idx {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.branch-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.branch-title-wrap h4 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.branch-type-pill {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 99px;
+  border: 1px solid rgba(17, 17, 17, 0.25);
+  color: var(--muted);
+}
+
+.branch-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #444;
+}
+
+.branch-meta-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  line-height: 1.45;
+}
+
+.branch-meta-row .meta-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--coral);
+}
+
+.branch-item-action {
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.branch-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--ink);
+  background: var(--yellow);
+  color: var(--ink);
+  padding: 6px 13px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
+}
+
+.branch-search-btn:hover {
+  transform: translateY(-1px);
+  background: #ffe033;
 }
 
 /* ==========================================================================
@@ -2844,9 +3158,6 @@ textarea:focus {
     grid-template-columns: 1fr 0.9fr;
     gap: 20px;
   }
-  .hero-copy h1 {
-    font-size: clamp(48px, 7vw, 69px);
-  }
   .brand-hero-art {
     min-height: 390px;
   }
@@ -2884,6 +3195,10 @@ textarea:focus {
   }
   .partnership-heading {
     align-items: start;
+  }
+  .store-showcase-grid {
+    grid-template-columns: 1fr;
+    gap: 22px;
   }
   .inquiry-card {
     grid-template-columns: 0.8fr 1.2fr;
@@ -2948,36 +3263,35 @@ textarea:focus {
     padding-top: 54px;
     padding-bottom: 48px;
   }
-  .hero-copy h1 {
-    font-size: clamp(34px, 9.5vw, 48px);
-    line-height: 1.2;
-    letter-spacing: -0.03em;
-    word-break: keep-all;
+  .hero-mega-trio {
+    gap: 16px;
   }
-  .hero-copy h1 em {
-    padding: 2px 10px;
-    border-radius: 6px;
-    font-size: 0.94em;
-    -webkit-text-stroke: 0;
-    text-shadow: none;
-    display: inline-block;
+  .hero-mega-card {
+    min-height: 96px;
+    padding: 20px 22px;
+    border-radius: 16px;
+    box-shadow: 5px 5px 0 rgba(17, 17, 17, 0.35);
   }
-  .hero-subtitle {
-    font-size: 14px;
-    word-break: keep-all;
+  .mega-card-content {
+    gap: 12px;
   }
-  .desktop-break {
-    display: none;
+  .mega-card-num {
+    font-size: clamp(30px, 8.5vw, 40px);
   }
-  .hero-actions {
-    flex-direction: column;
-    align-items: stretch;
+  .mega-card-title {
+    font-size: clamp(23px, 6.6vw, 30px);
   }
-  .hero-actions .button {
-    width: 100%;
+  .mega-prep-badge {
+    font-size: 11.5px;
+    padding: 3px 8px;
   }
-  .hero-proof {
-    margin-top: 24px;
+  .mega-card-arrow-circle {
+    width: 46px;
+    height: 46px;
+  }
+  .mega-card-arrow-circle svg {
+    width: 22px;
+    height: 22px;
   }
   .brand-hero-art {
     display: none !important;
@@ -3150,10 +3464,20 @@ textarea:focus {
     word-break: keep-all;
     margin-top: 5px;
   }
-  .store-grid,
+  .store-showcase-grid,
   .partnership-grid {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 16px;
+  }
+  .store-branch-panel {
+    padding: 20px 16px;
+  }
+  .branch-item-card {
+    padding: 14px 14px;
+  }
+  .branch-search-btn {
+    width: 100%;
+    justify-content: center;
   }
   .store-visual {
     height: 180px;

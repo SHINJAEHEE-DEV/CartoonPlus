@@ -62,40 +62,41 @@ describe('section navigation', () => {
 });
 
 describe('brand landing sections', () => {
-  it('renders Hero Section with headline, subtitle, and dual CTA', () => {
+  it('renders Hero Section with Mega Trio buttons (1. 만화카페, 2. 중고만화책 쇼핑몰, 3. 한옥 카페)', () => {
     render(
       <MemoryRouter>
         <BrandLandingPage />
       </MemoryRouter>
     );
 
-    expect(screen.getByText('OFFICIAL BRAND SITE · COMIC CAFE & ARCHIVE')).toBeTruthy();
-    expect(screen.getByRole('heading', { name: /만화를 읽고, 머물며,/ })).toBeTruthy();
-    expect(
-      screen.getByText(/카툰플러스 만화 멀티플렉스 라운지와 135,000권 중고만화 아카이브/)
-    ).toBeTruthy();
+    // 1. 만화카페 버튼
+    expect(screen.getByRole('button', { name: /1\. 만화카페/ })).toBeTruthy();
 
-    const shopLink = screen.getByRole('link', { name: '중고만화 쇼핑몰 구경하기 →' });
+    // 2. 중고만화책 쇼핑몰 링크
+    const shopLink = screen.getByRole('link', { name: /2\. 중고만화책 쇼핑몰/ });
     expect(shopLink.getAttribute('href')).toBe('https://bookis.store/cartoon');
     expect(shopLink.getAttribute('target')).toBe('_blank');
 
-    expect(screen.getByRole('button', { name: '가맹 및 제휴 문의하기 ↓' })).toBeTruthy();
+    // 3. 한옥카페 준비중 버튼
+    expect(screen.getByRole('button', { name: /3\. 한옥 카페/ })).toBeTruthy();
   });
 
-  it('renders Used Comic Bookstore Zone with honest inspection and metrics', () => {
+  it('renders Used Comic Bookstore Zone with honest inspection and metrics breakdown', () => {
     render(
       <MemoryRouter>
         <BrandLandingPage />
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('heading', { name: /중고만화 쇼핑몰/ })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /중고만화책 쇼핑몰/ })).toBeTruthy();
     expect(screen.getByText(/인생만화, 여기서 다시 찾다/)).toBeTruthy();
+    expect(screen.getAllByText(/매장 사입/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/위탁 판매/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('전권 누락 없는 정직한 실물 검수')).toBeTruthy();
     expect(screen.getByText('실시간 온라인·매장 재고 연동')).toBeTruthy();
 
     expect(
-      screen.getByRole('link', { name: /중고만화 쇼핑몰 바로가기 \(bookis\.store\)/ })
+      screen.getByRole('link', { name: /중고만화책 쇼핑몰 바로가기 \(bookis\.store\)/ })
     ).toBeTruthy();
   });
 
@@ -123,7 +124,7 @@ describe('brand landing sections', () => {
     expect(screen.getByText(/쾌적한 전용/)).toBeTruthy();
   });
 
-  it('renders Compact Store Locator with 3 store cards and search links', () => {
+  it('renders Store Locator with Flagship card and Branch list with conditional search links', () => {
     render(
       <MemoryRouter>
         <BrandLandingPage />
@@ -134,6 +135,9 @@ describe('brand landing sections', () => {
     expect(screen.getByText('홍대점')).toBeTruthy();
     expect(screen.getByText('서울대입구역점')).toBeTruthy();
     expect(screen.getByText('잠실점')).toBeTruthy();
+    expect(screen.getByText('사당역점')).toBeTruthy();
+
+    // 홍대점, 서울대입구역점, 잠실점 3곳만 도서검색 버튼이 있고 사당역점은 없음
     expect(screen.getAllByRole('button', { name: /지점 도서 검색 바로가기/ }).length).toBe(3);
   });
 
@@ -224,13 +228,13 @@ describe('brand landing sections', () => {
     );
 
     // Initial: scrollY is 0, FAB not in document
-    expect(screen.queryByLabelText('중고만화 쇼핑몰 바로가기')).toBeNull();
+    expect(screen.queryByLabelText('중고만화책 쇼핑몰 바로가기')).toBeNull();
 
     // Simulate scroll past 300px
     window.scrollY = 450;
     fireEvent.scroll(window);
 
-    const fab = screen.getByLabelText('중고만화 쇼핑몰 바로가기');
+    const fab = screen.getByLabelText('중고만화책 쇼핑몰 바로가기');
     expect(fab).toBeTruthy();
     expect(fab.getAttribute('href')).toBe('https://bookis.store/cartoon');
     expect(fab.getAttribute('target')).toBe('_blank');
