@@ -256,7 +256,7 @@ const experiences = [
     title: '보는 재미',
     description: '스마트 모니터와 프라이빗 OTT 룸으로 이어지는 시간.',
     icon: MonitorPlay,
-    accent: 'blue',
+    accent: 'yellow',
     photo: '/assets/brand/exp_cafe_ott.jpg',
   },
   {
@@ -265,7 +265,7 @@ const experiences = [
     title: '노는 재미',
     description: '닌텐도 스위치와 보드게임 50종, 오늘의 승부.',
     icon: Gamepad2,
-    accent: 'coral',
+    accent: 'yellow',
     photo: '/assets/brand/exp_cafe_play.jpg',
   },
   {
@@ -274,7 +274,7 @@ const experiences = [
     title: '먹는 재미',
     description: '즉석 한강라면과 시그니처 카페테리아 메뉴.',
     icon: Utensils,
-    accent: 'pink',
+    accent: 'yellow',
     photo: '/assets/brand/exp_cafe_eat.jpg',
   },
   {
@@ -283,7 +283,7 @@ const experiences = [
     title: '쉬는 재미',
     description: '토굴방, 리클라이너 빈백, 안마의자로 푹 쉬어요.',
     icon: Armchair,
-    accent: 'green',
+    accent: 'yellow',
     photo: '/assets/brand/exp_cafe_relax.jpg',
   },
 ];
@@ -450,10 +450,10 @@ export function BrandLandingPage() {
 
           <nav className={`desktop-nav ${menuOpen ? 'is-open' : ''}`} aria-label="주요 메뉴">
             <button type="button" onClick={() => scrollTo('experience')}>
-              만화카페
+              1.만화카페
             </button>
             <button type="button" onClick={() => scrollTo('archive')}>
-              중고만화책 쇼핑몰
+              2.중고만화책 쇼핑몰
             </button>
             <button type="button" onClick={() => scrollTo('stores')}>
               지점 안내
@@ -553,7 +553,7 @@ export function BrandLandingPage() {
                 {/* 3. 한옥 카페 (준비중) */}
                 <button
                   type="button"
-                  className="hero-mega-card mega-card-outline is-preparing"
+                  className="hero-mega-card mega-card-ghost is-preparing"
                   onClick={() => alert('한옥카페는 오픈 준비 중입니다. 조금만 기다려주세요!')}
                   aria-label="3. 한옥 카페 (준비중)"
                   title="한옥카페 오픈 준비 중"
@@ -561,12 +561,7 @@ export function BrandLandingPage() {
                   <div className="mega-card-content">
                     <span className="mega-card-num">3.</span>
                     <span className="mega-card-title">한옥 카페</span>
-                    <span className="mega-prep-badge">준비중</span>
-                  </div>
-                  <div className="mega-card-badge-wrap">
-                    <span className="mega-card-arrow-circle">
-                      <Clock3 size={22} />
-                    </span>
+                    <span className="mega-prep-text">준비중</span>
                   </div>
                 </button>
               </div>
