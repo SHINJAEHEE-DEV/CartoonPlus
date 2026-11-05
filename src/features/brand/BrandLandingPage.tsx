@@ -293,7 +293,7 @@ const flagshipStore = {
   slug: 'hongdae',
   type: 'FLAGSHIP & 24H',
   hours: '24시간 연중무휴 상시 운영',
-  address: '서울 마포구 양화로16길 29, 지하1층 전층(홍익몰)',
+  address: '서울 마포구 양화로16길 29, 지하1층',
   note: '카툰플러스 본점 플래그십 스토어 & 오프라인 도서 판매점',
   color: 'yellow',
   photo: '/assets/store_photos/hongdae/hongdae_01.jpg',
@@ -1568,7 +1568,7 @@ export function BrandLandingPage() {
               </span>
               <span className="bar">/</span>
               <span>
-                <strong>주소</strong> 서울특별시 마포구 양화로16길 29, 지하1층 전층(홍익몰)
+                <strong>주소</strong> 서울특별시 마포구 양화로16길 29, 지하1층
               </span>
             </p>
             <p className="legal-line">

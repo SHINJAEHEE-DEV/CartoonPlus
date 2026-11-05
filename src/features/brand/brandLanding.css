@@ -2751,7 +2751,7 @@ textarea:focus {
 }
 
 .account-holder strong {
-  color: var(--coral);
+  color: var(--ink);
   font-size: 14px;
 }
 
@@ -2819,7 +2819,7 @@ textarea:focus {
 .cs-val.cs-highlight {
   font-size: 15px;
   font-weight: 800;
-  color: var(--coral);
+  color: var(--ink);
   text-decoration: none;
   font-family: 'DM Mono', monospace;
 }
