@@ -918,11 +918,11 @@ export function BrandLandingPage() {
                   {branchStores.map((branch, idx) => (
                     <article className="branch-item-card" key={branch.name}>
                       <div className="branch-item-header">
-                        <span className="branch-idx">0{idx + 2}</span>
-                        <div className="branch-title-wrap">
+                        <div className="branch-title-group">
+                          <span className="branch-idx">0{idx + 2}</span>
                           <h4>{branch.name}</h4>
-                          <span className="branch-type-pill">{branch.type}</span>
                         </div>
+                        <span className="branch-type-pill">{branch.type}</span>
                       </div>
                       <div className="branch-item-body">
                         <div className="branch-meta-row">
@@ -934,7 +934,7 @@ export function BrandLandingPage() {
                           <span>{branch.hours}</span>
                         </div>
                       </div>
-                      {branch.hasBookSearch && (
+                      {branch.hasBookSearch ? (
                         <div className="branch-item-action">
                           <button
                             type="button"
@@ -943,6 +943,10 @@ export function BrandLandingPage() {
                           >
                             지점 도서 검색 바로가기 <ArrowUpRight size={14} />
                           </button>
+                        </div>
+                      ) : (
+                        <div className="branch-item-action branch-item-action-counter">
+                          <span className="branch-counter-note">현장 카운터 도서 검색 지원</span>
                         </div>
                       )}
                     </article>

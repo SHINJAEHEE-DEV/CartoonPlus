@@ -1594,7 +1594,7 @@ textarea:focus-visible {
 /* Store Showcase Split Layout (Flagship Card + Branch List) */
 .store-showcase-grid {
   display: grid;
-  grid-template-columns: 1.05fr 1.35fr;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.35fr);
   gap: 28px;
   align-items: stretch;
 }
@@ -1603,6 +1603,7 @@ textarea:focus-visible {
   height: 100%;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .store-card-flagship .store-info {
@@ -1650,6 +1651,7 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.045);
+  min-width: 0;
 }
 
 .branch-panel-head {
@@ -1686,6 +1688,8 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0;
+  overflow: hidden;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
@@ -1701,6 +1705,7 @@ textarea:focus-visible {
 .branch-item-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
 }
 
@@ -1709,6 +1714,20 @@ textarea:focus-visible {
   font-size: 12px;
   font-weight: 800;
   color: var(--muted);
+}
+
+.branch-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.branch-title-group h4 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
 .branch-title-wrap {
@@ -1760,6 +1779,22 @@ textarea:focus-visible {
   border-top: 1px dashed var(--line);
   display: flex;
   justify-content: flex-end;
+}
+
+.branch-item-action-counter {
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.branch-counter-note {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 4px 2px;
+  letter-spacing: -0.03em;
 }
 
 .branch-search-btn {
@@ -3254,7 +3289,7 @@ textarea:focus {
     align-items: start;
   }
   .store-showcase-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 22px;
   }
   .inquiry-card {
@@ -3324,56 +3359,56 @@ textarea:focus {
     gap: 14px;
   }
   .hero-mega-card {
-    min-height: 84px;
-    padding: clamp(14px, 4vw, 20px) clamp(14px, 4.5vw, 22px);
+    min-height: 76px;
+    padding: clamp(12px, 3.5vw, 16px) clamp(12px, 3.8vw, 18px);
     border-radius: 16px;
-    box-shadow: 5px 5px 0 rgba(17, 17, 17, 0.35);
+    box-shadow: 4px 4px 0 rgba(17, 17, 17, 0.35);
   }
   .mega-card-content {
-    gap: clamp(8px, 2.5vw, 12px);
+    gap: clamp(7px, 2vw, 10px);
     flex-wrap: nowrap;
     white-space: nowrap;
     min-width: 0;
   }
   .mega-card-num {
-    font-size: clamp(24px, 7.5vw, 38px);
+    font-size: clamp(20px, 5.6vw, 26px);
     flex-shrink: 0;
     line-height: 1;
   }
   .mega-card-title {
-    font-size: clamp(18px, 5.4vw, 28px);
+    font-size: clamp(14px, 4vw, 19px);
     white-space: nowrap;
     word-break: keep-all;
     line-height: 1;
   }
   .mega-prep-badge {
-    font-size: clamp(9.5px, 2.8vw, 12px);
-    padding: 3px 7px;
+    font-size: clamp(9px, 2.6vw, 11px);
+    padding: 3px 6px;
     flex-shrink: 0;
     white-space: nowrap;
   }
   .mega-card-ghost {
-    padding: 8px clamp(14px, 4.5vw, 22px);
+    padding: 6px clamp(12px, 3.8vw, 18px);
     min-height: auto;
     box-shadow: none !important;
     background: transparent !important;
   }
   .mega-prep-text {
-    font-size: clamp(12px, 3.4vw, 15px);
+    font-size: clamp(11.5px, 3vw, 13.5px);
     margin-left: 8px;
   }
   .mega-card-badge-wrap {
-    margin-left: 8px;
+    margin-left: 10px;
     flex-shrink: 0;
   }
   .mega-card-arrow-circle {
-    width: clamp(38px, 9.5vw, 46px);
-    height: clamp(38px, 9.5vw, 46px);
+    width: clamp(32px, 8vw, 36px);
+    height: clamp(32px, 8vw, 36px);
     flex-shrink: 0;
   }
   .mega-card-arrow-circle svg {
-    width: clamp(18px, 4.8vw, 22px);
-    height: clamp(18px, 4.8vw, 22px);
+    width: clamp(15px, 3.8vw, 18px);
+    height: clamp(15px, 3.8vw, 18px);
   }
   .brand-hero-art {
     display: none !important;
@@ -3558,26 +3593,38 @@ textarea:focus {
   }
   .store-showcase-grid,
   .partnership-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 16px;
   }
   .store-branch-panel {
-    padding: 20px 16px;
+    padding: 18px 14px;
+    min-width: 0;
   }
   .branch-item-card {
     padding: 14px 14px;
+    min-width: 0;
+    overflow: hidden;
   }
-  .branch-title-wrap {
-    flex-wrap: nowrap;
-    gap: 6px;
+  .branch-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
   }
-  .branch-title-wrap h4 {
+  .branch-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .branch-title-group h4 {
     white-space: nowrap;
-    font-size: clamp(14px, 4.2vw, 17px);
+    font-size: clamp(14px, 4vw, 17px);
   }
   .branch-type-pill {
     white-space: nowrap;
     flex-shrink: 0;
+    font-size: clamp(8px, 2.3vw, 9.5px);
   }
   .branch-search-btn {
     width: 100%;
