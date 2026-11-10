@@ -433,6 +433,7 @@
 
 | 2026-09-11 | Cloudflare 루트 배포 시 자산 경로와 직접 링크 호환 필요 | 기존 Vite base 및 404가 /CartoonPlus/로 고정됨 | build:cloudflare에서 --base / 적용, 404에서 호스트에 따라 루트 경로 선택. GitHub Secrets는 Cloudflare에 자동 전달되지 않아 공개 Supabase 설정을 별도 등록 | ✅ 완료 |
 | 2026-09-11 | 매장 카운터 PC 백그라운드 탭에서 정시 안내 방송 누락 및 페이지 이동 시 중단 | 브라우저가 특정 페이지(`/staff/broadcast`)를 벗어나거나 백그라운드 탭으로 전환될 때 `setInterval`이 스로틀링(최대 1분 이상 지연)되고, 매 15초 DB 폴링 시 일 5,760회의 불필요한 API 부하 발생 | 최상위 전역 스케줄러(`<GlobalBroadcastService />`) 및 인라인 Blob Web Worker를 통한 10초 무중단 정밀 틱 타이머 구현, 인메모리 스케줄 캐시 + 이벤트 기반 동기화(`notifyScheduleUpdated`)로 Zero-polling 달성 | ✅ 완료 |
+| 2026-11-11 | 대규모 도서 검색·장르 필터링 지연, 직원 콘솔 탭 전환 시 4단 직렬 네트워크 Waterfall 및 대량 CSV 업로드 지연 | ① `BookSearchPage`에서 매 키 입력마다 전체 도서 $N$권에 대해 정규식 카테고리 분할 반복 수행 ② `/staff/:storeSlug/*` 하위 라우트마다 `ProtectedStaffRoute`가 개별 마운트되어 탭 전환 시마다 재인증 및 `stores` UUID 재조회 발생 ③ `InventoryPage`의 $O(N)$ `find` 및 수천 개 `<datalist>` DOM 렌더링과 1건 단위 직렬 RPC 호출 | ① `bookSearch.ts`의 `WeakMap` 인덱스에 카테고리 `Set` 통합 및 2단계 `useMemo` 분리로 장르 판별 $O(1)$ 달성 ② 상위 라우트 단일 마운트(`<Outlet />`) + `resolveStoreIdBySlug` 메모리 캐시 + `Promise.all` 병렬화 ③ `knownBookByTitle` Map($O(1)$), 자동완성 후보 50건 제한 및 CSV 10건 단위 배치 병렬 RPC 적용 | ✅ 완료 |
 
 ---
 

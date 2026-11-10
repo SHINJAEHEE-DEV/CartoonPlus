@@ -223,6 +223,7 @@ Sitemap: ${domain}/sitemap.xml`;
     exclude: [
       '/assets/*',
       '/audio/*',
+      '/data/*',
       '/favicon.ico',
       '/favicon.svg',
       '/favicon-16x16.png',
@@ -232,6 +233,9 @@ Sitemap: ${domain}/sitemap.xml`;
       '/icon-512.png',
       '/og-image.png',
       '/site.webmanifest',
+      '/manifest-snu.webmanifest',
+      '/manifest-jamsil.webmanifest',
+      '/manifest-hongdae.webmanifest',
       '/robots.txt',
       '/sitemap.xml',
     ],
