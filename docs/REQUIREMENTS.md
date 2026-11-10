@@ -37,13 +37,13 @@
 
 | ID | 요구사항명 | 상세 명세 | 우선순위 | 상태 | 관련 구현체 |
 | :--- | :--- | :--- | :---: | :---: | :--- |
-| `FR-AUTH-001` | 직원 가입 신청 | • 이름, 소속 지점, 로그인 ID, 비밀번호, 휴대폰 뒷 4자리(`phone_last4`) 입력 신청 지원.<br/>• 이메일 미수집 원칙 적용 및 기본 상태 `pending` 부여. | 상 | ✅ | [StaffLoginPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/StaffLoginPage.tsx) |
+| `FR-AUTH-001` | 직원 가입 신청 | • 이름, 소속 지점, 로그인 ID, 비밀번호, 휴대폰 뒷 4자리(`phone_last4`) 입력 신청 지원.<br/>• 이메일 미수집 원칙 적용 및 기본 상태 `pending` 부여. | 상 | ✅ | [StaffAccessPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/StaffAccessPage.tsx) |
 | `FR-AUTH-002` | 계정 승인 및 비활성화 | • 관리자(`admin`)가 가입 대기 계정을 승인(`approved`)하거나 기존 계정을 비활성화(`deactivated`)함.<br/>• 미승인·비활성 계정의 운영 콘솔 접근 차단. | 상 | ✅ | [AdminAccountsPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/AdminAccountsPage.tsx) |
-| `FR-AUTH-003` | 로그인 세션 관리 | • 로그인 ID를 내부 식별 이메일 포맷으로 변환하여 Supabase Auth 인증 수행.<br/>• 브라우저 재접속 시 세션 자동 복원 및 명시적 로그아웃 지원. | 상 | ✅ | [AuthContext.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/AuthContext.tsx) |
+| `FR-AUTH-003` | 로그인 세션 관리 | • 로그인 ID를 내부 식별 이메일 포맷으로 변환하여 Supabase Auth 인증 수행.<br/>• 브라우저 재접속 시 세션 자동 복원 및 명시적 로그아웃 지원. | 상 | ✅ | [staffAuth.ts](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/staffAuth.ts) |
 | `FR-AUTH-004` | 임시 비밀번호 발급 | • 비밀번호 분실 직원에 대해 관리자가 보안 RPC를 통해 임시 비밀번호를 발급함. | 상 | ✅ | [AdminAccountsPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/AdminAccountsPage.tsx) |
 | `FR-AUTH-005` | 최초 관리자 시드 | • 최초 관리자 계정은 Supabase 콘솔 및 초기 마이그레이션 시드로 1회 생성함. | 상 | ✅ | `supabase/migrations/` |
 | `FR-AUTH-006` | RLS 접근 제어 | • 비인가 사용자 및 타 지점 스태프의 쓰기·수정·삭제 API 요청을 PostgreSQL RLS 레벨에서 거부함. | 상 | ✅ | `supabase/migrations/` |
-| `FR-AUTH-007` | 숨은 직원 진입 | • 고객 화면 내 직원 로그인 버튼 미노출.<br/>• 상단 로고 2초 롱탭(모바일) 또는 길게 클릭(PC) 시 `/staff`로 이동함. | 상 | ✅ | [AppShell.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/components/AppShell.tsx) |
+| `FR-AUTH-007` | 숨은 직원 진입 | • 고객 화면 내 직원 로그인 버튼 미노출.<br/>• 상단 로고 2초 롱탭(모바일) 또는 길게 클릭(PC) 시 `/staff`로 이동함. | 상 | ✅ | [AppShell.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/layout/AppShell.tsx) |
 | `FR-AUTH-008` | 지점 범위 운영 권한 | • 일반 직원(`staff`)은 소속 지점(`store_id`) 데이터만 조회·수정함.<br/>• 관리자(`admin`)는 상단 지점 선택기로 전 지점을 전환하며 관리함. | 상 | ✅ | [StaffStoreContext.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/StaffStoreContext.tsx) |
 
 ### 2.2 도서 검색 및 카탈로그 (`BOOK`)
@@ -62,7 +62,7 @@
 | ID | 요구사항명 | 상세 명세 | 우선순위 | 상태 | 관련 구현체 |
 | :--- | :--- | :--- | :---: | :---: | :--- |
 | `FR-INV-001` | 도서 재고 단건 등록·수정 | • 도서명, 작가, 11대 표준 장르, 보유 권수, 서가 위치, 비고 메모의 등록 및 수정을 지원함. | 상 | ✅ | [InventoryPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/InventoryPage.tsx) |
-| `FR-INV-002` | 지점별 CSV 배치 가져오기 | • 3개 지점(`snu`, `jamsil`, `hongdae`) CSV 포맷 및 인코딩(UTF-8/EUC-KR)을 자동 감지함.<br/>• 10건 단위 제한 동시성(`CONCURRENCY_LIMIT = 10`)으로 Upsert를 수행하며 기존 재고의 임의 삭제를 방지함. | 상 | ✅ | [csvImport.ts](file:///Users/jaehee/Desktop/projects/cartoonplus/src/lib/csvImport.ts) |
+| `FR-INV-002` | 지점별 CSV 배치 가져오기 | • 3개 지점(`snu`, `jamsil`, `hongdae`) CSV 포맷 및 인코딩(UTF-8/EUC-KR)을 자동 감지함.<br/>• 10건 단위 제한 동시성(`CONCURRENCY_LIMIT = 10`)으로 Upsert를 수행하며 기존 재고의 임의 삭제를 방지함. | 상 | ✅ | [inventoryCsv.ts](file:///Users/jaehee/Desktop/projects/cartoonplus/src/lib/inventoryCsv.ts), [inventoryImport.ts](file:///Users/jaehee/Desktop/projects/cartoonplus/src/lib/inventoryImport.ts) |
 | `FR-INV-003` | 소속 지점 재고 영구 삭제 | • 재고 삭제 시 소속 지점의 `book_inventory` 레코드만 영구 삭제하며 공통 도서 마스터(`books`) 및 타 지점 재고는 보존함. | 상 | ✅ | [InventoryPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/InventoryPage.tsx) |
 | `FR-INV-004` | 타 지점 CSV 오업로드 방지 | • 업로드 파일명 내 지점 식별자가 현재 선택된 지점과 불일치할 경우 업로드를 차단함. | 상 | ✅ | [InventoryPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/InventoryPage.tsx) |
 
@@ -71,18 +71,18 @@
 | ID | 요구사항명 | 상세 명세 | 우선순위 | 상태 | 관련 구현체 |
 | :--- | :--- | :--- | :---: | :---: | :--- |
 | `FR-BCAST-001` | 기본 정적 음원 프리셋 | • 음료 픽업, 기본 정돈, 만석 안내, 소음 주의, 신분증 검사, 마감 안내 등 기본 MP3 프리셋 즉시 재생 및 숨김/복구 지원. | 상 | ✅ | [BroadcastPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/BroadcastPage.tsx) |
-| `FR-BCAST-002` | 커스텀 음원 업로드 프리셋 | • 지점별 3MB 이하 오디오 파일을 Supabase Storage(`broadcast-audio`)에 업로드하여 프리셋으로 등록·삭제함. | 상 | ✅ | [broadcastRepository.ts](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/broadcastRepository.ts) |
+| `FR-BCAST-002` | 커스텀 음원 업로드 프리셋 | • 지점별 3MB 이하 오디오 파일을 Supabase Storage(`broadcast-audio`)에 업로드하여 프리셋으로 등록·삭제함. | 상 | ✅ | [voiceAssets.ts](file:///Users/jaehee/Desktop/projects/cartoonplus/src/lib/voiceAssets.ts) |
 | `FR-BCAST-003` | 예약 방송 스케줄 관리 | • 매일(`daily`), 요일별(`weekly`), 1회성(`once`) 반복 예약의 생성·편집·활성화 토글·삭제 지원. | 상 | ✅ | [BroadcastPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/BroadcastPage.tsx) |
-| `FR-BCAST-004` | 실행 이력 7일 롤링 보존 | • 수동·예약 방송 실행 결과(`succeeded`, `failed`, `missed`)를 기록하고 7일 경과 레코드를 자동 정리함 ([ADR-0010](file:///Users/jaehee/Desktop/projects/cartoonplus/docs/adr/0010-unauthenticated-broadcast-and-7day-retention.md)). | 상 | ✅ | [broadcastRepository.ts](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/broadcastRepository.ts) |
-| `FR-BCAST-005` | 순차 재생 및 즉시 중지 | • 수동·예약 방송 간 겹침 없이 순차 송출하며 재생 중 즉시 정지 버튼을 제공함. | 상 | ✅ | [audioPlayback.ts](file:///Users/jaehee/Desktop/projects/cartoonplus/src/lib/audioPlayback.ts) |
-| `FR-BCAST-006` | Lease 기반 다중 탭 중복 방지 | • 카운터 PC 탭 간 30초 단위 Lease 락을 갱신하여 단일 탭에서만 방송을 송출함. | 상 | ✅ | [GlobalBroadcastMount.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/components/GlobalBroadcastMount.tsx) |
-| `FR-BCAST-007` | 비로그인 Web Worker 스케줄러 | • 카운터 PC 비로그인 상태에서도 인라인 Blob Web Worker(10초 무감속 틱)로 예약 방송을 정시 송출함 ([ADR-0010](file:///Users/jaehee/Desktop/projects/cartoonplus/docs/adr/0010-unauthenticated-broadcast-and-7day-retention.md)). | 상 | ✅ | [GlobalBroadcastMount.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/components/GlobalBroadcastMount.tsx) |
+| `FR-BCAST-004` | 실행 이력 7일 롤링 보존 | • 수동·예약 방송 실행 결과(`succeeded`, `failed`, `missed`)를 기록하고 7일 경과 레코드를 자동 정리함 ([ADR-0010](file:///Users/jaehee/Desktop/projects/cartoonplus/docs/adr/0010-unauthenticated-broadcast-and-7day-retention.md)). | 상 | ✅ | [broadcastRunner.ts](file:///Users/jaehee/Desktop/projects/cartoonplus/src/lib/broadcastRunner.ts) |
+| `FR-BCAST-005` | 순차 재생 및 즉시 중지 | • 수동·예약 방송 간 겹침 없이 순차 송출하며 재생 중 즉시 정지 버튼을 제공함. | 상 | ✅ | [broadcastRunner.ts](file:///Users/jaehee/Desktop/projects/cartoonplus/src/lib/broadcastRunner.ts) |
+| `FR-BCAST-006` | Lease 기반 다중 탭 중복 방지 | • 카운터 PC 탭 간 30초 단위 Lease 락을 갱신하여 단일 탭에서만 방송을 송출함. | 상 | ✅ | [broadcastRunner.ts](file:///Users/jaehee/Desktop/projects/cartoonplus/src/lib/broadcastRunner.ts) |
+| `FR-BCAST-007` | 비로그인 Web Worker 스케줄러 | • 카운터 PC 비로그인 상태에서도 인라인 Blob Web Worker(10초 무감속 틱)로 예약 방송을 정시 송출함 ([ADR-0010](file:///Users/jaehee/Desktop/projects/cartoonplus/docs/adr/0010-unauthenticated-broadcast-and-7day-retention.md)). | 상 | ✅ | [broadcastRunner.ts](file:///Users/jaehee/Desktop/projects/cartoonplus/src/lib/broadcastRunner.ts) |
 
 ### 2.5 도서 입고 신청 (`REQ`)
 
 | ID | 요구사항명 | 상세 명세 | 우선순위 | 상태 | 관련 구현체 |
 | :--- | :--- | :--- | :---: | :---: | :--- |
-| `FR-REQ-001` | 비회원 도서 입고 신청 | • 개인정보 미수집 원칙 하에 도서명(필수), 작가명, 희망 권수(`desired_volume`), 고객 코멘트(`customer_comment`)를 접수함. | 상 | ✅ | [BookRequestModal.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/components/BookRequestModal.tsx) |
+| `FR-REQ-001` | 비회원 도서 입고 신청 | • 개인정보 미수집 원칙 하에 도서명(필수), 작가명, 희망 권수(`desired_volume`), 고객 코멘트(`customer_comment`)를 접수함. | 상 | ✅ | [BookRequestModal.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/book-request/BookRequestModal.tsx) |
 | `FR-REQ-002` | 4단계 상태 라이프사이클 | • `접수(received)` ➔ `주문 완료(ordered)` ➔ `입고 완료(completed)` / `입고 불가(unavailable)` 상태 전환 및 직원 메모(`staff_note`) 저장을 지원함. | 상 | ✅ | [BookRequestsPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/BookRequestsPage.tsx) |
 | `FR-REQ-003` | 입고 완료 재고 등록 연계 | • `입고 완료` 처리 시 신청 도서 정보를 재고 등록 폼으로 전달하여 신규 재고 생성을 연계함. | 상 | ✅ | [BookRequestsPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/BookRequestsPage.tsx) |
 
@@ -91,18 +91,18 @@
 | ID | 요구사항명 | 상세 명세 | 우선순위 | 상태 | 관련 구현체 |
 | :--- | :--- | :--- | :---: | :---: | :--- |
 | `FR-STORE-001` | 브랜드 랜딩 및 지점 홈 분리 | • 루트(`/`)는 공식 브랜드 랜딩(만화카페·중고만화책 쇼핑몰 `bookis.store`·3J 자동화·가맹 상담)을 노출하고, `/books` 및 `/stores/:storeSlug`는 지점별 도서 검색 홈을 노출함. | 상 | ✅ | [BrandLandingPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/brand/BrandLandingPage.tsx) |
-| `FR-STORE-002` | 검증 게임 카탈로그 노출 | • 현장 실물 검수가 완료된 지점의 게임 목록만 고객에게 노출하며, 미검증 지점은 '점검 중' 안내 화면을 표시함. | 상 | ✅ | [EntertainmentPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/customer/EntertainmentPage.tsx) |
-| `FR-STORE-003` | 매장 이벤트 및 자동 만료 | • 지점별 또는 전 지점(`all`) 공개 이벤트를 노출하고 종료일(`end_date`) 익일 고객 화면에서 자동 숨김 처리함. | 상 | ✅ | [EventsPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/customer/EventsPage.tsx) |
+| `FR-STORE-002` | 검증 게임 카탈로그 노출 | • 현장 실물 검수가 완료된 지점의 게임 목록만 고객에게 노출하며, 미검증 지점은 '점검 중' 안내 화면을 표시함. | 상 | ✅ | [PublicInfoPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/customer/PublicInfoPage.tsx) |
+| `FR-STORE-003` | 매장 이벤트 및 자동 만료 | • 지점별 또는 전 지점(`all`) 공개 이벤트를 노출하고 종료일(`end_date`) 익일 고객 화면에서 자동 숨김 처리함. | 상 | ✅ | [PublicInfoPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/customer/PublicInfoPage.tsx) |
 | `FR-STORE-004` | 식음료 메뉴 및 요금제 안내 | • 요금제 패키지, 8대 분류 음료(HOT/ICE 가격 및 패키지 차액), 푸드 메뉴를 탭·필터 구조로 제공함. | 상 | ✅ | [MenuPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/customer/MenuPage.tsx) |
-| `FR-STORE-005` | 매장 소개 및 이용 안내 | • 지점별 공간 소개(`/about`)와 도로명 주소, 영업시간, 전화번호, 주차 및 이용 수칙(`/info`)을 제공함. | 상 | ✅ | [StoreIntroPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/customer/StoreIntroPage.tsx), [PublicInfoPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/customer/PublicInfoPage.tsx) |
+| `FR-STORE-005` | 매장 소개 및 이용 안내 | • 지점별 공간 소개(`/about`)와 도로명 주소, 영업시간, 전화번호, 주차 및 이용 수칙(`/store`)을 제공함. | 상 | ✅ | [StoreIntroductionPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/customer/StoreIntroductionPage.tsx), [PublicInfoPage.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/customer/PublicInfoPage.tsx) |
 | `FR-STORE-006` | 지점별 URL 컨텍스트 전환 | • `/stores/:storeSlug/*` URL 기반으로 지점 컨텍스트와 PWA 매니페스트를 동적 전환함. | 상 | ✅ | [useDynamicManifest.ts](file:///Users/jaehee/Desktop/projects/cartoonplus/src/lib/useDynamicManifest.ts) |
 
 ### 2.7 공통 UI 및 라우팅 (`UI`)
 
 | ID | 요구사항명 | 상세 명세 | 우선순위 | 상태 | 관련 구현체 |
 | :--- | :--- | :--- | :---: | :---: | :--- |
-| `FR-UI-001` | 반응형 공통 앱 셸 | • 모바일·태블릿·데스크톱 전 해상도에서 가로 스크롤 없는 레이아웃과 하단 고정 탭 바를 제공함. | 상 | ✅ | [AppShell.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/components/AppShell.tsx) |
-| `FR-UI-002` | 단일 레이아웃 직원 콘솔 | • `/staff/:storeSlug` 하위 라우트를 단일 `<StaffShell />`(`<Outlet />`)로 감싸 탭 전환 시 레이아웃 재마운트를 방지함. | 상 | ✅ | [StaffShell.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/staff/StaffShell.tsx) |
+| `FR-UI-001` | 반응형 공통 앱 셸 | • 모바일·태블릿·데스크톱 전 해상도에서 가로 스크롤 없는 레이아웃과 하단 고정 탭 바를 제공함. | 상 | ✅ | [AppShell.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/features/layout/AppShell.tsx) |
+| `FR-UI-002` | 단일 레이아웃 직원 콘솔 | • `/staff/:storeSlug` 하위 라우트를 단일 `<ProtectedStaffRoute />`(`<Outlet />`)로 감싸 탭 전환 시 레이아웃 재마운트를 방지함. | 상 | ✅ | [App.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/App.tsx) |
 | `FR-UI-003` | 레거시 경로 호환 리다이렉트 | • `/search`, `/entertainment`, `/event`, `/store` 등 구버전 URL 접근 시 현행 표준 경로로 자동 리다이렉트함. | 중 | ✅ | [App.tsx](file:///Users/jaehee/Desktop/projects/cartoonplus/src/App.tsx) |
 
 ---

@@ -81,16 +81,17 @@ cartoonplus/
 │   └── migrations/                # PostgreSQL 스키마, View, RPC, RLS 정책 마이그레이션 SQL (물리적 단일 기준)
 ├── src/
 │   ├── App.tsx                    # 전역 라우트 정의, 코드 스플리팅(React.lazy), 카운터 방송 스케줄러 마운트
-│   ├── main.tsx                   # React 19 엔트리포인트 및 SEO Head 동기화
+│   ├── main.tsx                   # React 19 엔트리포인트
 │   ├── styles.css                 # 고객 포털 및 직원 콘솔 공통 스타일시트
-│   ├── components/                # 공통 레이아웃 및 UI 컴포넌트 (AppShell, GlobalBroadcastMount, BookRequestModal 등)
 │   ├── features/
 │   │   ├── brand/                 # 공식 브랜드 랜딩 페이지 (BrandLandingPage.tsx, brandLanding.css)
 │   │   ├── book-search/           # 도서 검색 UI 및 카탈로그 리포지토리 (SWR 인메모리 캐시 + 정적 JSON 폴백)
-│   │   ├── book-request/          # 비회원 도서 입고 신청 페이지 및 리포지토리
-│   │   ├── customer/              # 고객용 매장소개, 요금/식음료 메뉴, 게임/이벤트 페이지
-│   │   └── staff/                 # 직원 인증, 대시보드, 재고 관리, 입고 처리, 방송 스케줄러, 계정 관리
-│   └── lib/                       # 도메인 유틸리티 (초성 검색 인덱싱, CSV 파서, 지점 설정, 오디오 재생, SEO 메타)
+│   │   ├── book-request/          # 비회원 도서 입고 신청 폼, 모달 및 리포지토리
+│   │   ├── common/                # 공통 페이지네이션 컴포넌트 (Pagination.tsx)
+│   │   ├── customer/              # 고객용 매장소개, 요금/식음료 메뉴, 신간, 게임/이벤트/매장정보 화면
+│   │   ├── layout/                # 고객/직원 공통 레이아웃 셸 (AppShell.tsx)
+│   │   └── staff/                 # 직원 인증, 대시보드, 재고 관리, 입고 처리, 방송 제어, 계정 관리
+│   └── lib/                       # 도메인 유틸리티 (초성 검색 인덱싱, CSV 파서, 지점 설정, 방송 스케줄러, SEO 메타)
 └── docs/                          # 기획서, 요구사항, 아키텍처, 데이터 모델, 시나리오, 트러블슈팅, ADR 문서
 ```
 
