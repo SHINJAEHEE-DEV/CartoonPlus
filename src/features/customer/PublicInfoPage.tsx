@@ -1,13 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { MASCOT_ASSETS, getStorePhotos, getStaticStoreGames } from '../../lib/brandAssets';
 import { usePublicStore } from '../../lib/storeContext';
+import { resolveStoreIdBySlug } from '../staff/StaffStoreContext';
 import {
   ManagedEvent,
   getBannerImageUrl,
   loadManagedEvents,
 } from '../../lib/eventRepository';
 import { usePageTitle } from '../../lib/usePageTitle';
+
+const EVENT_MARKDOWN_LINK_PATTERN = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
 
 type Item = {
   id: string;
@@ -29,7 +32,7 @@ type Item = {
 };
 
 function renderFormattedEventText(text: string) {
-  const markdownRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
+  const markdownRegex = new RegExp(EVENT_MARKDOWN_LINK_PATTERN.source, 'g');
   const parts: (string | React.ReactNode)[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -165,18 +168,29 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
 
     const loadData = async () => {
       try {
-        if (kind === 'store') {
-          const { data: store } = await client
-            .from('stores')
-            .select('id')
-            .eq('slug', selectedStore.slug)
-            .single();
+        if (kind === 'events') {
+          // 이벤트 조회는 store_slug 기반이므로 불필요한 stores 테이블 UUID 선행 조회를 생략함
+          const { data } = await client
+            .from('store_events')
+            .select(
+              'id,title,content,is_always_on,is_featured,tag,target,banner_type,image_url,start_date,end_date,store_slug'
+            )
+            .or(`store_slug.eq.${selectedStore.slug},store_slug.is.null`)
+            .eq('is_public', true)
+            .is('archived_at', null)
+            .or('is_always_on.eq.true,end_date.gte.' + today);
+          if (active) setItems((data ?? []) as Item[]);
+          return;
+        }
 
-          if (store && active) {
+        const storeId = await resolveStoreIdBySlug(selectedStore.slug);
+
+        if (kind === 'store') {
+          if (storeId && active) {
             const { data } = await client
               .from('store_content')
               .select('content_value')
-              .eq('store_id', store.id)
+              .eq('store_id', storeId)
               .eq('content_key', 'store_info')
               .single();
             if (data?.content_value && active) setStoreInfo(data.content_value);
@@ -184,13 +198,7 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
           return;
         }
 
-        const { data: store } = await client
-          .from('stores')
-          .select('id')
-          .eq('slug', selectedStore.slug)
-          .single();
-
-        if (!store) {
+        if (!storeId) {
           if (active && kind !== 'games') setItems([]);
           return;
         }
@@ -199,7 +207,7 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
           const { data } = await client
             .from('entertainment_items')
             .select('id,title,players,genre,item_type,quantity')
-            .eq('store_id', store.id)
+            .eq('store_id', storeId)
             .eq('is_verified', true)
             .eq('is_available', true)
             .is('archived_at', null);
@@ -211,17 +219,6 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
               setItems(getStaticStoreGames(selectedStore.slug) as Item[]);
             }
           }
-        } else if (kind === 'events') {
-          const { data } = await client
-            .from('store_events')
-            .select(
-              'id,title,content,is_always_on,is_featured,tag,target,banner_type,image_url,start_date,end_date,store_slug'
-            )
-            .or(`store_slug.eq.${selectedStore.slug},store_slug.is.null`)
-            .eq('is_public', true)
-            .is('archived_at', null)
-            .or('is_always_on.eq.true,end_date.gte.' + today);
-          if (active) setItems((data ?? []) as Item[]);
         }
       } catch {
         if (active && kind === 'games') {
@@ -237,18 +234,36 @@ export function PublicInfoPage({ kind }: { kind: 'games' | 'events' | 'store' })
     };
   }, [kind, selectedStore.slug]);
 
+  // 게임 카테고리별 단일 패스(O(G)) 분류: 탭 전환이나 렌더링 시 4회 반복되던 filter 호출 제거
+  const groupedGames = useMemo(() => {
+    const nintendo: Item[] = [];
+    const ps4: Item[] = [];
+    const board: Item[] = [];
+    const list = items ?? [];
+    for (let i = 0; i < list.length; i += 1) {
+      const item = list[i];
+      if (item.item_type === 'NINTENDO') nintendo.push(item);
+      else if (item.item_type === 'PLAYSTATION_4') ps4.push(item);
+      else if (item.item_type === 'BOARD_GAME') board.push(item);
+    }
+    return { nintendo, ps4, board };
+  }, [items]);
+
   // 1. 즐길거리 (Games) 화면
   if (kind === 'games') {
     const isReady = items !== null;
     const isMaintenance = isReady && items.length === 0;
 
-    const remoteType =
-      gameTab === 'switch' ? 'NINTENDO' : gameTab === 'ps4' ? 'PLAYSTATION_4' : 'BOARD_GAME';
-    const remoteGames = (items ?? []).filter((item) => item.item_type === remoteType);
+    const remoteGames =
+      gameTab === 'switch'
+        ? groupedGames.nintendo
+        : gameTab === 'ps4'
+          ? groupedGames.ps4
+          : groupedGames.board;
 
-    const switchCount = (items ?? []).filter((i) => i.item_type === 'NINTENDO').length;
-    const ps4Count = (items ?? []).filter((i) => i.item_type === 'PLAYSTATION_4').length;
-    const boardCount = (items ?? []).filter((i) => i.item_type === 'BOARD_GAME').length;
+    const switchCount = groupedGames.nintendo.length;
+    const ps4Count = groupedGames.ps4.length;
+    const boardCount = groupedGames.board.length;
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

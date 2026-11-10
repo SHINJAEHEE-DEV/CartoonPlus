@@ -223,24 +223,34 @@ export function InventoryPage() {
       targetStoreId = data.id;
     }
 
+    const client = supabase;
     let done = 0;
     let failed = 0;
-    for (const book of books) {
-      const payload = {
-        p_title: book.title,
-        p_author: book.author,
-        p_category: book.category,
-        p_last_volume: Number(/(\d+)[^\d]*$/u.exec(book.volumeRange)?.[1]) || null,
-        p_shelf_location: book.shelfLocation,
-      };
-      const { error } = targetStoreId
-        ? await supabase.rpc('upsert_inventory_for_store', {
-            p_store_id: targetStoreId,
-            ...payload,
-          })
-        : await supabase.rpc('upsert_inventory', payload);
-      if (error) failed++;
-      else done++;
+    // DB 커넥션 풀을 보호하면서 대량 CSV 반영 대기 시간을 단축하기 위한 제한된 동시성(10건 단위) 배치 처리
+    const CONCURRENCY_LIMIT = 10;
+    for (let i = 0; i < books.length; i += CONCURRENCY_LIMIT) {
+      const batch = books.slice(i, i + CONCURRENCY_LIMIT);
+      const results = await Promise.all(
+        batch.map((book) => {
+          const payload = {
+            p_title: book.title,
+            p_author: book.author,
+            p_category: book.category,
+            p_last_volume: Number(/(\d+)[^\d]*$/u.exec(book.volumeRange)?.[1]) || null,
+            p_shelf_location: book.shelfLocation,
+          };
+          return targetStoreId
+            ? client.rpc('upsert_inventory_for_store', {
+                p_store_id: targetStoreId,
+                ...payload,
+              })
+            : client.rpc('upsert_inventory', payload);
+        })
+      );
+      for (let j = 0; j < results.length; j += 1) {
+        if (results[j].error) failed += 1;
+        else done += 1;
+      }
     }
     setMessage(
       `${done}건의 재고 데이터를 업데이트했습니다.${failed ? ` ${failed}건은 반영하지 못했습니다.` : ''}${storeImport ? ` ${storeImport.storeName} 재고만 반영했습니다.` : ''}`
@@ -285,6 +295,33 @@ export function InventoryPage() {
         .sort((a, b) => a.title.localeCompare(b.title, 'ko')),
     [items]
   );
+  // 도서명 입력 시 O(N) 선형 탐색(knownBooks.find)을 대체하는 O(1) 해시 맵 인덱스
+  const knownBookByTitle = useMemo(() => {
+    const map = new Map<string, InventoryBook>();
+    for (let i = 0; i < knownBooks.length; i += 1) {
+      const book = knownBooks[i];
+      if (!map.has(book.title)) {
+        map.set(book.title, book);
+      }
+    }
+    return map;
+  }, [knownBooks]);
+
+  // 수천 개의 <option> DOM 노드가 동시에 렌더링되어 발생하는 입력 지연을 방지하기 위해 상위 50건으로 제한
+  const datalistCandidates = useMemo(() => {
+    const MAX_OPTIONS = 50;
+    const trimmed = formTitle.trim().toLowerCase();
+    if (!trimmed) return knownBooks.slice(0, MAX_OPTIONS);
+    const matches: InventoryBook[] = [];
+    for (let i = 0; i < knownBooks.length; i += 1) {
+      if (knownBooks[i].title.toLowerCase().includes(trimmed)) {
+        matches.push(knownBooks[i]);
+        if (matches.length >= MAX_OPTIONS) break;
+      }
+    }
+    return matches;
+  }, [knownBooks, formTitle]);
+
   const knownGenres = useMemo(
     () => [...new Set(knownBooks.flatMap((book) => splitBookCategories(book.category)))],
     [knownBooks]
@@ -415,7 +452,7 @@ export function InventoryPage() {
             onChange={(event) => {
               const val = event.currentTarget.value;
               setFormTitle(val);
-              const match = knownBooks.find((book) => book.title === val);
+              const match = knownBookByTitle.get(val);
               if (!match) return;
               setFormAuthor(match.author);
               setGenreTags(splitBookCategories(match.category));
@@ -428,7 +465,7 @@ export function InventoryPage() {
             }}
           />
           <datalist id="inventory-book-titles">
-            {knownBooks.map((book) => (
+            {datalistCandidates.map((book) => (
               <option key={`${book.title}-${book.author}`} value={book.title}>
                 {book.author}
               </option>

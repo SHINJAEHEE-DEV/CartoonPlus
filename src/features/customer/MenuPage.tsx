@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { MASCOT_ASSETS } from '../../lib/brandAssets';
 import {
   PRICE_PACKAGES as INITIAL_PRICE_PACKAGES,
@@ -13,7 +13,8 @@ import {
 
 import { usePageTitle } from '../../lib/usePageTitle';
 import { supabase } from '../../lib/supabase';
-import { usePublicStore } from '../../lib/storeContext';
+import { usePublicStore, type StoreSlug } from '../../lib/storeContext';
+import { resolveStoreIdBySlug } from '../staff/StaffStoreContext';
 
 type MenuTab = 'all' | 'beverage' | 'meal' | 'dessert' | 'snack';
 
@@ -55,49 +56,73 @@ export function MenuPage() {
 
     if (supabase) {
       const client = supabase;
-      void client
-        .from('stores')
-        .select('id')
-        .eq('slug', store?.slug || 'snu')
-        .single()
-        .then(({ data: targetStore }) => {
-          if (targetStore) {
-            void client
-              .from('store_content')
-              .select('content_key, content_value')
-              .eq('store_id', targetStore.id)
-              .then(({ data }) => {
-                if (data && data.length > 0) {
-                  for (const item of data) {
-                    if (
-                      item.content_key === 'price_packages' &&
-                      Array.isArray(item.content_value?.packages)
-                    ) {
-                      setPackages(item.content_value.packages);
-                    } else if (
-                      item.content_key === 'beverage_items' &&
-                      Array.isArray(item.content_value?.beverages)
-                    ) {
-                      setBeverages(item.content_value.beverages);
-                    } else if (
-                      item.content_key === 'food_items' &&
-                      Array.isArray(item.content_value?.foods)
-                    ) {
-                      setFoods(item.content_value.foods);
-                    }
-                  }
+      const targetSlug = (store?.slug || 'snu') as StoreSlug;
+      void resolveStoreIdBySlug(targetSlug).then((storeId) => {
+        if (!storeId) return;
+        void client
+          .from('store_content')
+          .select('content_key, content_value')
+          .eq('store_id', storeId)
+          .then(({ data }) => {
+            if (data && data.length > 0) {
+              for (const item of data) {
+                if (
+                  item.content_key === 'price_packages' &&
+                  Array.isArray(item.content_value?.packages)
+                ) {
+                  setPackages(item.content_value.packages);
+                } else if (
+                  item.content_key === 'beverage_items' &&
+                  Array.isArray(item.content_value?.beverages)
+                ) {
+                  setBeverages(item.content_value.beverages);
+                } else if (
+                  item.content_key === 'food_items' &&
+                  Array.isArray(item.content_value?.foods)
+                ) {
+                  setFoods(item.content_value.foods);
                 }
-              });
-          }
-        });
+              }
+            }
+          });
+      });
     }
 
     return () => window.removeEventListener('storage', handleStorage);
   }, [store?.slug]);
 
-  const mealItems = foods.filter((f) => f.category === 'meal');
-  const dessertItems = foods.filter((f) => f.category === 'dessert');
-  const snackItems = foods.filter((f) => f.category === 'snack');
+  // 식사·디저트·스낵 단일 패스(O(F)) 그룹화: 매 렌더링마다 3회 반복되던 filter 호출 제거
+  const { mealItems, dessertItems, snackItems } = useMemo(() => {
+    const meal: MenuItem[] = [];
+    const dessert: MenuItem[] = [];
+    const snack: MenuItem[] = [];
+    for (let i = 0; i < foods.length; i += 1) {
+      const item = foods[i];
+      if (item.category === 'meal') meal.push(item);
+      else if (item.category === 'dessert') dessert.push(item);
+      else if (item.category === 'snack') snack.push(item);
+    }
+    return { mealItems: meal, dessertItems: dessert, snackItems: snack };
+  }, [foods]);
+
+  // 음료 8대 카테고리 단일 패스(O(B)) 그룹화: 렌더링당 16회 반복되던 filter + 정규화 호출을 O(1) Map 조회로 단축
+  const beveragesByCategory = useMemo(() => {
+    const map = new Map<string, BeverageItem[]>();
+    for (let i = 0; i < BEVERAGE_CATEGORIES.length; i += 1) {
+      map.set(BEVERAGE_CATEGORIES[i].key, []);
+    }
+    for (let i = 0; i < beverages.length; i += 1) {
+      const bev = beverages[i];
+      const key = normalizeBeverageCategory(bev.subCategory);
+      const list = map.get(key);
+      if (list) {
+        list.push(bev);
+      } else {
+        map.set(key, [bev]);
+      }
+    }
+    return map;
+  }, [beverages]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -380,9 +405,7 @@ export function MenuPage() {
                   전체 ({beverages.length})
                 </button>
                 {BEVERAGE_CATEGORIES.map((cat) => {
-                  const count = beverages.filter(
-                    (b) => normalizeBeverageCategory(b.subCategory) === cat.key
-                  ).length;
+                  const count = beveragesByCategory.get(cat.key)?.length ?? 0;
                   const isSelected = beverageSubFilter === cat.key;
                   return (
                     <button
@@ -413,9 +436,7 @@ export function MenuPage() {
                 if (beverageSubFilter === '전체') return true;
                 return cat.key === beverageSubFilter;
               }).map((cat) => {
-                const categoryBeverages = beverages.filter(
-                  (b) => normalizeBeverageCategory(b.subCategory) === cat.key
-                );
+                const categoryBeverages = beveragesByCategory.get(cat.key) ?? [];
                 if (categoryBeverages.length === 0) return null;
 
                 return (

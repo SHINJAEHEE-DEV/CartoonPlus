@@ -389,7 +389,10 @@ export function BrandLandingPage() {
   const [is3JOpen, setIs3JOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setShowFloat(window.scrollY > 300);
+    const onScroll = () => {
+      const next = window.scrollY > 300;
+      setShowFloat((prev) => (prev === next ? prev : next));
+    };
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
@@ -399,13 +402,19 @@ export function BrandLandingPage() {
     if (typeof window === 'undefined' || typeof IntersectionObserver === 'undefined') return;
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
+        for (let i = 0; i < entries.length; i += 1) {
+          const entry = entries[i];
           if (entry.isIntersecting) {
             entry.target.classList.add('is-visible');
             const secId = entry.target.getAttribute('data-section') || entry.target.id;
-            if (secId) setActiveSection(secId);
+            if (secId) {
+              setActiveSection((prev) => (prev === secId ? prev : secId));
+            } else {
+              // 섹션 추적 대상이 아닌 일반 .reveal 요소는 최초 노출 후 관찰 해제하여 스크롤 오버헤드 제거
+              observer.unobserve(entry.target);
+            }
           }
-        });
+        }
       },
       { threshold: 0.12 }
     );
@@ -753,7 +762,13 @@ export function BrandLandingPage() {
                     </div>
                     {/* Real Photo Thumbnail */}
                     <div className="experience-photo-wrap">
-                      <img src={photo} alt={title} className="experience-thumb-img" />
+                      <img
+                        src={photo}
+                        alt={title}
+                        className="experience-thumb-img"
+                        loading="lazy"
+                        decoding="async"
+                      />
                     </div>
                     <span className="experience-label">{label}</span>
                     <h3>{title}</h3>

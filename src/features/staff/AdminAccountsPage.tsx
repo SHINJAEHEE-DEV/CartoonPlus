@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useStaffStore } from './StaffStoreContext';
 import { publicStoreList } from '../../lib/storeContext';
@@ -59,14 +59,27 @@ export function AdminAccountsPage() {
     setMessage(error?.message ?? `[${name}] 직원에게 임시 비밀번호를 발급했습니다.`);
   };
 
-  const approvedCount = accounts.filter((a) => a.status === 'approved').length;
-  const pendingCount = accounts.filter((a) => a.status === 'pending').length;
-  const deactivatedCount = accounts.filter((a) => a.status === 'deactivated').length;
+  // 상태별 카운트 단일 패스(O(A)) 집계
+  const { approvedCount, pendingCount, deactivatedCount } = useMemo(() => {
+    let approved = 0;
+    let pending = 0;
+    let deactivated = 0;
+    for (let i = 0; i < accounts.length; i += 1) {
+      const status = accounts[i].status;
+      if (status === 'approved') approved += 1;
+      else if (status === 'pending') pending += 1;
+      else if (status === 'deactivated') deactivated += 1;
+    }
+    return { approvedCount: approved, pendingCount: pending, deactivatedCount: deactivated };
+  }, [accounts]);
 
-  const filteredAccounts =
-    filterRole === 'ALL'
-      ? accounts
-      : accounts.filter((a) => (filterRole === 'ADMIN' ? a.role === 'admin' : a.role === 'staff'));
+  const filteredAccounts = useMemo(
+    () =>
+      filterRole === 'ALL'
+        ? accounts
+        : accounts.filter((a) => (filterRole === 'ADMIN' ? a.role === 'admin' : a.role === 'staff')),
+    [accounts, filterRole]
+  );
 
   return (
     <div className="staff-page-container">

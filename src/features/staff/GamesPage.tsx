@@ -111,13 +111,24 @@ export function GamesPage() {
 
   const activeCount = items.length;
 
+  // 플랫폼별 게임 수량 단일 패스(O(G)) 집계: 탭 버튼 렌더링 시 4회 반복되던 filter 호출 제거
+  const itemCountsByType = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (let i = 0; i < items.length; i += 1) {
+      const type = items[i].item_type;
+      counts[type] = (counts[type] ?? 0) + 1;
+    }
+    return counts;
+  }, [items]);
+
   const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
     return items.filter((item) => {
       const matchesTab = currentTab === 'ALL' || item.item_type === currentTab;
       const matchesSearch =
-        !searchQuery.trim() ||
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (item.genre && item.genre.toLowerCase().includes(searchQuery.toLowerCase()));
+        !q ||
+        item.title.toLowerCase().includes(q) ||
+        (item.genre && item.genre.toLowerCase().includes(q));
       return matchesTab && matchesSearch;
     });
   }, [items, currentTab, searchQuery]);
@@ -376,8 +387,7 @@ export function GamesPage() {
                 ['BOARD_GAME', '보드게임'],
                 ['XBOX', 'Xbox'],
               ].map(([key, label]) => {
-                const count =
-                  key === 'ALL' ? items.length : items.filter((i) => i.item_type === key).length;
+                const count = key === 'ALL' ? items.length : (itemCountsByType[key] ?? 0);
                 const active = currentTab === key;
                 return (
                   <button
