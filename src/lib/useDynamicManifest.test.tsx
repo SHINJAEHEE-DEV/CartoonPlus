@@ -20,9 +20,7 @@ describe('useDynamicManifest', () => {
   it('switches manifest to manifest-hongdae.webmanifest on hongdae customer routes', () => {
     renderHook(() => useDynamicManifest(), {
       wrapper: ({ children }) => (
-        <MemoryRouter initialEntries={['/stores/hongdae/books']}>
-          {children}
-        </MemoryRouter>
+        <MemoryRouter initialEntries={['/stores/hongdae/books']}>{children}</MemoryRouter>
       ),
     });
 
@@ -32,9 +30,7 @@ describe('useDynamicManifest', () => {
   it('switches manifest to manifest-jamsil.webmanifest on jamsil staff routes', () => {
     renderHook(() => useDynamicManifest(), {
       wrapper: ({ children }) => (
-        <MemoryRouter initialEntries={['/staff/jamsil/broadcast']}>
-          {children}
-        </MemoryRouter>
+        <MemoryRouter initialEntries={['/staff/jamsil/broadcast']}>{children}</MemoryRouter>
       ),
     });
 
@@ -44,9 +40,7 @@ describe('useDynamicManifest', () => {
   it('reverts manifest to site.webmanifest on non-store routes', () => {
     renderHook(() => useDynamicManifest(), {
       wrapper: ({ children }) => (
-        <MemoryRouter initialEntries={['/about']}>
-          {children}
-        </MemoryRouter>
+        <MemoryRouter initialEntries={['/about']}>{children}</MemoryRouter>
       ),
     });
 

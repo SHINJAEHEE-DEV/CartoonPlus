@@ -151,8 +151,7 @@ export function searchBooks(books: SearchableBook[], query: string): SearchableB
 
     if (isInitialConsonantQuery) {
       return (
-        idx.titleInitial.includes(normalizedQuery) ||
-        idx.authorInitial.includes(normalizedQuery)
+        idx.titleInitial.includes(normalizedQuery) || idx.authorInitial.includes(normalizedQuery)
       );
     }
 

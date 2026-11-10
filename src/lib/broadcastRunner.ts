@@ -134,7 +134,11 @@ export async function fetchStoreMap(): Promise<Record<string, string>> {
 
 export function isMobileDevice(): boolean {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
-  const userAgent = navigator.userAgent || navigator.vendor || (window as unknown as { opera?: string }).opera || '';
+  const userAgent =
+    navigator.userAgent ||
+    navigator.vendor ||
+    (window as unknown as { opera?: string }).opera ||
+    '';
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(userAgent);
 }
 
@@ -149,11 +153,17 @@ export function detectCurrentStoreSlug(strict = false): StoreSlug | null {
   try {
     if (window.localStorage) {
       const staffSaved = window.localStorage.getItem(STAFF_STORE_PREFERENCE_KEY);
-      if (staffSaved && (staffSaved === 'snu' || staffSaved === 'jamsil' || staffSaved === 'hongdae')) {
+      if (
+        staffSaved &&
+        (staffSaved === 'snu' || staffSaved === 'jamsil' || staffSaved === 'hongdae')
+      ) {
         return staffSaved as StoreSlug;
       }
       const customerSaved = window.localStorage.getItem(CUSTOMER_STORE_PREFERENCE_KEY);
-      if (customerSaved && (customerSaved === 'snu' || customerSaved === 'jamsil' || customerSaved === 'hongdae')) {
+      if (
+        customerSaved &&
+        (customerSaved === 'snu' || customerSaved === 'jamsil' || customerSaved === 'hongdae')
+      ) {
         return customerSaved as StoreSlug;
       }
       const saved = window.localStorage.getItem(SELECTED_STORE_KEY);

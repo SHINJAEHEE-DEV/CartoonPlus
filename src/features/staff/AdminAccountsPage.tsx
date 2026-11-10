@@ -77,7 +77,9 @@ export function AdminAccountsPage() {
     () =>
       filterRole === 'ALL'
         ? accounts
-        : accounts.filter((a) => (filterRole === 'ADMIN' ? a.role === 'admin' : a.role === 'staff')),
+        : accounts.filter((a) =>
+            filterRole === 'ADMIN' ? a.role === 'admin' : a.role === 'staff'
+          ),
     [accounts, filterRole]
   );
 

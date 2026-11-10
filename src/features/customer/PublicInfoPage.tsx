@@ -3,11 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { MASCOT_ASSETS, getStorePhotos, getStaticStoreGames } from '../../lib/brandAssets';
 import { usePublicStore } from '../../lib/storeContext';
 import { resolveStoreIdBySlug } from '../staff/StaffStoreContext';
-import {
-  ManagedEvent,
-  getBannerImageUrl,
-  loadManagedEvents,
-} from '../../lib/eventRepository';
+import { ManagedEvent, getBannerImageUrl, loadManagedEvents } from '../../lib/eventRepository';
 import { usePageTitle } from '../../lib/usePageTitle';
 
 const EVENT_MARKDOWN_LINK_PATTERN = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;

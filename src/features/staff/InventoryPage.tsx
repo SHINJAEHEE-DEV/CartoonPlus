@@ -30,7 +30,10 @@ function getBook(item: InventoryItem): InventoryBook | undefined {
 
 export function formatDatabaseError(errorMessage: string | undefined): string {
   if (!errorMessage) return '작업을 완료하지 못했습니다.';
-  if (errorMessage.includes('books_title_author_idx') || errorMessage.includes('duplicate key value')) {
+  if (
+    errorMessage.includes('books_title_author_idx') ||
+    errorMessage.includes('duplicate key value')
+  ) {
     return '동일한 제목과 작가명을 가진 도서가 이미 등록되어 있습니다.';
   }
   if (errorMessage.includes('duplicate inventory exists')) {
@@ -185,7 +188,9 @@ export function InventoryPage() {
     setMessage(
       error
         ? formatDatabaseError(error.message)
-        : (editingItem ? `[${titleVal}] 도서 정보를 수정했습니다.` : '도서 재고를 저장했습니다.')
+        : editingItem
+          ? `[${titleVal}] 도서 정보를 수정했습니다.`
+          : '도서 재고를 저장했습니다.'
     );
     if (!error) {
       await load();

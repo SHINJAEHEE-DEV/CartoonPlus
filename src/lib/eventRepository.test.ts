@@ -1,9 +1,5 @@
 import { describe, expect, it, vi, beforeAll, afterAll } from 'vitest';
-import {
-  getFeaturedEvent,
-  isEventMatchingStore,
-  type ManagedEvent,
-} from './eventRepository';
+import { getFeaturedEvent, isEventMatchingStore, type ManagedEvent } from './eventRepository';
 
 const testEvents: ManagedEvent[] = [
   {

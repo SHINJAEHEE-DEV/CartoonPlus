@@ -105,9 +105,7 @@ export async function resolveStoreIdBySlug(slug: StoreSlug): Promise<string | nu
   if (inFlight) return inFlight;
 
   const client = supabase;
-  const request = Promise.resolve(
-    client.from('stores').select('id').eq('slug', slug).maybeSingle()
-  )
+  const request = Promise.resolve(client.from('stores').select('id').eq('slug', slug).maybeSingle())
     .then(({ data }) => {
       const id = (data as { id?: string } | null)?.id ?? null;
       if (id) storeIdCache.set(slug, id);

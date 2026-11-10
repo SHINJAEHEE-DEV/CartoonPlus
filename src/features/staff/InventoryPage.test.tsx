@@ -169,7 +169,9 @@ describe('InventoryPage', () => {
     expect(formatDatabaseError('duplicate inventory exists for this store')).toBe(
       '같은 지점에 동일한 도서 재고가 이미 존재합니다.'
     );
-    expect(formatDatabaseError('store access denied')).toBe('해당 지점의 재고 관리 권한이 없습니다.');
+    expect(formatDatabaseError('store access denied')).toBe(
+      '해당 지점의 재고 관리 권한이 없습니다.'
+    );
   });
 
   it('displays friendly Korean message when inventory update fails with unique constraint error', async () => {

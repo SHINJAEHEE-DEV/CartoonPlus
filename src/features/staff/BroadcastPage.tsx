@@ -425,11 +425,7 @@ export function BroadcastPage() {
       setUploadedPresets([]);
       setMissedRuns([]);
       // 3종의 독립적인 방송 데이터를 직렬 대신 병렬(Promise.all)로 조회하여 네트워크 대기 시간 단축
-      await Promise.all([
-        loadSchedules(storeId),
-        loadPresets(storeId),
-        loadMissedRuns(storeId),
-      ]);
+      await Promise.all([loadSchedules(storeId), loadPresets(storeId), loadMissedRuns(storeId)]);
     };
     void setup();
   }, [storeId]);
@@ -710,7 +706,9 @@ export function BroadcastPage() {
                     ? `현재 기기: [${currentStore.name}] 안내 방송 송출 기기로 등록됨`
                     : `현재 기기: 방송 송출 비활성화 상태`}
                 </div>
-                <div style={{ fontSize: '12px', color: '#FFF9EC', opacity: 0.85, marginTop: '2px' }}>
+                <div
+                  style={{ fontSize: '12px', color: '#FFF9EC', opacity: 0.85, marginTop: '2px' }}
+                >
                   {isReceiverEnabled
                     ? `이 PC에서 정해진 시각에 매장 앰프 스피커로 안내 방송이 자동 송출됩니다.`
                     : `도서 검색 전용 PC나 개인 PC에서는 이 스위치를 꺼두세요. 앰프 스피커와 연결된 방송 PC만 켭니다.`}

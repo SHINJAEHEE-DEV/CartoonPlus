@@ -67,10 +67,7 @@ function Brand({
       isHolding.current = true;
       (
         onStaffEntry ??
-        (() =>
-          window.location.assign(
-            store?.slug ? `/staff/${store.slug}/dashboard` : '/staff'
-          ))
+        (() => window.location.assign(store?.slug ? `/staff/${store.slug}/dashboard` : '/staff'))
       )();
     }, STAFF_ENTRY_HOLD_MS);
   };

@@ -124,9 +124,9 @@ function StaffLegacyRedirect({ subPath }: { subPath: string }) {
       if (context?.role === 'staff') {
         setTargetSlug(context.storeSlug);
       } else {
-        const saved = (typeof window !== 'undefined'
-          ? localStorage.getItem('cartoonplus_staff_store')
-          : null) as StoreSlug | null;
+        const saved = (
+          typeof window !== 'undefined' ? localStorage.getItem('cartoonplus_staff_store') : null
+        ) as StoreSlug | null;
         if (saved && (saved === 'snu' || saved === 'jamsil' || saved === 'hongdae')) {
           setTargetSlug(saved);
         } else {
@@ -210,7 +210,7 @@ function ProtectedStaffRoute({
   }
 
   const effectiveStoreSlug =
-    role === 'admin' ? urlStoreSlug ?? accountStoreSlug : accountStoreSlug;
+    role === 'admin' ? (urlStoreSlug ?? accountStoreSlug) : accountStoreSlug;
 
   const handleStoreChange = (newSlug: StoreSlug) => {
     if (urlStoreSlug && urlStoreSlug !== newSlug) {
@@ -362,191 +362,191 @@ export default function App() {
       <GlobalBroadcastService />
       <Suspense fallback={<StaffLoadingScreen message="페이지를 불러오는 중입니다." />}>
         <Routes>
-        {/* Legacy Redirects */}
-        <Route path="/search" element={<Navigate to="/books" replace />} />
-        <Route path="/entertainment" element={<Navigate to="/games" replace />} />
-        <Route path="/event" element={<Navigate to="/events" replace />} />
+          {/* Legacy Redirects */}
+          <Route path="/search" element={<Navigate to="/books" replace />} />
+          <Route path="/entertainment" element={<Navigate to="/games" replace />} />
+          <Route path="/event" element={<Navigate to="/events" replace />} />
 
-        {/* Brand Landing Route */}
-        <Route path="/" element={<BrandLandingPage />} />
-        <Route
-          path="/books"
-          element={
-            <CustomerRoute>
-              <BooksRoute />
-            </CustomerRoute>
-          }
-        />
-        <Route
-          path="/about"
-          element={
-            <CustomerRoute>
-              <StoreIntroductionPage />
-            </CustomerRoute>
-          }
-        />
-        <Route
-          path="/menu"
-          element={
-            <CustomerRoute>
-              <MenuPage />
-            </CustomerRoute>
-          }
-        />
-        <Route
-          path="/new-arrivals"
-          element={
-            <CustomerRoute>
-              <NewArrivalsPage />
-            </CustomerRoute>
-          }
-        />
-        <Route
-          path="/games"
-          element={
-            <CustomerRoute>
-              <PublicInfoPage kind="games" />
-            </CustomerRoute>
-          }
-        />
-        <Route
-          path="/events"
-          element={
-            <CustomerRoute>
-              <PublicInfoPage kind="events" />
-            </CustomerRoute>
-          }
-        />
-        <Route
-          path="/store"
-          element={
-            <CustomerRoute>
-              <PublicInfoPage kind="store" />
-            </CustomerRoute>
-          }
-        />
-        <Route
-          path="/book-request"
-          element={
-            <CustomerRoute>
-              <BookRequestRoute />
-            </CustomerRoute>
-          }
-        />
-        <Route
-          path="/stores/:storeSlug"
-          element={
-            <CustomerRoute>
-              <BooksRoute />
-            </CustomerRoute>
-          }
-        />
-        <Route
-          path="/stores/:storeSlug/books"
-          element={
-            <CustomerRoute>
-              <BooksRoute />
-            </CustomerRoute>
-          }
-        />
-        <Route
-          path="/stores/:storeSlug/new-arrivals"
-          element={
-            <CustomerRoute>
-              <NewArrivalsPage />
-            </CustomerRoute>
-          }
-        />
-        <Route
-          path="/stores/:storeSlug/book-request"
-          element={
-            <CustomerRoute>
-              <BookRequestRoute />
-            </CustomerRoute>
-          }
-        />
-        <Route
-          path="/stores/:storeSlug/about"
-          element={
-            <CustomerRoute>
-              <StoreIntroductionPage />
-            </CustomerRoute>
-          }
-        />
-        <Route
-          path="/stores/:storeSlug/menu"
-          element={
-            <CustomerRoute>
-              <MenuPage />
-            </CustomerRoute>
-          }
-        />
-        <Route
-          path="/stores/:storeSlug/games"
-          element={
-            <CustomerRoute>
-              <PublicInfoPage kind="games" />
-            </CustomerRoute>
-          }
-        />
-        <Route
-          path="/stores/:storeSlug/events"
-          element={
-            <CustomerRoute>
-              <PublicInfoPage kind="events" />
-            </CustomerRoute>
-          }
-        />
-        <Route
-          path="/stores/:storeSlug/store"
-          element={
-            <CustomerRoute>
-              <PublicInfoPage kind="store" />
-            </CustomerRoute>
-          }
-        />
+          {/* Brand Landing Route */}
+          <Route path="/" element={<BrandLandingPage />} />
+          <Route
+            path="/books"
+            element={
+              <CustomerRoute>
+                <BooksRoute />
+              </CustomerRoute>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <CustomerRoute>
+                <StoreIntroductionPage />
+              </CustomerRoute>
+            }
+          />
+          <Route
+            path="/menu"
+            element={
+              <CustomerRoute>
+                <MenuPage />
+              </CustomerRoute>
+            }
+          />
+          <Route
+            path="/new-arrivals"
+            element={
+              <CustomerRoute>
+                <NewArrivalsPage />
+              </CustomerRoute>
+            }
+          />
+          <Route
+            path="/games"
+            element={
+              <CustomerRoute>
+                <PublicInfoPage kind="games" />
+              </CustomerRoute>
+            }
+          />
+          <Route
+            path="/events"
+            element={
+              <CustomerRoute>
+                <PublicInfoPage kind="events" />
+              </CustomerRoute>
+            }
+          />
+          <Route
+            path="/store"
+            element={
+              <CustomerRoute>
+                <PublicInfoPage kind="store" />
+              </CustomerRoute>
+            }
+          />
+          <Route
+            path="/book-request"
+            element={
+              <CustomerRoute>
+                <BookRequestRoute />
+              </CustomerRoute>
+            }
+          />
+          <Route
+            path="/stores/:storeSlug"
+            element={
+              <CustomerRoute>
+                <BooksRoute />
+              </CustomerRoute>
+            }
+          />
+          <Route
+            path="/stores/:storeSlug/books"
+            element={
+              <CustomerRoute>
+                <BooksRoute />
+              </CustomerRoute>
+            }
+          />
+          <Route
+            path="/stores/:storeSlug/new-arrivals"
+            element={
+              <CustomerRoute>
+                <NewArrivalsPage />
+              </CustomerRoute>
+            }
+          />
+          <Route
+            path="/stores/:storeSlug/book-request"
+            element={
+              <CustomerRoute>
+                <BookRequestRoute />
+              </CustomerRoute>
+            }
+          />
+          <Route
+            path="/stores/:storeSlug/about"
+            element={
+              <CustomerRoute>
+                <StoreIntroductionPage />
+              </CustomerRoute>
+            }
+          />
+          <Route
+            path="/stores/:storeSlug/menu"
+            element={
+              <CustomerRoute>
+                <MenuPage />
+              </CustomerRoute>
+            }
+          />
+          <Route
+            path="/stores/:storeSlug/games"
+            element={
+              <CustomerRoute>
+                <PublicInfoPage kind="games" />
+              </CustomerRoute>
+            }
+          />
+          <Route
+            path="/stores/:storeSlug/events"
+            element={
+              <CustomerRoute>
+                <PublicInfoPage kind="events" />
+              </CustomerRoute>
+            }
+          />
+          <Route
+            path="/stores/:storeSlug/store"
+            element={
+              <CustomerRoute>
+                <PublicInfoPage kind="store" />
+              </CustomerRoute>
+            }
+          />
 
-        {/* Staff Routes */}
-        <Route
-          path="/staff"
-          element={
-            <div className="staff-access-shell">
-              <StaffAccessPage />
-            </div>
-          }
-        />
-        {/* Scoped Staff Routes: 상위 레이아웃(ProtectedStaffRoute) 단일 마운트로 탭 이동 시 재인증 Waterfall 방지 */}
-        <Route path="/staff/:storeSlug" element={<ProtectedStaffRoute />}>
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="accounts" element={<AdminAccountsPage />} />
-          <Route path="inventory" element={<InventoryPage />} />
-          <Route path="requests" element={<BookRequestsPage />} />
-          <Route path="content" element={<StoreContentPage />} />
-          <Route path="events" element={<EventsPage />} />
-          <Route path="games" element={<GamesPage />} />
-          <Route path="broadcast" element={<BroadcastPage />} />
-        </Route>
+          {/* Staff Routes */}
+          <Route
+            path="/staff"
+            element={
+              <div className="staff-access-shell">
+                <StaffAccessPage />
+              </div>
+            }
+          />
+          {/* Scoped Staff Routes: 상위 레이아웃(ProtectedStaffRoute) 단일 마운트로 탭 이동 시 재인증 Waterfall 방지 */}
+          <Route path="/staff/:storeSlug" element={<ProtectedStaffRoute />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="accounts" element={<AdminAccountsPage />} />
+            <Route path="inventory" element={<InventoryPage />} />
+            <Route path="requests" element={<BookRequestsPage />} />
+            <Route path="content" element={<StoreContentPage />} />
+            <Route path="events" element={<EventsPage />} />
+            <Route path="games" element={<GamesPage />} />
+            <Route path="broadcast" element={<BroadcastPage />} />
+          </Route>
 
-        {/* Legacy Staff Redirects */}
-        <Route path="/staff/dashboard" element={<StaffLegacyRedirect subPath="dashboard" />} />
-        <Route path="/staff/accounts" element={<StaffLegacyRedirect subPath="accounts" />} />
-        <Route path="/staff/inventory" element={<StaffLegacyRedirect subPath="inventory" />} />
-        <Route path="/staff/requests" element={<StaffLegacyRedirect subPath="requests" />} />
-        <Route path="/staff/content" element={<StaffLegacyRedirect subPath="content" />} />
-        <Route path="/staff/events" element={<StaffLegacyRedirect subPath="events" />} />
-        <Route path="/staff/games" element={<StaffLegacyRedirect subPath="games" />} />
-        <Route path="/staff/broadcast" element={<StaffLegacyRedirect subPath="broadcast" />} />
+          {/* Legacy Staff Redirects */}
+          <Route path="/staff/dashboard" element={<StaffLegacyRedirect subPath="dashboard" />} />
+          <Route path="/staff/accounts" element={<StaffLegacyRedirect subPath="accounts" />} />
+          <Route path="/staff/inventory" element={<StaffLegacyRedirect subPath="inventory" />} />
+          <Route path="/staff/requests" element={<StaffLegacyRedirect subPath="requests" />} />
+          <Route path="/staff/content" element={<StaffLegacyRedirect subPath="content" />} />
+          <Route path="/staff/events" element={<StaffLegacyRedirect subPath="events" />} />
+          <Route path="/staff/games" element={<StaffLegacyRedirect subPath="games" />} />
+          <Route path="/staff/broadcast" element={<StaffLegacyRedirect subPath="broadcast" />} />
 
-        {/* Not Found */}
-        <Route
-          path="*"
-          element={
-            <CustomerRoute>
-              <p className="state-card">페이지를 찾을 수 없습니다.</p>
-            </CustomerRoute>
-          }
-        />
+          {/* Not Found */}
+          <Route
+            path="*"
+            element={
+              <CustomerRoute>
+                <p className="state-card">페이지를 찾을 수 없습니다.</p>
+              </CustomerRoute>
+            }
+          />
         </Routes>
       </Suspense>
     </BrowserRouter>

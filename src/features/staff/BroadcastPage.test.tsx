@@ -267,7 +267,9 @@ describe('BroadcastPage MP3 preset management', () => {
     fireEvent.click(registerBtn);
 
     expect(localStorage.getItem('cartoonplus_broadcast_receiver_enabled')).toBe('true');
-    expect(screen.getByText(/현재 기기: \[서울대입구역점\] 안내 방송 송출 기기로 등록됨/)).toBeTruthy();
+    expect(
+      screen.getByText(/현재 기기: \[서울대입구역점\] 안내 방송 송출 기기로 등록됨/)
+    ).toBeTruthy();
 
     const unregisterBtn = screen.getByRole('button', { name: /✓ 송출 기기 등록 해제/ });
     fireEvent.click(unregisterBtn);
