@@ -239,4 +239,24 @@ describe('broadcastRunner (MP3 & Scheduled Broadcasts)', () => {
       });
     }
   });
+
+  it('shares executed broadcast keys across tabs via localStorage to prevent 30s duplicate playback', () => {
+    localStorage.removeItem(broadcastRunnerModule.EXECUTED_BROADCAST_KEYS_STORAGE_KEY);
+    const tabAMemory = new Set<string>();
+    const tabBMemory = new Set<string>();
+
+    const minuteKey = broadcastRunnerModule.getLocalMinuteKey(new Date(2026, 10, 9, 21, 45, 5));
+    expect(minuteKey).toBe('2026-11-09T21:45');
+
+    const executionKey = `schedule-id-check:${minuteKey}`;
+    expect(broadcastRunnerModule.hasExecutedBroadcastKey(executionKey, tabAMemory)).toBe(false);
+    expect(broadcastRunnerModule.hasExecutedBroadcastKey(executionKey, tabBMemory)).toBe(false);
+
+    // Tab A executes at 21:45:05
+    broadcastRunnerModule.markBroadcastKeyExecuted(executionKey, tabAMemory);
+
+    // Tab B checks at 21:45:36 (even with empty tabBMemory, localStorage blocks duplicate execution)
+    expect(broadcastRunnerModule.hasExecutedBroadcastKey(executionKey, tabAMemory)).toBe(true);
+    expect(broadcastRunnerModule.hasExecutedBroadcastKey(executionKey, tabBMemory)).toBe(true);
+  });
 });

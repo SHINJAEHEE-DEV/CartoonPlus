@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { DEFAULT_STATIC_PRESETS, playVoiceAsset } from './voiceAssets';
-import { isDue, type ScheduledBroadcast } from './broadcastSchedule';
+import { isDue, localDate, type ScheduledBroadcast } from './broadcastSchedule';
 import { supabase } from './supabase';
 import { type StoreSlug, defaultPublicStore } from './storeContext';
 
@@ -39,14 +39,75 @@ export function getSchedulesDueBetween(
 
 export const NOTIFY_SCHEDULE_UPDATE_EVENT = 'cartoonplus_broadcast_schedules_updated';
 export const NOTIFY_RECEIVER_STATUS_CHANGED_EVENT = 'cartoonplus_broadcast_receiver_changed';
+export const NOTIFY_EXECUTION_KEY_EVENT = 'cartoonplus_broadcast_execution_recorded';
 export const BROADCAST_CHANNEL_NAME = 'cartoonplus_broadcast_channel';
 export const BROADCAST_RECEIVER_ENABLED_KEY = 'cartoonplus_broadcast_receiver_enabled';
+export const EXECUTED_BROADCAST_KEYS_STORAGE_KEY = 'cartoonplus_executed_broadcast_keys';
+const MAX_STORED_EXECUTION_KEYS = 60;
 const LAST_BROADCAST_CHECK_KEY = 'cartoonplus_last_broadcast_check';
 const SELECTED_STORE_KEY = 'cartoonplus_selected_store';
 const STAFF_STORE_PREFERENCE_KEY = 'cartoonplus_staff_store';
 const CUSTOMER_STORE_PREFERENCE_KEY = 'cartoonplus_customer_store';
 const SILENT_AUDIO_DATA_URI =
   'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+
+/**
+ * 로컬 타임존 기준 분 단위 식별 키(YYYY-MM-DDTHH:mm)를 생성함.
+ * isDue()가 로컬 시각 기준(toTimeString)으로 판정하므로 실행 키도 로컬 시각 기준으로 일치시킴.
+ */
+export function getLocalMinuteKey(date: Date = new Date()): string {
+  return `${localDate(date)}T${date.toTimeString().slice(0, 5)}`;
+}
+
+/**
+ * 동일 브라우저 내 다중 탭 환경에서 특정 스케줄 실행 키가 이미 처리되었는지 확인함.
+ */
+export function hasExecutedBroadcastKey(
+  executionKey: string,
+  memorySet?: ReadonlySet<string>
+): boolean {
+  if (memorySet?.has(executionKey)) return true;
+  if (typeof window === 'undefined' || !window.localStorage) return false;
+  try {
+    const raw = window.localStorage.getItem(EXECUTED_BROADCAST_KEYS_STORAGE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.includes(executionKey);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 스케줄 실행 완료 키를 탭 메모리와 localStorage에 동시 기록하고 BroadcastChannel로 타 탭에 전파함.
+ */
+export function markBroadcastKeyExecuted(executionKey: string, memorySet?: Set<string>): void {
+  memorySet?.add(executionKey);
+  if (typeof window === 'undefined') return;
+  try {
+    if (window.localStorage) {
+      const raw = window.localStorage.getItem(EXECUTED_BROADCAST_KEYS_STORAGE_KEY);
+      const parsed: string[] = raw ? JSON.parse(raw) : [];
+      const list = Array.isArray(parsed) ? parsed : [];
+      if (!list.includes(executionKey)) {
+        const next = [...list, executionKey].slice(-MAX_STORED_EXECUTION_KEYS);
+        window.localStorage.setItem(EXECUTED_BROADCAST_KEYS_STORAGE_KEY, JSON.stringify(next));
+      }
+    }
+  } catch {
+    // ignore storage errors
+  }
+
+  try {
+    if (typeof BroadcastChannel !== 'undefined') {
+      const channel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+      channel.postMessage({ type: NOTIFY_EXECUTION_KEY_EVENT, executionKey });
+      channel.close();
+    }
+  } catch {
+    // ignore BroadcastChannel errors
+  }
+}
 
 export function isBroadcastReceiverEnabled(): boolean {
   if (typeof window === 'undefined') return false;
@@ -394,6 +455,7 @@ export function useGlobalBroadcastScheduler(): void {
   const executedKeysRef = useRef<Set<string>>(new Set());
   const lastCheckedAtRef = useRef<Date | null>(null);
   const playbackTabIdRef = useRef(createPlaybackTabId());
+  const activeLeaseMinuteRef = useRef<string | null>(null);
   const tickInFlightRef = useRef(false);
 
   const reloadSchedules = async () => {
@@ -433,6 +495,11 @@ export function useGlobalBroadcastScheduler(): void {
         channel.onmessage = (event) => {
           if (event.data?.type === NOTIFY_SCHEDULE_UPDATE_EVENT) {
             void reloadSchedules();
+          } else if (
+            event.data?.type === NOTIFY_EXECUTION_KEY_EVENT &&
+            typeof event.data.executionKey === 'string'
+          ) {
+            executedKeysRef.current.add(event.data.executionKey);
           }
         };
       }
@@ -472,12 +539,18 @@ export function useGlobalBroadcastScheduler(): void {
         }
 
         const now = new Date();
-        const currentMinuteKey = now.toISOString().slice(0, 16);
+        const currentMinuteKey = getLocalMinuteKey(now);
 
         const storeMap = await fetchStoreMap();
         const currentStoreId = storeMap[currentSlug];
         if (!currentStoreId) {
           return;
+        }
+
+        // 현재 분(minute)에 이 탭이 이미 방송 Lease를 획득해 실행한 이력이 있다면,
+        // 해당 분이 끝날 때까지 Lease를 연장하여 30초 경과 시점에 타 탭/브라우저가 Lease를 탈취하는 현상을 차단함
+        if (activeLeaseMinuteRef.current === currentMinuteKey) {
+          await claimPlaybackLease(currentStoreId, playbackTabIdRef.current);
         }
 
         // 현재 지점에 정확히 해당하는 스케줄만 필터링하여 실행
@@ -486,10 +559,10 @@ export function useGlobalBroadcastScheduler(): void {
         const previousCheck = lastCheckedAtRef.current;
         if (previousCheck && now.getTime() - previousCheck.getTime() > 70_000) {
           for (const item of getSchedulesDueBetween(relevantSchedules, previousCheck, now)) {
-            const executionKey = `${item.id}:${item.dueAt.toISOString().slice(0, 16)}`;
-            if (!executedKeysRef.current.has(executionKey)) {
+            const executionKey = `${item.id}:${getLocalMinuteKey(item.dueAt)}`;
+            if (!hasExecutedBroadcastKey(executionKey, executedKeysRef.current)) {
               if (await claimPlaybackLease(item.storeId, playbackTabIdRef.current)) {
-                executedKeysRef.current.add(executionKey);
+                markBroadcastKeyExecuted(executionKey, executedKeysRef.current);
                 void recordBroadcastRun(
                   item.message_text,
                   item.id,
@@ -512,11 +585,12 @@ export function useGlobalBroadcastScheduler(): void {
 
         for (const item of relevantSchedules) {
           const executionKey = `${item.id}:${currentMinuteKey}`;
-          if (executedKeysRef.current.has(executionKey)) continue;
+          if (hasExecutedBroadcastKey(executionKey, executedKeysRef.current)) continue;
 
           if (isDue(item, now)) {
             if (await claimPlaybackLease(item.storeId, playbackTabIdRef.current)) {
-              executedKeysRef.current.add(executionKey);
+              markBroadcastKeyExecuted(executionKey, executedKeysRef.current);
+              activeLeaseMinuteRef.current = currentMinuteKey;
               void playBroadcast(
                 item.message_text,
                 item.id,
