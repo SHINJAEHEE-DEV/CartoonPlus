@@ -46,7 +46,13 @@ function toSearchableBook(row: CatalogueRow): SearchableBook {
   };
 }
 
+const baselineCsvCache = new Map<StoreSlug, SearchableBook[]>();
+const inFlightCatalogueRequests = new Map<StoreSlug, Promise<SearchableBook[]>>();
+
 async function loadBaselineCsv(storeSlug: StoreSlug): Promise<SearchableBook[]> {
+  const cached = baselineCsvCache.get(storeSlug);
+  if (cached) return cached;
+
   try {
     const csvFileName =
       storeSlug === 'jamsil'
@@ -58,53 +64,70 @@ async function loadBaselineCsv(storeSlug: StoreSlug): Promise<SearchableBook[]> 
     const response = await fetch(`${import.meta.env.BASE_URL}data/${csvFileName}`);
     if (!response.ok) return [];
     const text = await response.text();
+    let parsed: SearchableBook[];
     if (storeSlug === 'jamsil') {
-      if (isJamsilInventoryCsv(text)) {
-        return parseJamsilInventoryCsv(text).books;
-      }
-      return parseBaselineInventory(text);
+      parsed = isJamsilInventoryCsv(text)
+        ? parseJamsilInventoryCsv(text).books
+        : parseBaselineInventory(text);
+    } else if (storeSlug === 'hongdae') {
+      parsed = isHongdaeInventoryCsv(text)
+        ? parseHongdaeInventoryCsv(text).books
+        : parseBaselineInventory(text);
+    } else {
+      parsed = parseBaselineInventory(text);
     }
-    if (storeSlug === 'hongdae') {
-      if (isHongdaeInventoryCsv(text)) {
-        return parseHongdaeInventoryCsv(text).books;
-      }
-      return parseBaselineInventory(text);
-    }
-    return parseBaselineInventory(text);
+    baselineCsvCache.set(storeSlug, parsed);
+    return parsed;
   } catch {
     return [];
   }
 }
 
+/**
+ * 지점별 공개 도서 카탈로그를 조회하며, 동시에 동일한 지점으로 요청이 발생할 경우
+ * 진행 중인(In-flight) Promise를 공유하여 중복 네트워크 페이지네이션 호출을 방지함.
+ */
 export async function loadPublicCatalogue(storeSlug: StoreSlug = 'snu'): Promise<SearchableBook[]> {
-  if (supabase) {
-    const CHUNK_SIZE = 1000;
-    const allRows: CatalogueRow[] = [];
-    let page = 0;
+  const inFlight = inFlightCatalogueRequests.get(storeSlug);
+  if (inFlight) return inFlight;
 
-    while (true) {
-      const { data, error } = await supabase
-        .from('customer_book_catalogue')
-        .select('inventory_id,title,author,category,volume_range,shelf_location')
-        .eq('store_slug', storeSlug)
-        .order('title')
-        .range(page * CHUNK_SIZE, (page + 1) * CHUNK_SIZE - 1);
+  const request = (async (): Promise<SearchableBook[]> => {
+    if (supabase) {
+      const CHUNK_SIZE = 1000;
+      const allRows: CatalogueRow[] = [];
+      let page = 0;
 
-      if (error) {
-        if (allRows.length === 0) return loadBaselineCsv(storeSlug);
-        break;
+      while (true) {
+        const { data, error } = await supabase
+          .from('customer_book_catalogue')
+          .select('inventory_id,title,author,category,volume_range,shelf_location')
+          .eq('store_slug', storeSlug)
+          .order('title')
+          .range(page * CHUNK_SIZE, (page + 1) * CHUNK_SIZE - 1);
+
+        if (error) {
+          if (allRows.length === 0) return loadBaselineCsv(storeSlug);
+          break;
+        }
+
+        if (!data || data.length === 0) break;
+        allRows.push(...data);
+        if (data.length < CHUNK_SIZE) break;
+        page += 1;
       }
 
-      if (!data || data.length === 0) break;
-      allRows.push(...data);
-      if (data.length < CHUNK_SIZE) break;
-      page += 1;
+      return allRows.map(toSearchableBook);
     }
 
-    return allRows.map(toSearchableBook);
-  }
+    return loadBaselineCsv(storeSlug);
+  })();
 
-  return loadBaselineCsv(storeSlug);
+  inFlightCatalogueRequests.set(storeSlug, request);
+  try {
+    return await request;
+  } finally {
+    inFlightCatalogueRequests.delete(storeSlug);
+  }
 }
 
 export async function loadNewArrivals(storeSlug: StoreSlug = 'snu'): Promise<SearchableBook[]> {

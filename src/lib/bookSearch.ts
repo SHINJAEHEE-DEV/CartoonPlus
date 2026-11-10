@@ -61,47 +61,80 @@ export function normalizeBookCategory(value: string): string {
 }
 
 export function splitBookCategories(value: string): string[] {
-  return normalizeBookCategory(value)
+  const normalized = normalizeBookCategory(value);
+  if (!normalized) return [];
+  return normalized
     .split(/[,·]/u)
     .map((category) => category.trim())
     .filter(Boolean);
 }
 
+/**
+ * 한글 음절 문자열에서 초성만 단일 패스(O(L))로 추출함.
+ * 기존 [...value].map().join() 방식을 대체하여 중간 배열 및 단일 문자 객체 할당을 제거함.
+ */
 export function toInitialConsonants(value: string): string {
-  return [...value]
-    .map((character) => {
-      const code = character.charCodeAt(0);
-      if (code < HANGUL_START || code > HANGUL_END) return character;
-      return INITIAL_CONSONANTS[Math.floor((code - HANGUL_START) / 588)];
-    })
-    .join('');
+  let result = '';
+  for (let i = 0; i < value.length; i += 1) {
+    const code = value.charCodeAt(i);
+    if (code >= HANGUL_START && code <= HANGUL_END) {
+      result += INITIAL_CONSONANTS[((code - HANGUL_START) / 588) | 0];
+    } else {
+      result += value[i];
+    }
+  }
+  return result;
 }
 
-type BookSearchIndexEntry = {
+export type BookSearchIndexEntry = {
   rawTitle: string;
   rawAuthor: string;
+  rawCategory: string;
   titleNorm: string;
   authorNorm: string;
   titleInitial: string;
   authorInitial: string;
+  normalizedCategory: string;
+  categories: readonly string[];
+  categorySet: ReadonlySet<string>;
 };
 
 const bookIndexCache = new WeakMap<SearchableBook, BookSearchIndexEntry>();
 
-function getBookIndex(book: SearchableBook): BookSearchIndexEntry {
+/**
+ * 도서 객체당 최초 1회만 검색(정규화·초성) 및 카테고리(정규화·분리·Set) 인덱스를 생성하여 WeakMap에 캐싱함.
+ * 도서 객체 참조가 유지되는 동안 정규식 치환과 배열·Set 할당이 재실행되지 않음.
+ */
+export function getBookIndex(book: SearchableBook): BookSearchIndexEntry {
   const cached = bookIndexCache.get(book);
-  if (cached && cached.rawTitle === book.title && cached.rawAuthor === book.author) {
+  if (
+    cached &&
+    cached.rawTitle === book.title &&
+    cached.rawAuthor === book.author &&
+    cached.rawCategory === book.category
+  ) {
     return cached;
   }
   const titleNorm = normalizeSearchText(book.title);
   const authorNorm = normalizeSearchText(book.author);
+  const normalizedCategory = normalizeBookCategory(book.category);
+  const categories = normalizedCategory
+    ? normalizedCategory
+        .split(/[,·]/u)
+        .map((category) => category.trim())
+        .filter(Boolean)
+    : [];
   const entry: BookSearchIndexEntry = {
     rawTitle: book.title,
     rawAuthor: book.author,
+    rawCategory: book.category,
     titleNorm,
     authorNorm,
     titleInitial: toInitialConsonants(titleNorm),
     authorInitial: toInitialConsonants(authorNorm),
+    normalizedCategory,
+    categories,
+    categorySet: new Set(categories),
   };
   bookIndexCache.set(book, entry);
   return entry;

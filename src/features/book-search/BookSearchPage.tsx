@@ -2,9 +2,8 @@ import { useMemo, useState, useEffect } from 'react';
 import { MASCOT_ASSETS } from '../../lib/brandAssets';
 import {
   STANDARD_BOOK_GENRES,
-  normalizeBookCategory,
+  getBookIndex,
   searchBooks,
-  splitBookCategories,
   type SearchableBook,
 } from '../../lib/bookSearch';
 import { Pagination } from '../common/Pagination';
@@ -39,23 +38,32 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
     setCurrentPage(1);
   }, [query, selectedGenre]);
 
-  // 우리가 정의한 11대 표준 장르 중 현재 도서 목록에 등록된 장르들만 표준 순서대로 노출
+  // 11대 표준 장르 중 현재 도서 목록에 등록된 장르들만 표준 순서대로 노출 (WeakMap 인덱스 재사용으로 flatMap·정규식 반복 제거)
   const dynamicGenres = useMemo(() => {
-    const existingGenres = new Set(books.flatMap((book) => splitBookCategories(book.category)));
+    const existingGenres = new Set<string>();
+    for (let i = 0; i < books.length; i += 1) {
+      const { categories } = getBookIndex(books[i]);
+      for (let j = 0; j < categories.length; j += 1) {
+        existingGenres.add(categories[j]);
+      }
+    }
     const matchedStandards = STANDARD_BOOK_GENRES.filter((genre) => existingGenres.has(genre));
     return ['전체', ...matchedStandards];
   }, [books]);
 
+  // 1단계 메모이제이션: 선택된 장르에 따른 도서 필터링 (O(1) Set.has 판별, 검색어 타이핑 시에는 재실행되지 않음)
+  const genreFilteredBooks = useMemo(() => {
+    if (selectedGenre === '전체') return books;
+    return books.filter((book) => getBookIndex(book).categorySet.has(selectedGenre));
+  }, [books, selectedGenre]);
+
+  // 2단계 메모이제이션: 장르로 1차 선별된 도서 집합(M권)에 대해서만 검색어 매칭 수행 (O(M))
   const filteredBooks = useMemo(() => {
-    let result = books;
-    if (selectedGenre !== '전체') {
-      result = result.filter((book) => splitBookCategories(book.category).includes(selectedGenre));
-    }
     if (!query.trim()) {
-      return result;
+      return genreFilteredBooks;
     }
-    return searchBooks(result, query);
-  }, [books, query, selectedGenre]);
+    return searchBooks(genreFilteredBooks, query);
+  }, [genreFilteredBooks, query]);
 
   const paginatedBooks = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
@@ -452,7 +460,7 @@ export function BookSearchPage({ books, isLoading = false }: BookSearchPageProps
                 <div>
                   <div className="book-badges" style={{ marginBottom: '4px' }}>
                     <span className="badge-genre">
-                      {normalizeBookCategory(book.category) || '기타'}
+                      {getBookIndex(book).normalizedCategory || '기타'}
                     </span>
                   </div>
                   <h2
