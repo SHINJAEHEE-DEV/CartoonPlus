@@ -1,4 +1,5 @@
 import { EVENT_BANNERS } from './brandAssets';
+import { supabase } from './supabase';
 
 export type EventStoreSlug = 'snu' | 'jamsil' | 'hongdae' | 'all';
 
@@ -119,7 +120,6 @@ export function getBannerImageUrl(type: ManagedEvent['bannerType'], customUrl?: 
 export async function uploadEventImage(file: File): Promise<{ url?: string; error?: string }> {
   if (!file.type.startsWith('image/')) return { error: '이미지 파일만 업로드할 수 있습니다.' };
   if (file.size > 5 * 1024 * 1024) return { error: '이미지 파일 크기는 5MB 이하여야 합니다.' };
-  const { supabase } = await import('./supabase');
   if (!supabase) return { error: '서버 연결을 확인할 수 없습니다.' };
   const extension = file.name.split('.').pop()?.toLowerCase() || 'png';
   const path = `events/${crypto.randomUUID()}.${extension}`;
@@ -173,7 +173,6 @@ export function saveManagedEvents(events: ManagedEvent[]): void {
 }
 
 export async function syncEventsWithSupabase(storeSlug?: EventStoreSlug): Promise<ManagedEvent[]> {
-  const { supabase } = await import('./supabase');
   if (!supabase) {
     return loadManagedEvents(storeSlug);
   }
@@ -223,7 +222,6 @@ export async function syncEventsWithSupabase(storeSlug?: EventStoreSlug): Promis
 export async function saveEventToSupabase(
   event: ManagedEvent
 ): Promise<{ success: boolean; error?: string }> {
-  const { supabase } = await import('./supabase');
   if (!supabase) return { success: false, error: '서버 연결을 확인할 수 없습니다.' };
 
   const today = new Date().toISOString().slice(0, 10);
@@ -279,7 +277,6 @@ export async function deleteEventFromSupabase(
   id: string,
   imageUrl?: string
 ): Promise<{ success: boolean; error?: string }> {
-  const { supabase } = await import('./supabase');
   if (!supabase) return { success: false, error: '서버 연결을 확인할 수 없습니다.' };
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
@@ -302,7 +299,6 @@ async function deleteEventImage(url: string): Promise<void> {
   const marker = '/storage/v1/object/public/event-images/';
   const path = url.includes(marker) ? url.split(marker)[1] : null;
   if (!path) return;
-  const { supabase } = await import('./supabase');
   if (supabase) await supabase.storage.from('event-images').remove([path]);
 }
 

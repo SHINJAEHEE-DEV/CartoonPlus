@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
+  Outlet,
   useLocation,
   useNavigate,
   useParams,
@@ -146,7 +147,7 @@ function ProtectedStaffRoute({
   children,
   requiredRole,
 }: {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   requiredRole?: 'admin';
 }) {
   const location = useLocation();
@@ -189,7 +190,8 @@ function ProtectedStaffRoute({
         </div>
       </div>
     );
-  if (requiredRole === 'admin' && role !== 'admin')
+  const isAdminOnlyPath = requiredRole === 'admin' || location.pathname.endsWith('/accounts');
+  if (isAdminOnlyPath && role !== 'admin')
     return <p className="state-card">관리자만 직원 계정을 관리할 수 있습니다.</p>;
 
   const validSlugs: StoreSlug[] = ['snu', 'jamsil', 'hongdae'];
@@ -235,23 +237,38 @@ function ProtectedStaffRoute({
           void signOutStaff().then(() => navigate('/', { replace: true }));
         }}
       >
-        {children}
+        {children ?? <Outlet />}
       </StaffShell>
     </StaffStoreProvider>
   );
 }
 
+/**
+ * 지점별 도서 카탈로그 Stale-While-Revalidate 메모리 캐시.
+ * 라우트 전환(/stores/:slug/menu -> /stores/:slug/books) 시 빈 배열 초기화로 인한
+ * 화면 깜빡임을 방지하고, 백그라운드에서 최신 재고를 재검증함.
+ */
+const catalogueMemoryCache = new Map<StoreSlug, SearchableBook[]>();
+
 export function BooksRoute() {
   const { store } = usePublicStore();
-  const [books, setBooks] = useState<SearchableBook[]>([]);
+  const [books, setBooks] = useState<SearchableBook[]>(
+    () => catalogueMemoryCache.get(store.slug) ?? []
+  );
   const [error, setError] = useState(false);
   useEffect(() => {
     let active = true;
+    const cached = catalogueMemoryCache.get(store.slug);
+    setBooks(cached ?? []);
     const load = async () => {
-      setBooks([]);
       setError(false);
       try {
         const loadedBooks = await loadPublicCatalogue(store.slug);
+        if (loadedBooks.length > 0) {
+          catalogueMemoryCache.set(store.slug, loadedBooks);
+        } else {
+          catalogueMemoryCache.delete(store.slug);
+        }
         if (active) setBooks(loadedBooks);
       } catch {
         if (active) setError(true);
@@ -498,75 +515,18 @@ export default function App() {
             </div>
           }
         />
-        {/* Scoped Staff Routes */}
-        <Route
-          path="/staff/:storeSlug"
-          element={<Navigate to="dashboard" replace />}
-        />
-        <Route
-          path="/staff/:storeSlug/dashboard"
-          element={
-            <ProtectedStaffRoute>
-              <DashboardPage />
-            </ProtectedStaffRoute>
-          }
-        />
-        <Route
-          path="/staff/:storeSlug/accounts"
-          element={
-            <ProtectedStaffRoute requiredRole="admin">
-              <AdminAccountsPage />
-            </ProtectedStaffRoute>
-          }
-        />
-        <Route
-          path="/staff/:storeSlug/inventory"
-          element={
-            <ProtectedStaffRoute>
-              <InventoryPage />
-            </ProtectedStaffRoute>
-          }
-        />
-        <Route
-          path="/staff/:storeSlug/requests"
-          element={
-            <ProtectedStaffRoute>
-              <BookRequestsPage />
-            </ProtectedStaffRoute>
-          }
-        />
-        <Route
-          path="/staff/:storeSlug/content"
-          element={
-            <ProtectedStaffRoute>
-              <StoreContentPage />
-            </ProtectedStaffRoute>
-          }
-        />
-        <Route
-          path="/staff/:storeSlug/events"
-          element={
-            <ProtectedStaffRoute>
-              <EventsPage />
-            </ProtectedStaffRoute>
-          }
-        />
-        <Route
-          path="/staff/:storeSlug/games"
-          element={
-            <ProtectedStaffRoute>
-              <GamesPage />
-            </ProtectedStaffRoute>
-          }
-        />
-        <Route
-          path="/staff/:storeSlug/broadcast"
-          element={
-            <ProtectedStaffRoute>
-              <BroadcastPage />
-            </ProtectedStaffRoute>
-          }
-        />
+        {/* Scoped Staff Routes: 상위 레이아웃(ProtectedStaffRoute) 단일 마운트로 탭 이동 시 재인증 Waterfall 방지 */}
+        <Route path="/staff/:storeSlug" element={<ProtectedStaffRoute />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="accounts" element={<AdminAccountsPage />} />
+          <Route path="inventory" element={<InventoryPage />} />
+          <Route path="requests" element={<BookRequestsPage />} />
+          <Route path="content" element={<StoreContentPage />} />
+          <Route path="events" element={<EventsPage />} />
+          <Route path="games" element={<GamesPage />} />
+          <Route path="broadcast" element={<BroadcastPage />} />
+        </Route>
 
         {/* Legacy Staff Redirects */}
         <Route path="/staff/dashboard" element={<StaffLegacyRedirect subPath="dashboard" />} />

@@ -424,9 +424,12 @@ export function BroadcastPage() {
       setSchedules([]);
       setUploadedPresets([]);
       setMissedRuns([]);
-      await loadSchedules(storeId);
-      await loadPresets(storeId);
-      await loadMissedRuns(storeId);
+      // 3종의 독립적인 방송 데이터를 직렬 대신 병렬(Promise.all)로 조회하여 네트워크 대기 시간 단축
+      await Promise.all([
+        loadSchedules(storeId),
+        loadPresets(storeId),
+        loadMissedRuns(storeId),
+      ]);
     };
     void setup();
   }, [storeId]);

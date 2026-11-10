@@ -88,17 +88,62 @@ export function useStaffStore() {
   return context;
 }
 
+const storeIdCache = new Map<StoreSlug, string>();
+const storeIdInFlight = new Map<StoreSlug, Promise<string | null>>();
+
+/**
+ * 지점 slug에 대응하는 Supabase stores.id(UUID)를 조회하며,
+ * 한 번 확인된 UUID는 메모리에 캐싱하고 동시 요청(In-flight)을 병합하여 중복 DB RTT를 제거함.
+ */
+export async function resolveStoreIdBySlug(slug: StoreSlug): Promise<string | null> {
+  if (!supabase) return null;
+
+  const cached = storeIdCache.get(slug);
+  if (cached) return cached;
+
+  const inFlight = storeIdInFlight.get(slug);
+  if (inFlight) return inFlight;
+
+  const client = supabase;
+  const request = Promise.resolve(
+    client.from('stores').select('id').eq('slug', slug).maybeSingle()
+  )
+    .then(({ data }) => {
+      const id = (data as { id?: string } | null)?.id ?? null;
+      if (id) storeIdCache.set(slug, id);
+      return id;
+    })
+    .catch(() => null)
+    .finally(() => {
+      storeIdInFlight.delete(slug);
+    });
+
+  storeIdInFlight.set(slug, request);
+  return request;
+}
+
 export function useSelectedStaffStoreId() {
   const { selectedStoreSlug } = useStaffStore();
-  const [storeId, setStoreId] = useState<string | null>(null);
+  const [storeId, setStoreId] = useState<string | null>(
+    () => storeIdCache.get(selectedStoreSlug) ?? null
+  );
   useEffect(() => {
-    if (!supabase) return setStoreId(null);
-    void supabase
-      .from('stores')
-      .select('id')
-      .eq('slug', selectedStoreSlug)
-      .maybeSingle()
-      .then(({ data }) => setStoreId(data?.id ?? null));
+    if (!supabase) {
+      setStoreId(null);
+      return;
+    }
+    const cached = storeIdCache.get(selectedStoreSlug);
+    if (cached) {
+      setStoreId(cached);
+      return;
+    }
+    let active = true;
+    void resolveStoreIdBySlug(selectedStoreSlug).then((id) => {
+      if (active) setStoreId(id);
+    });
+    return () => {
+      active = false;
+    };
   }, [selectedStoreSlug]);
   return storeId;
 }

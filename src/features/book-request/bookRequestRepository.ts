@@ -1,5 +1,6 @@
 import { supabase } from '../../lib/supabase';
 import type { StoreSlug } from '../../lib/storeContext';
+import { resolveStoreIdBySlug } from '../staff/StaffStoreContext';
 
 export interface BookRequestInput {
   title: string;
@@ -22,22 +23,14 @@ export async function submitBookRequest(
   }
 
   try {
-    const { data: store, error: storeError } = await supabase
-      .from('stores')
-      .select('id')
-      .eq('slug', storeSlug)
-      .single();
+    const storeId = await resolveStoreIdBySlug(storeSlug);
 
-    if (storeError && storeError.code !== 'PGRST116') {
-      throw storeError;
-    }
-
-    if (!store?.id) {
+    if (!storeId) {
       return { success: false, error: '유효한 지점 정보를 찾을 수 없습니다.' };
     }
 
     const { error } = await supabase.from('book_requests').insert({
-      store_id: store.id,
+      store_id: storeId,
       title: input.title.trim(),
       author: input.author?.trim() || null,
       desired_volume: input.desiredVolume?.trim() || null,
